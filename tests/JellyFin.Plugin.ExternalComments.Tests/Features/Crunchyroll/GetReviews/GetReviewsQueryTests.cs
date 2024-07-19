@@ -1,0 +1,234 @@
+using AutoFixture;
+using FluentAssertions;
+using FluentResults;
+using Jellyfin.Plugin.ExternalComments.Configuration;
+using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews.Client;
+using Jellyfin.Plugin.ExternalComments.Tests.Shared;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Querying;
+using NSubstitute;
+
+namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.GetReviews;
+
+public class GetReviewsQueryTests
+{
+    private readonly Fixture _fixture;
+
+    private readonly GetReviewsQueryHandler _sut;
+    private readonly ICrunchyrollGetReviewsClient _crunchyrollGetReviewsClient;
+    private readonly ILibraryManager _libraryManager;
+    private readonly PluginConfiguration _config;
+    private readonly IGetReviewsSession _getReviewsSession;
+
+    public GetReviewsQueryTests()
+    {
+        _fixture = new Fixture();
+
+        _config = new PluginConfiguration();
+        _crunchyrollGetReviewsClient = Substitute.For<ICrunchyrollGetReviewsClient>();
+        _getReviewsSession = Substitute.For<IGetReviewsSession>();
+        _libraryManager = Substitute.For<ILibraryManager>();
+        _sut = new GetReviewsQueryHandler(_crunchyrollGetReviewsClient, _libraryManager, _config,
+            _getReviewsSession);
+    }
+    
+    [Fact]
+    public async Task ReturnsReviews_WhenWaybackMachineIsDisabled_GivenItemId()
+    {
+        //Arrange
+        var id = Guid.NewGuid();
+        const int pageNumber = 1;
+        const int pageSize = 10;
+        var providerId = Guid.NewGuid().ToString();
+
+        _config.IsWaybackMachineEnabled = false;
+
+        _libraryManager.MockRetrieveItem(id, providerId);
+        
+        var reviewsResponse = _fixture.Create<ReviewsResponse>();
+        _crunchyrollGetReviewsClient
+            .GetReviewsAsync(providerId, pageNumber, pageSize, Arg.Any<CancellationToken>())
+            .Returns(Result.Ok(reviewsResponse));
+        
+        //Act
+        var query = new GetReviewsQuery(id.ToString(), pageNumber, pageSize);
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+
+        _libraryManager
+            .Received(1)
+            .RetrieveItem(id);
+
+        await _crunchyrollGetReviewsClient
+            .Received(1)
+            .GetReviewsAsync(
+                Arg.Any<string>(), 
+                Arg.Any<int>(), 
+                Arg.Any<int>(), 
+                Arg.Any<CancellationToken>());
+
+        await _getReviewsSession
+            .Received(0)
+            .GetReviewsForTitleIdAsync(Arg.Any<string>());
+
+        result.Value.Should().Be(reviewsResponse);
+    }
+    
+    [Fact]
+    public async Task ReturnsFailed_WhenItemWasNotFound_GivenItemId()
+    {
+        //Arrange
+        var id = Guid.NewGuid();
+        const int pageNumber = 1;
+        const int pageSize = 10;
+
+        _libraryManager.MockRetrieveItemNotFound(id);
+        
+        //Act
+        var query = new GetReviewsQuery(id.ToString(), pageNumber, pageSize);
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().ContainSingle(x => x.Message.Equals(GetReviewsErrorCodes.ItemNotFound));
+    }
+    
+    [Fact]
+    public async Task ReturnsFailed_WhenItemHasNoProviderId_GivenItemId()
+    {
+        //Arrange
+        var id = Guid.NewGuid();
+        const int pageNumber = 1;
+        const int pageSize = 10;
+
+        _libraryManager.MockRetrieveItem(id, string.Empty);
+        
+        //Act
+        var query = new GetReviewsQuery(id.ToString(), pageNumber, pageSize);
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().ContainSingle(x => x.Message.Equals(GetReviewsErrorCodes.ItemHasNoProviderId));
+    }
+    
+    [Fact]
+    public async Task ForwardsError_WhenClientRequestFailed_GivenItemId()
+    {
+        //Arrange
+        var id = Guid.NewGuid();
+        const int pageNumber = 1;
+        const int pageSize = 10;
+        var providerId = Guid.NewGuid().ToString();
+        
+        _config.IsWaybackMachineEnabled = false;
+
+        _libraryManager.MockRetrieveItem(id, providerId);
+
+        var errorCode = "999";
+        _crunchyrollGetReviewsClient
+            .GetReviewsAsync(providerId, pageNumber, pageSize, Arg.Any<CancellationToken>())
+            .Returns(Result.Fail(errorCode));
+        
+        //Act
+        var query = new GetReviewsQuery(id.ToString(), pageNumber, pageSize);
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().ContainSingle(x => x.Message.Equals(errorCode));
+    }
+    
+    [Fact]
+    public async Task ReturnsReviews_WhenWaybackMachineIsEnabled_GivenItemId()
+    {
+        //Arrange
+        var id = Guid.NewGuid();
+        const int pageNumber = 1;
+        const int pageSize = 10;
+        var titleId = Guid.NewGuid().ToString();
+
+        _config.IsWaybackMachineEnabled = true;
+
+        _libraryManager.MockRetrieveItem(id, titleId);
+        
+        var reviewsResponse = _fixture.Create<ReviewsResponse>();
+        _getReviewsSession
+            .GetReviewsForTitleIdAsync(titleId)
+            .Returns(ValueTask.FromResult(Result.Ok(reviewsResponse.Reviews)));
+        
+        //Act
+        var query = new GetReviewsQuery(id.ToString(), pageNumber, pageSize);
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+
+        _libraryManager
+            .Received(1)
+            .RetrieveItem(id);
+        
+        await _getReviewsSession
+            .Received(1)
+            .GetReviewsForTitleIdAsync(titleId);
+
+        await _crunchyrollGetReviewsClient
+            .Received(0)
+            .GetReviewsAsync(
+                Arg.Any<string>(), 
+                Arg.Any<int>(), 
+                Arg.Any<int>(), 
+                Arg.Any<CancellationToken>());
+
+        result.Value.Should().Be(reviewsResponse);
+    }
+    
+    [Fact]
+    public async Task ForwardsError_WhenReviewsNotFound_GivenItemId()
+    {
+        //Arrange
+        var id = Guid.NewGuid();
+        const int pageNumber = 1;
+        const int pageSize = 10;
+        var titleId = Guid.NewGuid().ToString();
+
+        _config.IsWaybackMachineEnabled = true;
+
+        _libraryManager.MockRetrieveItem(id, titleId);
+        
+        var reviewsResponse = _fixture.Create<ReviewsResponse>();
+        _getReviewsSession
+            .GetReviewsForTitleIdAsync(titleId)
+            .Returns(ValueTask.FromResult(Result.Fail<IReadOnlyList<ReviewItem>>(GetReviewsErrorCodes.ReviewsNotFound)));
+        
+        //Act
+        var query = new GetReviewsQuery(id.ToString(), pageNumber, pageSize);
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().ContainSingle(x => x.Message.Equals(GetReviewsErrorCodes.ReviewsNotFound));
+
+        _libraryManager
+            .Received(1)
+            .RetrieveItem(id);
+        
+        await _getReviewsSession
+            .Received(1)
+            .GetReviewsForTitleIdAsync(titleId);
+
+        await _crunchyrollGetReviewsClient
+            .Received(0)
+            .GetReviewsAsync(
+                Arg.Any<string>(), 
+                Arg.Any<int>(), 
+                Arg.Any<int>(), 
+                Arg.Any<CancellationToken>());
+    }
+}
