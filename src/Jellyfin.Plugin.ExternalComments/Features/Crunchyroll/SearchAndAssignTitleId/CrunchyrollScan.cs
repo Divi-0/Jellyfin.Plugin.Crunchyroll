@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
-using Jellyfin.Plugin.ExternalComments.Domain.Constants;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
@@ -23,12 +22,12 @@ public class CrunchyrollScan : ILibraryPostScanTask
     private readonly ILibraryManager _libraryManager;
     private readonly PluginConfiguration _config;
 
-    public CrunchyrollScan(ILogger<CrunchyrollScan> logger, ILibraryManager libraryManager, PluginConfiguration config,
+    public CrunchyrollScan(ILogger<CrunchyrollScan> logger, ILibraryManager libraryManager, PluginConfiguration? config = null,
         IMediator? mediator = null)
     {
         _logger = logger;
         _libraryManager = libraryManager;
-        _config = config;
+        _config = config ?? ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
         _mediator = mediator ?? ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<IMediator>();
     }
     
