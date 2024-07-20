@@ -162,7 +162,7 @@ public class GetReviewsQueryTests
         var reviewsResponse = _fixture.Create<ReviewsResponse>();
         _getReviewsSession
             .GetReviewsForTitleIdAsync(titleId)
-            .Returns(ValueTask.FromResult(Result.Ok(reviewsResponse.Reviews)));
+            .Returns(ValueTask.FromResult(Result.Ok<IReadOnlyList<ReviewItem>?>(reviewsResponse.Reviews)));
         
         //Act
         var query = new GetReviewsQuery(id.ToString(), pageNumber, pageSize);

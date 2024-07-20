@@ -16,6 +16,8 @@ public class WaybackMachineClient : IWaybackMachineClient
     private readonly HttpClient _httpClient;
     private readonly ILogger<WaybackMachineClient> _logger;
 
+    private readonly int _timeoutInSeconds = 180;
+
     public WaybackMachineClient(HttpClient httpClient, PluginConfiguration config, ILogger<WaybackMachineClient> logger)
     {
         _httpClient = httpClient;
@@ -23,11 +25,13 @@ public class WaybackMachineClient : IWaybackMachineClient
 
         _httpClient.BaseAddress =
             new Uri(config.ArchiveOrgUrl);
+        
+        _httpClient.Timeout = TimeSpan.FromSeconds(_timeoutInSeconds + 5); //+5 overhead
     }
 
     public async Task<Result<AvailabilityResponse>> GetAvailabilityAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default)
     {
-        var path = $"wayback/available?url={url}&timestamp={timestamp.ToString("yyyyMMddhhmmss")}&timeout=180&closest=either&status_code=200";
+        var path = $"wayback/available?url={url}&timestamp={timestamp.ToString("yyyyMMdd000000")}&timeout={_timeoutInSeconds}&closest=either&status_code=200";
         
         var response = await _httpClient.GetAsync(path, cancellationToken);
 

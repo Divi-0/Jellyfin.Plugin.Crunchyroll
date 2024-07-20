@@ -50,7 +50,7 @@ public class CrunchyrollScanTests
                 {
                     var availabilityResponse = await _wireMockAdminApi.MockWaybackMachineAvailabilityResponse(dataItem.Id, dataItem.SlugTitle, _config.CrunchyrollUrl);
                     
-                    await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(availabilityResponse.ArchivedSnapshots.Closest.Url);
+                    await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(availabilityResponse.ArchivedSnapshots.Closest!.Url);
                 }
             }
         }
