@@ -12,7 +12,7 @@ using Mediator;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
 
-public record GetReviewsQuery(string Id, int PageNumber, int PageSize) : ICrunchyrollCommand, IRequest<Result<ReviewsResponse>>;
+public record GetReviewsQuery(string Id, int PageNumber, int PageSize) : IRequiresCrunchyrollLogin, IRequest<Result<ReviewsResponse>>;
 
 public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<ReviewsResponse>>
 {

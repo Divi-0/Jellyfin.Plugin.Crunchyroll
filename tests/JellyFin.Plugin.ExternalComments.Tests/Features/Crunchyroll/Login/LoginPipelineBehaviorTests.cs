@@ -10,7 +10,7 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.Login;
 
 public class LoginPipelineBehaviorTests
 {
-    private readonly LoginPipelineBehavior<ICrunchyrollCommand, ResultBase> _sut;
+    private readonly LoginPipelineBehavior<IRequiresCrunchyrollLogin, ResultBase> _sut;
     private readonly IMediator _mediator;
     private readonly ICrunchyrollSessionRepository _crunchyrollSessionRepository;
     
@@ -19,15 +19,15 @@ public class LoginPipelineBehaviorTests
         _mediator = Substitute.For<IMediator>();
         _crunchyrollSessionRepository = Substitute.For<ICrunchyrollSessionRepository>();
 
-        _sut = new LoginPipelineBehavior<ICrunchyrollCommand, ResultBase>(_mediator, _crunchyrollSessionRepository);
+        _sut = new LoginPipelineBehavior<IRequiresCrunchyrollLogin, ResultBase>(_mediator, _crunchyrollSessionRepository);
     }
 
     [Fact]
     public async Task ReturnsSuccess_WhenHandlingNext_GivenSuccessfulNext()
     {
         //Arrange
-        var message = Substitute.For<ICrunchyrollCommand>();
-        var next = new MessageHandlerDelegate<ICrunchyrollCommand, ResultBase>((_, _) => ValueTask.FromResult((ResultBase)Result.Ok()));
+        var message = Substitute.For<IRequiresCrunchyrollLogin>();
+        var next = new MessageHandlerDelegate<IRequiresCrunchyrollLogin, ResultBase>((_, _) => ValueTask.FromResult((ResultBase)Result.Ok()));
 
         _crunchyrollSessionRepository
             .GetAsync(Arg.Any<CancellationToken>())!
@@ -44,8 +44,8 @@ public class LoginPipelineBehaviorTests
     public Task ThrowsException_WhenLoginFails_GivenMessage()
     {
         //Arrange
-        var message = Substitute.For<ICrunchyrollCommand>();
-        var next = new MessageHandlerDelegate<ICrunchyrollCommand, ResultBase>((_, _) => ValueTask.FromResult((ResultBase)Result.Ok()));
+        var message = Substitute.For<IRequiresCrunchyrollLogin>();
+        var next = new MessageHandlerDelegate<IRequiresCrunchyrollLogin, ResultBase>((_, _) => ValueTask.FromResult((ResultBase)Result.Ok()));
 
         _mediator
             .Send(Arg.Any<LoginCommand>(), Arg.Any<CancellationToken>())

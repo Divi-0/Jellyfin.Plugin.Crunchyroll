@@ -6,7 +6,7 @@ using Mediator;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId;
 
-public record TitleIdQuery(string Title) : ICrunchyrollCommand, IRequest<Result<SearchResponse?>>;
+public record TitleIdQuery(string Title) : IRequiresCrunchyrollLogin, IRequest<Result<SearchResponse?>>;
 
 public class TitleIdQueryHandler : IRequestHandler<TitleIdQuery, Result<SearchResponse?>>
 {

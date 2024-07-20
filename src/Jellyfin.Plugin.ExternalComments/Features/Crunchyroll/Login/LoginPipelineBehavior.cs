@@ -6,7 +6,7 @@ using Mediator;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 
-public class LoginPipelineBehavior<TMessage, TResponse> : IPipelineBehavior<TMessage, TResponse> where TMessage : ICrunchyrollCommand
+public class LoginPipelineBehavior<TMessage, TResponse> : IPipelineBehavior<TMessage, TResponse> where TMessage : IRequiresCrunchyrollLogin
 {
     private readonly IMediator _mediator;
     private readonly ICrunchyrollSessionRepository _crunchyrollSessionRepository;

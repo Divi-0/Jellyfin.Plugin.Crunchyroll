@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments;
 
 public record GetCommentsQuery(string Id, int PageNumber, int PageSize) 
-    : ICrunchyrollCommand, IRequest<Result<CommentsResponse>>;
+    : IRequiresCrunchyrollLogin, IRequest<Result<CommentsResponse>>;
 
 public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, Result<CommentsResponse>>
 {
