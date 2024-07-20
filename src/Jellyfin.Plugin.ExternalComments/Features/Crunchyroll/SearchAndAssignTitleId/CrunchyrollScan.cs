@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Domain.Constants;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
 using MediaBrowser.Controller.Entities;
@@ -15,16 +16,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId;
 
-public class CrunchyrollTitleIdScan : ILibraryPostScanTask
+public class CrunchyrollScan : ILibraryPostScanTask
 {
-    private readonly ILogger<CrunchyrollTitleIdScan> _logger;
+    private readonly ILogger<CrunchyrollScan> _logger;
     private readonly IMediator _mediator;
     private readonly ILibraryManager _libraryManager;
-    
-    public CrunchyrollTitleIdScan(ILogger<CrunchyrollTitleIdScan> logger, ILibraryManager libraryManager, IMediator? mediator = null)
+    private readonly PluginConfiguration _config;
+
+    public CrunchyrollScan(ILogger<CrunchyrollScan> logger, ILibraryManager libraryManager, PluginConfiguration config,
+        IMediator? mediator = null)
     {
         _logger = logger;
         _libraryManager = libraryManager;
+        _config = config;
         _mediator = mediator ?? ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<IMediator>();
     }
     
@@ -36,7 +40,7 @@ public class CrunchyrollTitleIdScan : ILibraryPostScanTask
         var percent = 0.0;
         foreach (var item in allItems)
         {
-            //_logger.LogDebug("Found {Name}", item.Name);
+            _logger.LogDebug("Found {Name}", item.Name);
 
             if (item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? id) && !string.IsNullOrWhiteSpace(id))
             {
@@ -66,22 +70,36 @@ public class CrunchyrollTitleIdScan : ILibraryPostScanTask
         
             await _libraryManager.UpdateItemAsync(item, item.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
         
-            //_logger.LogDebug("Ids: {@Ids}", _libraryManager.GetItemById(item.Id)?.ProviderIds);
+            _logger.LogDebug("Ids: {@Ids}", _libraryManager.GetItemById(item.Id)?.ProviderIds);
+        
+            percent += 100.0 / allItems.Count;
+            progress.Report(percent);
+        }
 
-            if (!string.IsNullOrWhiteSpace(item.ProviderIds[CrunchyrollExternalKeys.Id])
-                && !string.IsNullOrWhiteSpace(item.ProviderIds[CrunchyrollExternalKeys.SlugTitle]))
+        if (_config.IsWaybackMachineEnabled)
+        {
+            foreach (var item in allItems)
             {
+                var hasId = item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? id) &&
+                            !string.IsNullOrWhiteSpace(id);
+
+                var hasSlugTitle = item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SlugTitle, out string? slugTitle) &&
+                                   !string.IsNullOrWhiteSpace(slugTitle);
+            
+                if (!hasId || !hasSlugTitle)
+                {
+                    //if item has no id or slugTitle, skip this item
+                    continue;
+                }
+                
                 await _mediator.Send(new ExtractReviewsCommand()
                 {
                     TitleId = item.ProviderIds[CrunchyrollExternalKeys.Id],
                     SlugTitle = item.ProviderIds[CrunchyrollExternalKeys.SlugTitle]
                 }, cancellationToken);
             }
-        
-            percent += 100.0 / allItems.Count;
-            progress.Report(percent);
         }
-        
+
         progress.Report(100);
     }
 }

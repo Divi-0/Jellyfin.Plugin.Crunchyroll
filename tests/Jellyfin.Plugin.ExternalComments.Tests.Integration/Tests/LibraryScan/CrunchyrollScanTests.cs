@@ -10,21 +10,21 @@ using WireMock.Client;
 namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.Tests.LibraryScan;
 
 [Collection(CollectionNames.Plugin)]
-public class CrunchyrollTitleIdScanTests
+public class CrunchyrollScanTests
 {
     private readonly Fixture _fixture;
     
-    private readonly CrunchyrollTitleIdScan _crunchyrollTitleIdScan;
+    private readonly CrunchyrollScan _crunchyrollScan;
     private readonly ILibraryManager _libraryManager;
     private readonly IWireMockAdminApi _wireMockAdminApi;
     private readonly PluginConfiguration _config;
 
-    public CrunchyrollTitleIdScanTests(WireMockFixture wireMockFixture)
+    public CrunchyrollScanTests(WireMockFixture wireMockFixture)
     {
         _fixture = new Fixture();
         
-        _crunchyrollTitleIdScan =
-            PluginWebApplicationFactory.Instance.Services.GetRequiredService<CrunchyrollTitleIdScan>();
+        _crunchyrollScan =
+            PluginWebApplicationFactory.Instance.Services.GetRequiredService<CrunchyrollScan>();
         _libraryManager =
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILibraryManager>();
         _wireMockAdminApi = wireMockFixture.AdminApiClient;
@@ -57,7 +57,7 @@ public class CrunchyrollTitleIdScanTests
         
         //Act
         var progress = new Progress<double>();
-        await _crunchyrollTitleIdScan.Run(progress, CancellationToken.None);
+        await _crunchyrollScan.Run(progress, CancellationToken.None);
         
         //Assert
         itemList.Should().AllSatisfy(x =>
@@ -85,7 +85,7 @@ public class CrunchyrollTitleIdScanTests
         
         //Act
         var progress = new Progress<double>();
-        await _crunchyrollTitleIdScan.Run(progress, CancellationToken.None);
+        await _crunchyrollScan.Run(progress, CancellationToken.None);
         
         //Assert
         itemList.Should().AllSatisfy(x =>

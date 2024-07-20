@@ -1,6 +1,7 @@
 using AutoFixture;
 using FluentAssertions;
 using FluentResults;
+using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId;
@@ -14,23 +15,25 @@ using Xunit;
 
 namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.SearchAndAssignTitleId;
 
-public class CrunchyrollTitleIdScanTests
+public class CrunchyrollScanTests
 {
     private readonly Fixture _fixture;
     
-    private readonly CrunchyrollTitleIdScan _sut;
-    private readonly ILogger<CrunchyrollTitleIdScan> _loggerMock;
+    private readonly CrunchyrollScan _sut;
+    private readonly ILogger<CrunchyrollScan> _loggerMock;
     private readonly ILibraryManager _libraryManagerMock;
     private readonly IMediator _mediatorMock;
+    private readonly PluginConfiguration _config;
 
-    public CrunchyrollTitleIdScanTests()
+    public CrunchyrollScanTests()
     {
         _fixture = new Fixture();
         
-        _loggerMock = Substitute.For<ILogger<CrunchyrollTitleIdScan>>();
+        _loggerMock = Substitute.For<ILogger<CrunchyrollScan>>();
         _libraryManagerMock = Substitute.For<ILibraryManager>();
         _mediatorMock = Substitute.For<IMediator>();
-        _sut = new CrunchyrollTitleIdScan(_loggerMock, _libraryManagerMock, _mediatorMock);
+        _config = new PluginConfiguration();
+        _sut = new CrunchyrollScan(_loggerMock, _libraryManagerMock, _config, _mediatorMock);
     }
     
     [Fact]
@@ -118,5 +121,52 @@ public class CrunchyrollTitleIdScanTests
         await _mediatorMock
             .Received(0)
             .Send(Arg.Any<TitleIdQuery>(), Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task SkipsExtractReviews_WhenIsWaybackMachineIsDisabled_GivenListOfItems()
+    {
+        //Arrange
+        BaseItem.LibraryManager = _libraryManagerMock;
+        
+        _config.IsWaybackMachineEnabled = false;
+        
+        var itemList = _fixture.Build<Series>()
+            .CreateMany<Series>()
+            .ToList<BaseItem>();
+        
+        _libraryManagerMock
+            .GetItemList(Arg.Any<InternalItemsQuery>())
+            .Returns(itemList);
+        
+        _libraryManagerMock
+            .GetItemById(Arg.Any<Guid>())
+            .Returns(_fixture.Create<Series>());
+        
+        _libraryManagerMock
+            .UpdateItemAsync(Arg.Any<BaseItem>(), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        
+        foreach (var item in itemList)
+        {
+            var titleId = _fixture.Create<string>();
+            var slugTitle = _fixture.Create<string>();
+            _mediatorMock
+                .Send(new TitleIdQuery(item.Name), Arg.Any<CancellationToken>())!
+                .Returns(ValueTask.FromResult(Result.Ok(new SearchResponse()
+                {
+                    Id = titleId,
+                    SlugTitle = slugTitle
+                })));
+        }
+        
+        //Act
+        var progress = new Progress<double>();
+        await _sut.Run(progress, CancellationToken.None);
+        
+        //Assert
+        await _mediatorMock
+            .DidNotReceive()
+            .Send(Arg.Any<ExtractReviewsCommand>(), Arg.Any<CancellationToken>());
     }
 }

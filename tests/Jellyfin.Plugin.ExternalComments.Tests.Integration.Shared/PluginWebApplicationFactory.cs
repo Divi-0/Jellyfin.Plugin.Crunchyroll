@@ -39,7 +39,7 @@ public class PluginWebApplicationFactory : WebApplicationFactory<Program>
                 .Returns(new PluginConfiguration());
             services.AddSingleton<IXmlSerializer>(xmlSerializer);
 
-            services.AddSingleton<CrunchyrollTitleIdScan>();
+            services.AddSingleton<CrunchyrollScan>();
         });
         
         builder.UseEnvironment("Development");
