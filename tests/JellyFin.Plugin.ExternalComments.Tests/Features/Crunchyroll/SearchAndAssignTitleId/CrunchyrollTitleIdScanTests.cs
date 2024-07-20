@@ -30,7 +30,7 @@ public class CrunchyrollTitleIdScanTests
         _loggerMock = Substitute.For<ILogger<CrunchyrollTitleIdScan>>();
         _libraryManagerMock = Substitute.For<ILibraryManager>();
         _mediatorMock = Substitute.For<IMediator>();
-        _sut = new CrunchyrollTitleIdScan(_libraryManagerMock, _mediatorMock);
+        _sut = new CrunchyrollTitleIdScan(_loggerMock, _libraryManagerMock, _mediatorMock);
     }
     
     [Fact]

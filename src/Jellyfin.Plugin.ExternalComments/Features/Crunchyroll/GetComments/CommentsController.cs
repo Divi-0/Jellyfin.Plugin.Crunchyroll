@@ -19,11 +19,11 @@ public class CommentsController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public CommentsController()
+    public CommentsController(ILogger<CommentsController> logger)
     {
         if (ExternalCommentsPlugin.Instance is null)
         {
-           // logger.LogError("{ClassName} instance is not set, can not continue", nameof(ExternalCommentsPlugin));
+            logger.LogError("{ClassName} instance is not set, can not continue", nameof(ExternalCommentsPlugin));
             throw new ArgumentNullException(nameof(ExternalCommentsPlugin.Instance));
         }
         

@@ -7,8 +7,13 @@ using System.Threading.Tasks;
 using FluentResults;
 using HtmlAgilityPack;
 using Jellyfin.Plugin.ExternalComments.Configuration;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;
+using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client.Dto;
 using Mediator;
+using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Retry;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
 
@@ -25,6 +30,8 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
     private readonly IHtmlReviewsExtractor _htmlReviewsExtractor;
     private readonly IAddReviewsSession _addReviewsSession;
 
+    private readonly DateTime _dateWhenReviewsWereDeleted = new DateTime(2024, 07, 10);
+    
     public ExtractReviewsCommandHandler(IWaybackMachineClient waybackMachineClient, PluginConfiguration config, 
         IHtmlReviewsExtractor htmlReviewsExtractor, IAddReviewsSession addReviewsSession)
     {
@@ -44,8 +51,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
             request.SlugTitle)
             .Replace('\\', '/');
         
-        //Date before comments have been disabled
-        var availabilityResult = await _waybackMachineClient.GetAvailabilityAsync(url, new DateTime(2024, 07, 07), cancellationToken);
+        var availabilityResult = await GetAvailabilityAsync(url, cancellationToken);
 
         if (availabilityResult.IsFailed)
         {
@@ -64,5 +70,41 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         await _addReviewsSession.AddReviewsForTitleIdAsync(request.TitleId, reviewsResult.Value);
 
         return Result.Ok();
+    }
+
+    private async Task<Result<AvailabilityResponse>> GetAvailabilityAsync(string url, CancellationToken cancellationToken)
+    {
+        //2024 07 01 because in july they disabled reviews and comments
+        var timestamp = new DateTime(2024, 07, 01);
+        
+        var adjustTimestampPredicate = new PredicateBuilder<Result<AvailabilityResponse>>().HandleResult(result =>
+        {
+            if (result.IsFailed)
+            {
+                return false;
+            }
+            
+            var resultTimeStamp = DateTime.ParseExact(result.Value.ArchivedSnapshots.Closest!.Timestamp, 
+                "yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+            
+            if (resultTimeStamp >= _dateWhenReviewsWereDeleted)
+            {
+                timestamp = timestamp.AddMonths(-1);
+                return true;
+            }
+
+            return false;
+        });
+        
+        var pipeline = new ResiliencePipelineBuilder<Result<AvailabilityResponse>>()
+            .AddRetry(new RetryStrategyOptions<Result<AvailabilityResponse>>()
+            {
+                ShouldHandle = adjustTimestampPredicate,
+                MaxRetryAttempts = 12
+            })
+            .Build();
+        
+        return await pipeline.ExecuteAsync<Result<AvailabilityResponse>>(async (cancelToken) => 
+            await _waybackMachineClient.GetAvailabilityAsync(url, timestamp, cancelToken), cancellationToken);
     }
 }

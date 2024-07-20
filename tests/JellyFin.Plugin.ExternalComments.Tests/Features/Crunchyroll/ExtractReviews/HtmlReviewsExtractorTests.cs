@@ -3,6 +3,7 @@ using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.ExternalComments.Domain.Constants;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
+using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine;
 using JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.ExtractReviews.MockHelper;
 using Microsoft.Extensions.Logging;
 using RichardSzalay.MockHttp;
@@ -56,7 +57,7 @@ public class HtmlReviewsExtractorTests
 
         //Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain(x => x.Message == ErrorCodes.WaybackMachineArchivedUrlRequestFailed);
+        result.Errors.Should().Contain(x => x.Message == WaybackMachineErrorCodes.WaybackMachineArchivedUrlRequestFailed);
 
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
     }
@@ -74,7 +75,7 @@ public class HtmlReviewsExtractorTests
 
         //Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain(x => x.Message == ErrorCodes.WaybackMachineArchivedUrlRequestFailed);
+        result.Errors.Should().Contain(x => x.Message == WaybackMachineErrorCodes.WaybackMachineArchivedUrlRequestFailed);
 
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
     }
@@ -92,7 +93,7 @@ public class HtmlReviewsExtractorTests
 
         //Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain(x => x.Message == ErrorCodes.WaybackMachineInvalidCrunchyrollReviewsPage);
+        result.Errors.Should().Contain(x => x.Message == WaybackMachineErrorCodes.WaybackMachineInvalidCrunchyrollReviewsPage);
 
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
     }

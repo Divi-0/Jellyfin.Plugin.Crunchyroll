@@ -1,9 +1,12 @@
 using System.Net;
+using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Domain.Constants;
+using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;
+using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client.Dto;
 using JellyFin.Plugin.ExternalComments.Tests.Features.WaybackMachine.Helper;
 using Microsoft.Extensions.Logging;
 using RichardSzalay.MockHttp;
@@ -63,7 +66,7 @@ public class WaybackMachineClientTests
 
         //Assert
         response.IsSuccess.Should().BeFalse();
-        response.Errors.Should().Contain(x => x.Message == ErrorCodes.WaybackMachineRequestFailed);
+        response.Errors.Should().Contain(x => x.Message == WaybackMachineErrorCodes.WaybackMachineRequestFailed);
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
     }
@@ -82,7 +85,7 @@ public class WaybackMachineClientTests
 
         //Assert
         response.IsSuccess.Should().BeFalse();
-        response.Errors.Should().Contain(x => x.Message == ErrorCodes.WaybackMachineGetAvailabilityFailed);
+        response.Errors.Should().Contain(x => x.Message == WaybackMachineErrorCodes.WaybackMachineGetAvailabilityFailed);
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
     }
@@ -101,7 +104,31 @@ public class WaybackMachineClientTests
 
         //Assert
         response.IsSuccess.Should().BeFalse();
-        response.Errors.Should().Contain(x => x.Message == ErrorCodes.WaybackMachineGetAvailabilityFailed);
+        response.Errors.Should().Contain(x => x.Message == WaybackMachineErrorCodes.WaybackMachineGetAvailabilityFailed);
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
+    }
+
+    [Fact]
+    public async Task ReturnsNotFound_WhenClosestIsNull_GivenUrlAndTimeStamp()
+    {
+        //Arrange
+        var url = _fixture.Create<string>();
+        var timeStamp = _fixture.Create<DateTime>();
+
+        var availabilityResponseWithoutClosest = new AvailabilityResponse()
+        {
+            ArchivedSnapshots = new Snapshot()
+        };
+        
+        var (mockedRequest, _) = _mockHttpMessageHandler.MockGetAvailableRequest(url, timeStamp, JsonSerializer.Serialize(availabilityResponseWithoutClosest));
+        
+        //Act
+        var response = await _sut.GetAvailabilityAsync(url, timeStamp, CancellationToken.None);
+
+        //Assert
+        response.IsSuccess.Should().BeFalse();
+        response.Errors.Should().Contain(x => x.Message == WaybackMachineErrorCodes.WaybackMachineNotFound);
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
     }

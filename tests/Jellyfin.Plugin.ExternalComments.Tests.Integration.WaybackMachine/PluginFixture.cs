@@ -21,7 +21,7 @@ public class PluginFixture : IAsyncLifetime
         var xmlSerializer = PluginWebApplicationFactory.Instance.Services.GetRequiredService<IXmlSerializer>();
         var logger = PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILogger<ExternalCommentsPlugin>>();
         var libraryManager = PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILibraryManager>();
-        _ = new ExternalCommentsPlugin(applicationPaths, xmlSerializer, libraryManager, ExtendServiceCollection);
+        _ = new ExternalCommentsPlugin(logger, applicationPaths, xmlSerializer, libraryManager, ExtendServiceCollection);
         
         return Task.CompletedTask;
     }

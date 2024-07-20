@@ -21,7 +21,7 @@ public static class MockHttpResponse
         }
         
         
-        var fullUrl = $"https://archive.org/wayback/available?url={url}&timestamp={timeStamp.ToString("YYYYMMDDhhmmss")}";
+        var fullUrl = $"https://archive.org/wayback/available?url={url}&timestamp={timeStamp.ToString("yyyyMMddhhmmss")}&timeout=180&closest=either&status_code=200";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Respond("application/json", response);
@@ -32,7 +32,7 @@ public static class MockHttpResponse
     public static MockedRequest MockGetAvailableRequestFails(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
         DateTime timeStamp, HttpStatusCode httpStatusCode)
     {
-        var fullUrl = $"https://archive.org/wayback/available?url={url}&timestamp={timeStamp.ToString("YYYYMMDDhhmmss")}";
+        var fullUrl = $"https://archive.org/wayback/available?url={url}&timestamp={timeStamp.ToString("yyyyMMddhhmmss")}&timeout=180&closest=either&status_code=200";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Respond(httpStatusCode);
@@ -43,7 +43,7 @@ public static class MockHttpResponse
     public static MockedRequest MockGetAvailableRequestNullResponse(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
         DateTime timeStamp)
     {
-        var fullUrl = $"https://archive.org/wayback/available?url={url}&timestamp={timeStamp.ToString("YYYYMMDDhhmmss")}";
+        var fullUrl = $"https://archive.org/wayback/available?url={url}&timestamp={timeStamp.ToString("yyyyMMddhhmmss")}&timeout=180&closest=either&status_code=200";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Respond("application/json", JsonSerializer.Serialize<AvailabilityResponse>(null!));

@@ -21,8 +21,9 @@ public class CrunchyrollTitleIdScan : ILibraryPostScanTask
     private readonly IMediator _mediator;
     private readonly ILibraryManager _libraryManager;
     
-    public CrunchyrollTitleIdScan(ILibraryManager libraryManager, IMediator? mediator = null)
+    public CrunchyrollTitleIdScan(ILogger<CrunchyrollTitleIdScan> logger, ILibraryManager libraryManager, IMediator? mediator = null)
     {
+        _logger = logger;
         _libraryManager = libraryManager;
         _mediator = mediator ?? ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<IMediator>();
     }

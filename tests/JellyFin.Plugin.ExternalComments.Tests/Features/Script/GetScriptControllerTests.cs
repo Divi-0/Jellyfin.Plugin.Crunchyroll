@@ -15,7 +15,7 @@ public class GetScriptControllerTests
     {
         var loggerMock = Substitute.For<ILogger<GetScriptController>>();
         
-        _sut = new GetScriptController();
+        _sut = new GetScriptController(loggerMock);
     }
 
     [Fact]

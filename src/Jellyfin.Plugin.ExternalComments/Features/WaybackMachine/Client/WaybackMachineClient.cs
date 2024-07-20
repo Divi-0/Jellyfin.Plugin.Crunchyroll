@@ -27,7 +27,7 @@ public class WaybackMachineClient : IWaybackMachineClient
 
     public async Task<Result<AvailabilityResponse>> GetAvailabilityAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default)
     {
-        var path = $"wayback/available?url={url}&timestamp={timestamp.ToString("yyyyMMddhhmmss")}";
+        var path = $"wayback/available?url={url}&timestamp={timestamp.ToString("yyyyMMddhhmmss")}&timeout=180&closest=either&status_code=200";
         
         var response = await _httpClient.GetAsync(path, cancellationToken);
 
@@ -35,7 +35,7 @@ public class WaybackMachineClient : IWaybackMachineClient
         {
             _logger.LogError("request for url {Url} with timestamp {Timestamp} was not successful. StatusCode: {StatusCode}", 
                 url, timestamp, response.StatusCode);
-            return Result.Fail(ErrorCodes.WaybackMachineRequestFailed);
+            return Result.Fail(WaybackMachineErrorCodes.WaybackMachineRequestFailed);
         }
 
         AvailabilityResponse? availabilityResponse;
@@ -47,13 +47,19 @@ public class WaybackMachineClient : IWaybackMachineClient
         catch (Exception e)
         {
             _logger.LogError(e, "error on deserialization of json from wayback machine response");
-            return Result.Fail(ErrorCodes.WaybackMachineGetAvailabilityFailed);
+            return Result.Fail(WaybackMachineErrorCodes.WaybackMachineGetAvailabilityFailed);
         }
 
         if (availabilityResponse is null)
         {
             _logger.LogError("null response from wayback machine");
-            return Result.Fail(ErrorCodes.WaybackMachineGetAvailabilityFailed);
+            return Result.Fail(WaybackMachineErrorCodes.WaybackMachineGetAvailabilityFailed);
+        }
+
+        if (availabilityResponse.ArchivedSnapshots.Closest is null)
+        {
+            _logger.LogInformation("no closest snapshot found for url {Url} and timestamp {Timestamp}", url, timestamp);
+            return Result.Fail(WaybackMachineErrorCodes.WaybackMachineNotFound);
         }
         
         return availabilityResponse;

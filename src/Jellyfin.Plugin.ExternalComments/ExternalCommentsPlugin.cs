@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine;
@@ -24,10 +25,10 @@ public class ExternalCommentsPlugin : MediaBrowser.Common.Plugins.BasePlugin<Plu
     public IServiceProvider ServiceProvider { get; private set; } = null!;
     public static ExternalCommentsPlugin? Instance { get; private set; }
 
-    public ExternalCommentsPlugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, 
+    public ExternalCommentsPlugin(ILogger<ExternalCommentsPlugin> logger, IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, 
         ILibraryManager libraryManager, Action<IServiceCollection>? serviceCollectionOptions = null) : base(applicationPaths, xmlSerializer)
     {
-        //_logger = logger;
+        _logger = logger;
         _libraryManager = libraryManager;
         _serviceCollectionOptions = serviceCollectionOptions;
 

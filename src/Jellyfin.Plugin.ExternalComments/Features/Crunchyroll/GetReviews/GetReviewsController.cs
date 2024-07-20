@@ -19,11 +19,11 @@ public class GetReviewsController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public GetReviewsController()
+    public GetReviewsController(ILogger<GetReviewsController> logger)
     {
         if (ExternalCommentsPlugin.Instance is null)
         {
-            //.LogError("{ClassName} instance is not set, can not continue", nameof(ExternalCommentsPlugin));
+            logger.LogError("{ClassName} instance is not set, can not continue", nameof(ExternalCommentsPlugin));
             throw new ArgumentNullException(nameof(ExternalCommentsPlugin.Instance));
         }
         

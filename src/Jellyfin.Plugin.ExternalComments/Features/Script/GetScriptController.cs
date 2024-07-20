@@ -14,8 +14,9 @@ public class GetScriptController : ControllerBase
 {
     private readonly ILogger<GetScriptController> _logger;
 
-    public GetScriptController()
+    public GetScriptController(ILogger<GetScriptController> logger)
     {
+        _logger = logger;
     }
     
     [HttpGet]

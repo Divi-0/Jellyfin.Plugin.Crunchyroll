@@ -10,6 +10,7 @@ using HtmlAgilityPack;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
 using Jellyfin.Plugin.ExternalComments.Domain.Constants;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews.Client;
+using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
@@ -35,13 +36,13 @@ public partial class HtmlReviewsExtractor : IHtmlReviewsExtractor
         catch (Exception e)
         {
             _logger.LogError(e, "Get request for url {Url}", url);
-            return Result.Fail(ErrorCodes.WaybackMachineArchivedUrlRequestFailed);
+            return Result.Fail(WaybackMachineErrorCodes.WaybackMachineArchivedUrlRequestFailed);
         }
 
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Get request for url {Url} failed with statuscode {StatusCode}", url, response.StatusCode);
-            return Result.Fail(ErrorCodes.WaybackMachineArchivedUrlRequestFailed);
+            return Result.Fail(WaybackMachineErrorCodes.WaybackMachineArchivedUrlRequestFailed);
         }
         
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -53,7 +54,7 @@ public partial class HtmlReviewsExtractor : IHtmlReviewsExtractor
 
         if (reviewParentElement == null)
         {
-            return Result.Fail(ErrorCodes.WaybackMachineInvalidCrunchyrollReviewsPage);
+            return Result.Fail(WaybackMachineErrorCodes.WaybackMachineInvalidCrunchyrollReviewsPage);
         }
 
         var reviewElements = reviewParentElement.ChildNodes.Where(x => 
