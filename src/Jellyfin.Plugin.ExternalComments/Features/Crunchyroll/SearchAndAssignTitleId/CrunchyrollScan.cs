@@ -77,7 +77,13 @@ public class CrunchyrollScan : ILibraryPostScanTask
 
         if (_config.IsWaybackMachineEnabled)
         {
-            foreach (var item in allItems)
+            var options = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 5,
+                CancellationToken = cancellationToken
+            };
+            
+            await Parallel.ForEachAsync(allItems, options, async (item, token) =>
             {
                 var hasId = item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? id) &&
                             !string.IsNullOrWhiteSpace(id);
@@ -88,15 +94,15 @@ public class CrunchyrollScan : ILibraryPostScanTask
                 if (!hasId || !hasSlugTitle)
                 {
                     //if item has no id or slugTitle, skip this item
-                    continue;
+                    return;
                 }
                 
-                await _mediator.Send(new ExtractReviewsCommand()
+                _ = await _mediator.Send(new ExtractReviewsCommand()
                 {
                     TitleId = item.ProviderIds[CrunchyrollExternalKeys.Id],
                     SlugTitle = item.ProviderIds[CrunchyrollExternalKeys.SlugTitle]
-                }, cancellationToken);
-            }
+                }, token);
+            });
         }
 
         progress.Report(100);
