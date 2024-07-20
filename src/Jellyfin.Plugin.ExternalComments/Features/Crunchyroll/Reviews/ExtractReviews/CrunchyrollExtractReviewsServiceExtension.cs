@@ -1,9 +1,9 @@
 using Jellyfin.Plugin.ExternalComments.Common;
 using Jellyfin.Plugin.ExternalComments.Configuration;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Persistence;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 
 public static class CrunchyrollExtractReviewsServiceExtension
 {
@@ -12,7 +12,7 @@ public static class CrunchyrollExtractReviewsServiceExtension
         serviceCollection.AddHttpClient<IHtmlReviewsExtractor, HtmlReviewsExtractor>()
             .AddPollyHttpClientDefaultPolicy();
 
-        serviceCollection.AddSingleton<IAddReviewsSession, CrunchyrollUnitOfWork>();
+        serviceCollection.AddSingleton<IAddReviewsSession, ReviewsUnitOfWork>();
         
         return serviceCollection;
     }

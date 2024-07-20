@@ -1,10 +1,9 @@
 using Jellyfin.Plugin.ExternalComments.Common;
 using Jellyfin.Plugin.ExternalComments.Configuration;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews.Client;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Persistence;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Client;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
 
 public static class GetReviewsServiceExtension
 {
@@ -14,7 +13,7 @@ public static class GetReviewsServiceExtension
             .AddFlareSolverrProxy(configuration)
             .AddPollyHttpClientDefaultPolicy();
         
-        serviceCollection.AddSingleton<IGetReviewsSession, CrunchyrollUnitOfWork>();
+        serviceCollection.AddSingleton<IGetReviewsSession, ReviewsUnitOfWork>();
         
         return serviceCollection;
     }

@@ -4,24 +4,23 @@ using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Persistence.Entities;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
 using LiteDB;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Persistence;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 
-public sealed class CrunchyrollUnitOfWork : IAddReviewsSession, IGetReviewsSession
+public sealed class ReviewsUnitOfWork : IAddReviewsSession, IGetReviewsSession
 {
     private readonly string _dbFilePath;
 
-    public CrunchyrollUnitOfWork(PluginConfiguration config)
+    public ReviewsUnitOfWork(PluginConfiguration config)
     {
         _dbFilePath = config.LocalDatabasePath;
 
         if (string.IsNullOrWhiteSpace(_dbFilePath))
         {
-            var location = typeof(CrunchyrollUnitOfWork).Assembly.Location;
+            var location = typeof(ReviewsUnitOfWork).Assembly.Location;
             _dbFilePath = Path.Combine(Path.GetDirectoryName(location)!, "Crunchyroll.db");
         }
     }
@@ -44,7 +43,7 @@ public sealed class CrunchyrollUnitOfWork : IAddReviewsSession, IGetReviewsSessi
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask<Result<IReadOnlyList<ReviewItem>>> GetReviewsForTitleIdAsync(string titleId)
+    public ValueTask<Result<IReadOnlyList<ReviewItem>?>> GetReviewsForTitleIdAsync(string titleId)
     {
         using var db = new LiteDatabase(_dbFilePath);
         
@@ -53,9 +52,9 @@ public sealed class CrunchyrollUnitOfWork : IAddReviewsSession, IGetReviewsSessi
 
         if (reviewsEntity is null)
         {
-            return ValueTask.FromResult<Result<IReadOnlyList<ReviewItem>>>(Result.Fail(GetReviewsErrorCodes.ReviewsNotFound));
+            return ValueTask.FromResult(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
         }
         
-        return ValueTask.FromResult(Result.Ok(reviewsEntity.Reviews));
+        return ValueTask.FromResult(Result.Ok<IReadOnlyList<ReviewItem>?>(reviewsEntity.Reviews));
     }
 }

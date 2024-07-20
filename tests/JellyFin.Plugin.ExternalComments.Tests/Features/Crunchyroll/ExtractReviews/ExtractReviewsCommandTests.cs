@@ -4,8 +4,12 @@ using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client.Dto;
+using Microsoft.Extensions.Logging;
 
 namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.ExtractReviews;
 
@@ -18,6 +22,8 @@ public class ExtractReviewsCommandTests
     private readonly PluginConfiguration _config;
     private readonly IHtmlReviewsExtractor _htmlReviewsExtractor;
     private readonly IAddReviewsSession _addReviewsSession;
+    private readonly IGetReviewsSession _getReviewsSession;
+    private readonly ILogger<ExtractReviewsCommandHandler> _logger;
     
     public ExtractReviewsCommandTests()
     {
@@ -27,7 +33,10 @@ public class ExtractReviewsCommandTests
         _config = new PluginConfiguration();
         _htmlReviewsExtractor = Substitute.For<IHtmlReviewsExtractor>();
         _addReviewsSession = Substitute.For<IAddReviewsSession>();
-        _sut = new ExtractReviewsCommandHandler(_waybackMachineClient, _config, _htmlReviewsExtractor, _addReviewsSession);
+        _getReviewsSession = Substitute.For<IGetReviewsSession>();
+        _logger = Substitute.For<ILogger<ExtractReviewsCommandHandler>>();
+        _sut = new ExtractReviewsCommandHandler(_waybackMachineClient, _config, _htmlReviewsExtractor, 
+            _addReviewsSession, _getReviewsSession, _logger);
     }
 
     [Fact]
@@ -36,6 +45,10 @@ public class ExtractReviewsCommandTests
         //Arrange
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
+        
+        _getReviewsSession
+            .GetReviewsForTitleIdAsync(titleId)
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
         
         var availabilityResponse = new AvailabilityResponse()
         {
@@ -100,6 +113,10 @@ public class ExtractReviewsCommandTests
         //Arrange
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
+        
+        _getReviewsSession
+            .GetReviewsForTitleIdAsync(titleId)
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
 
         var availabilityResponseTooNew = new AvailabilityResponse()
         {
@@ -191,6 +208,10 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
+        _getReviewsSession
+            .GetReviewsForTitleIdAsync(titleId)
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+        
         var error = "error";
         _waybackMachineClient.GetAvailabilityAsync(
                 Arg.Any<string>(),
@@ -225,6 +246,10 @@ public class ExtractReviewsCommandTests
         //Arrange
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
+        
+        _getReviewsSession
+            .GetReviewsForTitleIdAsync(titleId)
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
         
         var availabilityResponse = new AvailabilityResponse()
         {
@@ -270,5 +295,34 @@ public class ExtractReviewsCommandTests
                 Arg.Any<string>(),
                 Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 1),
                 Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ReturnsAlreadyHasReviews_WhenTitleHasAlreadyReviews_GivenTitleIdAndSlugTitle()
+    {
+        //Arrange
+        var titleId = _fixture.Create<string>();
+        var slugTitle = _fixture.Create<string>();
+        
+        _getReviewsSession
+            .GetReviewsForTitleIdAsync(titleId)
+            .Returns(Result.Ok(_fixture.Create<IReadOnlyList<ReviewItem>?>()));
+        
+        //Act
+        var command = new ExtractReviewsCommand()
+        {
+            TitleId = titleId,
+            SlugTitle = slugTitle
+        };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(x => x.Message == ExtractReviewsErrorCodes.TitleAlreadyHasReviews);
+
+        await _getReviewsSession
+            .Received(1)
+            .GetReviewsForTitleIdAsync(titleId);
     }
 }

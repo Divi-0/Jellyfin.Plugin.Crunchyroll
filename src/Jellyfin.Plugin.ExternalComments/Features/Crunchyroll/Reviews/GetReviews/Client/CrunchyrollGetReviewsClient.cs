@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews.Mappings;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Mappings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews.Client;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Client;
 
 public sealed class CrunchyrollGetReviewsClient : ICrunchyrollGetReviewsClient
 {

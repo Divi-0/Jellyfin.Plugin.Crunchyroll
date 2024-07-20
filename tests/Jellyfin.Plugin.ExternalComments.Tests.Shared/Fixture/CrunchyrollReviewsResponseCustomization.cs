@@ -1,5 +1,5 @@
 using AutoFixture;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews.Client;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Client;
 
 namespace Jellyfin.Plugin.ExternalComments.Tests.Shared.Fixture;
 

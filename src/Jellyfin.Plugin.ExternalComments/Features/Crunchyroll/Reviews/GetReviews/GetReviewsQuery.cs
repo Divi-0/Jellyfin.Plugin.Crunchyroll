@@ -3,15 +3,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using J2N.Collections.Generic;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews.Client;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.TV;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Client;
 using MediaBrowser.Controller.Library;
 using Mediator;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
 
 public record GetReviewsQuery(string Id, int PageNumber, int PageSize) : ICrunchyrollCommand, IRequest<Result<ReviewsResponse>>;
 
@@ -59,7 +58,7 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
             var reviewsResult = await _getReviewsSession.GetReviewsForTitleIdAsync(titleId);
             return reviewsResult.IsFailed ? 
                 reviewsResult.ToResult() : 
-                Result.Ok(new ReviewsResponse { Reviews = reviewsResult.Value });
+                Result.Ok(new ReviewsResponse { Reviews = reviewsResult.Value ?? Array.Empty<ReviewItem>().ToList() });
         }
         else
         {

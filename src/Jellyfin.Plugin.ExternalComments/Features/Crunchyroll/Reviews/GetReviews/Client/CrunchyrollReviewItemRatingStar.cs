@@ -1,4 +1,4 @@
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews.Client;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Client;
 
 public static class CrunchyrollReviewItemRatingStar
 {

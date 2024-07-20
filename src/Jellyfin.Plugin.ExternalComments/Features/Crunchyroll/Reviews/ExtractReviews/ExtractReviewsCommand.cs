@@ -1,13 +1,12 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
-using HtmlAgilityPack;
 using Jellyfin.Plugin.ExternalComments.Configuration;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client.Dto;
 using Mediator;
@@ -15,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 
 public record ExtractReviewsCommand() : IRequest<Result>
 {
@@ -29,20 +28,40 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
     private readonly PluginConfiguration _config;
     private readonly IHtmlReviewsExtractor _htmlReviewsExtractor;
     private readonly IAddReviewsSession _addReviewsSession;
+    private readonly IGetReviewsSession _getReviewsSession;
+    private readonly ILogger<ExtractReviewsCommandHandler> _logger;
 
     private readonly DateTime _dateWhenReviewsWereDeleted = new DateTime(2024, 07, 10);
     
     public ExtractReviewsCommandHandler(IWaybackMachineClient waybackMachineClient, PluginConfiguration config, 
-        IHtmlReviewsExtractor htmlReviewsExtractor, IAddReviewsSession addReviewsSession)
+        IHtmlReviewsExtractor htmlReviewsExtractor, IAddReviewsSession addReviewsSession, IGetReviewsSession getReviewsSession,
+        ILogger<ExtractReviewsCommandHandler> logger)
     {
         _waybackMachineClient = waybackMachineClient;
         _config = config;
         _htmlReviewsExtractor = htmlReviewsExtractor;
         _addReviewsSession = addReviewsSession;
+        _getReviewsSession = getReviewsSession;
+        _logger = logger;
     }
     
     public async ValueTask<Result> Handle(ExtractReviewsCommand request, CancellationToken cancellationToken)
     {
+        var hasReviewsResult = await HasTitleAnyReviews(request.TitleId);
+
+        if (hasReviewsResult.IsFailed)
+        {
+            return hasReviewsResult.ToResult();
+        }
+
+        var hasTitleAnyReviews = hasReviewsResult.Value;
+
+        if (hasTitleAnyReviews)
+        {
+            _logger.LogDebug("Title with id {TitleId} already has reviews", request.TitleId);
+            return Result.Fail(ExtractReviewsErrorCodes.TitleAlreadyHasReviews);
+        }
+        
         string url = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
             new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
@@ -60,7 +79,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         
         var availability = availabilityResult.Value;
 
-        var reviewsResult = await _htmlReviewsExtractor.GetReviewsAsync(availability.ArchivedSnapshots.Closest.Url, cancellationToken);
+        var reviewsResult = await _htmlReviewsExtractor.GetReviewsAsync(availability.ArchivedSnapshots.Closest!.Url, cancellationToken);
 
         if (reviewsResult.IsFailed)
         {
@@ -70,6 +89,18 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         await _addReviewsSession.AddReviewsForTitleIdAsync(request.TitleId, reviewsResult.Value);
 
         return Result.Ok();
+    }
+
+    private async ValueTask<Result<bool>> HasTitleAnyReviews(string titleId)
+    {
+        var result = await _getReviewsSession.GetReviewsForTitleIdAsync(titleId);
+
+        if (result.IsFailed)
+        {
+            return result.ToResult();
+        }
+        
+        return result.Value?.Any() ?? false;
     }
 
     private async Task<Result<AvailabilityResponse>> GetAvailabilityAsync(string url, CancellationToken cancellationToken)

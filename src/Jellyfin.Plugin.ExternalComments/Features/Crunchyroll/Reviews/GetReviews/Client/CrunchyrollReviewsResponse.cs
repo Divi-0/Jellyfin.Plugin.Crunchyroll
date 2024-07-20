@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews.Client;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Client;
 
 public record CrunchyrollReviewsResponse
 {

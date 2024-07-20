@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews.Client;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Client;
 using Microsoft.Net.Http.Headers;
 using RichardSzalay.MockHttp;
 

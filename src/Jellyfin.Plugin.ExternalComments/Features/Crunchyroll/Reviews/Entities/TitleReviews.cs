@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Persistence.Entities;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
 
 public record TitleReviews
 {

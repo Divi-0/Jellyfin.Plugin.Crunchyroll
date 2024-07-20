@@ -3,8 +3,9 @@ using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews.Client;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Client;
 using Jellyfin.Plugin.ExternalComments.Tests.Shared;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
@@ -204,16 +205,16 @@ public class GetReviewsQueryTests
         
         var reviewsResponse = _fixture.Create<ReviewsResponse>();
         _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)
-            .Returns(ValueTask.FromResult(Result.Fail<IReadOnlyList<ReviewItem>>(GetReviewsErrorCodes.ReviewsNotFound)));
+            .GetReviewsForTitleIdAsync(titleId)!
+            .Returns(ValueTask.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(null!)));
         
         //Act
         var query = new GetReviewsQuery(id.ToString(), pageNumber, pageSize);
         var result = await _sut.Handle(query, CancellationToken.None);
 
         //Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().ContainSingle(x => x.Message.Equals(GetReviewsErrorCodes.ReviewsNotFound));
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Reviews.Should().BeEmpty();
 
         _libraryManager
             .Received(1)

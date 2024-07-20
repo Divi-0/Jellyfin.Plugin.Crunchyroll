@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
 
 [Route($"{Routes.Root}/crunchyroll/reviews")]
 public class GetReviewsController : ControllerBase

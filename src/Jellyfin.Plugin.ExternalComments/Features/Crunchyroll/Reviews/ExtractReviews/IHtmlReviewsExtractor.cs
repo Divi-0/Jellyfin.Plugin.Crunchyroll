@@ -3,9 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews.Client;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 
 public interface IHtmlReviewsExtractor
 {

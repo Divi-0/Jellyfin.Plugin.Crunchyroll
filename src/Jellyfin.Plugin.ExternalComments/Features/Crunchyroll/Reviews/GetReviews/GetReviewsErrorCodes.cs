@@ -1,4 +1,4 @@
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetReviews;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
 
 public static class GetReviewsErrorCodes
 {
@@ -8,5 +8,4 @@ public static class GetReviewsErrorCodes
     public const string NoSession = "103";
     public const string ItemNotFound = "104";
     public const string ItemHasNoProviderId = "105";
-    public const string ReviewsNotFound = "106";
 }
