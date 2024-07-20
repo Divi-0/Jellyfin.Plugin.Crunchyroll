@@ -8,31 +8,36 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.WaybackMachine.Helper;
 
 public static class MockHttpResponse
 {
-    public static (MockedRequest mockedRequest, AvailabilityResponse response) MockGetAvailableRequest(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
+    public static (MockedRequest mockedRequest, SearchResponse response) MockSearchRequest(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
         DateTime timeStamp, string response = "")
     {
         var fixture = new Fixture();
         
-        var availabilityResponse = fixture.Create<AvailabilityResponse>();
+        var searchResponse = fixture.Create<SearchResponse>();
 
         if (string.IsNullOrWhiteSpace(response))
         {
-            response = JsonSerializer.Serialize(availabilityResponse);
+            response = JsonSerializer.Serialize<string[][]>([
+                ["", "", ""], 
+                [
+                    searchResponse.Timestamp.ToString("yyyyMMdd000000"),
+                    searchResponse.MimeType,
+                    searchResponse.Status
+                ]]);
         }
         
-        
-        var fullUrl = $"https://archive.org/wayback/available?url={url}&timestamp={timeStamp.ToString("yyyyMMddhhmmss")}&timeout=180&closest=either&status_code=200";
+        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-1&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Respond("application/json", response);
 
-        return (mockedRequest, availabilityResponse);
+        return (mockedRequest, searchResponse);
     }
     
     public static MockedRequest MockGetAvailableRequestFails(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
         DateTime timeStamp, HttpStatusCode httpStatusCode)
     {
-        var fullUrl = $"https://archive.org/wayback/available?url={url}&timestamp={timeStamp.ToString("yyyyMMddhhmmss")}&timeout=180&closest=either&status_code=200";
+        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-1&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Respond(httpStatusCode);
@@ -43,10 +48,10 @@ public static class MockHttpResponse
     public static MockedRequest MockGetAvailableRequestNullResponse(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
         DateTime timeStamp)
     {
-        var fullUrl = $"https://archive.org/wayback/available?url={url}&timestamp={timeStamp.ToString("yyyyMMddhhmmss")}&timeout=180&closest=either&status_code=200";
+        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-1&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
-            .Respond("application/json", JsonSerializer.Serialize<AvailabilityResponse>(null!));
+            .Respond("application/json", JsonSerializer.Serialize<SearchResponse>(null!));
 
         return mockedRequest;
     }

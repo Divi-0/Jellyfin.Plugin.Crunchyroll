@@ -33,21 +33,23 @@ public class WaybackMachineClientTests
     }
 
     [Fact]
-    public async Task ReturnsArchivedSnapshot_WhenRequestingSnapshot_GivenUrlAndTimeStamp()
+    public async Task ReturnsSearchResponse_WhenRequestingSnapshot_GivenUrlAndTimeStamp()
     {
         //Arrange
         var url = _fixture.Create<string>();
         var timeStamp = _fixture.Create<DateTime>();
         
-        var (mockedRequest, availabilityResponse) = _mockHttpMessageHandler.MockGetAvailableRequest(url, timeStamp);
+        var (mockedRequest, searchResponse) = _mockHttpMessageHandler.MockSearchRequest(url, timeStamp);
         
         //Act
-        var response = await _sut.GetAvailabilityAsync(url, timeStamp, CancellationToken.None);
+        var response = await _sut.SearchAsync(url, timeStamp, CancellationToken.None);
 
         //Assert
         response.IsSuccess.Should().BeTrue();
         response.Value.Should().NotBeNull();
-        response.Value.Should().Be(availabilityResponse);
+        response.Value.Timestamp.Should().Be(searchResponse.Timestamp.Date);
+        response.Value.MimeType.Should().Be(searchResponse.MimeType);
+        response.Value.Status.Should().Be(searchResponse.Status);
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
     }
@@ -62,7 +64,7 @@ public class WaybackMachineClientTests
         var mockedRequest = _mockHttpMessageHandler.MockGetAvailableRequestFails(url, timeStamp, HttpStatusCode.BadRequest);
         
         //Act
-        var response = await _sut.GetAvailabilityAsync(url, timeStamp, CancellationToken.None);
+        var response = await _sut.SearchAsync(url, timeStamp, CancellationToken.None);
 
         //Assert
         response.IsSuccess.Should().BeFalse();
@@ -81,7 +83,7 @@ public class WaybackMachineClientTests
         var mockedRequest = _mockHttpMessageHandler.MockGetAvailableRequestNullResponse(url, timeStamp);
         
         //Act
-        var response = await _sut.GetAvailabilityAsync(url, timeStamp, CancellationToken.None);
+        var response = await _sut.SearchAsync(url, timeStamp, CancellationToken.None);
 
         //Assert
         response.IsSuccess.Should().BeFalse();
@@ -97,10 +99,10 @@ public class WaybackMachineClientTests
         var url = _fixture.Create<string>();
         var timeStamp = _fixture.Create<DateTime>();
         
-        var (mockedRequest, _) = _mockHttpMessageHandler.MockGetAvailableRequest(url, timeStamp, "invalid json");
+        var (mockedRequest, _) = _mockHttpMessageHandler.MockSearchRequest(url, timeStamp, "invalid json");
         
         //Act
-        var response = await _sut.GetAvailabilityAsync(url, timeStamp, CancellationToken.None);
+        var response = await _sut.SearchAsync(url, timeStamp, CancellationToken.None);
 
         //Assert
         response.IsSuccess.Should().BeFalse();
@@ -110,22 +112,17 @@ public class WaybackMachineClientTests
     }
 
     [Fact]
-    public async Task ReturnsNotFound_WhenClosestIsNull_GivenUrlAndTimeStamp()
+    public async Task ReturnsNotFound_WhenArrayIsEmpty_GivenUrlAndTimeStamp()
     {
         //Arrange
         var url = _fixture.Create<string>();
         var timeStamp = _fixture.Create<DateTime>();
-
-        var availabilityResponseWithoutClosest = new AvailabilityResponse()
-        {
-            ArchivedSnapshots = new Snapshot()
-        };
         
-        var (mockedRequest, _) = _mockHttpMessageHandler.MockGetAvailableRequest(url, timeStamp, JsonSerializer.Serialize(availabilityResponseWithoutClosest));
+        var (mockedRequest, _) = _mockHttpMessageHandler.MockSearchRequest(url, timeStamp, JsonSerializer.Serialize(Array.Empty<string>()));
         
         //Act
-        var response = await _sut.GetAvailabilityAsync(url, timeStamp, CancellationToken.None);
-
+        var response = await _sut.SearchAsync(url, timeStamp, CancellationToken.None);
+    
         //Assert
         response.IsSuccess.Should().BeFalse();
         response.Errors.Should().Contain(x => x.Message == WaybackMachineErrorCodes.WaybackMachineNotFound);

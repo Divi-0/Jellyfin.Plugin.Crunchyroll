@@ -6,13 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;
-using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client.Dto;
 using Mediator;
 using Microsoft.Extensions.Logging;
-using Polly;
-using Polly.Retry;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 
@@ -62,7 +58,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
             return Result.Fail(ExtractReviewsErrorCodes.TitleAlreadyHasReviews);
         }
         
-        string url = Path.Combine(
+        var crunchyrollUrl = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
             new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
             "series",
@@ -70,16 +66,21 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
             request.SlugTitle)
             .Replace('\\', '/');
         
-        var availabilityResult = await GetAvailabilityAsync(url, cancellationToken);
+        var searchResult = await _waybackMachineClient.SearchAsync(crunchyrollUrl, _dateWhenReviewsWereDeleted, cancellationToken);
 
-        if (availabilityResult.IsFailed)
+        if (searchResult.IsFailed)
         {
-            return availabilityResult.ToResult();
+            return searchResult.ToResult();
         }
-        
-        var availability = availabilityResult.Value;
 
-        var reviewsResult = await _htmlReviewsExtractor.GetReviewsAsync(availability.ArchivedSnapshots.Closest!.Url, cancellationToken);
+        var snapshotUrl = Path.Combine(
+                _config.ArchiveOrgUrl,
+                "web",
+                searchResult.Value.Timestamp.ToString("yyyyMMddHHmmss"),
+                crunchyrollUrl)
+            .Replace('\\', '/');
+
+        var reviewsResult = await _htmlReviewsExtractor.GetReviewsAsync(snapshotUrl, cancellationToken);
 
         if (reviewsResult.IsFailed)
         {
@@ -101,41 +102,5 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         }
         
         return result.Value?.Any() ?? false;
-    }
-
-    private async Task<Result<AvailabilityResponse>> GetAvailabilityAsync(string url, CancellationToken cancellationToken)
-    {
-        //2024 07 01 because in july they disabled reviews and comments
-        var timestamp = new DateTime(2024, 07, 01);
-        
-        var adjustTimestampPredicate = new PredicateBuilder<Result<AvailabilityResponse>>().HandleResult(result =>
-        {
-            if (result.IsFailed)
-            {
-                return false;
-            }
-            
-            var resultTimeStamp = DateTime.ParseExact(result.Value.ArchivedSnapshots.Closest!.Timestamp, 
-                "yyyyMMddHHmmss", CultureInfo.InvariantCulture);
-            
-            if (resultTimeStamp >= _dateWhenReviewsWereDeleted)
-            {
-                timestamp = timestamp.AddMonths(-1);
-                return true;
-            }
-
-            return false;
-        });
-        
-        var pipeline = new ResiliencePipelineBuilder<Result<AvailabilityResponse>>()
-            .AddRetry(new RetryStrategyOptions<Result<AvailabilityResponse>>()
-            {
-                ShouldHandle = adjustTimestampPredicate,
-                MaxRetryAttempts = 12
-            })
-            .Build();
-        
-        return await pipeline.ExecuteAsync<Result<AvailabilityResponse>>(async (cancelToken) => 
-            await _waybackMachineClient.GetAvailabilityAsync(url, timestamp, cancelToken), cancellationToken);
     }
 }

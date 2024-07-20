@@ -11,7 +11,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public string FlareSolverrProxyPassword { get; set; } = string.Empty;
     public string CrunchyrollUrl { get; set; } = "https://www.crunchyroll.com/";
     public string CrunchyrollLanguage { get; set; } = "de-DE";
-    public string ArchiveOrgUrl { get; set; } = "https://archive.org";
+    public string ArchiveOrgUrl { get; set; } = "http://web.archive.org";
     public string LocalDatabasePath { get; set; } = string.Empty;
     public bool IsWaybackMachineEnabled { get; set; } = true;
 }

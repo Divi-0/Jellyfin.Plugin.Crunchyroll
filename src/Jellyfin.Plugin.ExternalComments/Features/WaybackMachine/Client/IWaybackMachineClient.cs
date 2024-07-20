@@ -8,5 +8,12 @@ namespace Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;
 
 public interface IWaybackMachineClient
 {
-    public Task<Result<AvailabilityResponse>> GetAvailabilityAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Searches for the newest snapshot before the provided timestamp
+    /// </summary>
+    /// <param name="url">url to serach for</param>
+    /// <param name="timestamp">result will be filtered to the first snapshot that is before this timestamp</param>
+    /// <param name="cancellationToken">cancellationToken</param>
+    /// <returns></returns>
+    public Task<Result<SearchResponse>> SearchAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default);
 }

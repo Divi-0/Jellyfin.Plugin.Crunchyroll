@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -29,11 +30,20 @@ public class WaybackMachineClient : IWaybackMachineClient
         _httpClient.Timeout = TimeSpan.FromSeconds(_timeoutInSeconds + 5); //+5 overhead
     }
 
-    public async Task<Result<AvailabilityResponse>> GetAvailabilityAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default)
+    public async Task<Result<SearchResponse>> SearchAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default)
     {
-        var path = $"wayback/available?url={url}&timestamp={timestamp.ToString("yyyyMMdd000000")}&timeout={_timeoutInSeconds}&closest=either&status_code=200";
+        var path = $"cdx/search/cdx?url={url}&output=json&limit=-1&to={timestamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         
-        var response = await _httpClient.GetAsync(path, cancellationToken);
+        HttpResponseMessage response;
+        try
+        {
+            response = await _httpClient.GetAsync(path, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
 
         if (!response.IsSuccessStatusCode)
         {
@@ -42,11 +52,11 @@ public class WaybackMachineClient : IWaybackMachineClient
             return Result.Fail(WaybackMachineErrorCodes.WaybackMachineRequestFailed);
         }
 
-        AvailabilityResponse? availabilityResponse;
+        string[][]? jsonArray;
         try
         {
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            availabilityResponse = System.Text.Json.JsonSerializer.Deserialize<AvailabilityResponse>(content);
+            jsonArray = System.Text.Json.JsonSerializer.Deserialize<string[][]>(content);
         }
         catch (Exception e)
         {
@@ -54,18 +64,24 @@ public class WaybackMachineClient : IWaybackMachineClient
             return Result.Fail(WaybackMachineErrorCodes.WaybackMachineGetAvailabilityFailed);
         }
 
-        if (availabilityResponse is null)
+        if (jsonArray is null)
         {
             _logger.LogError("null response from wayback machine");
             return Result.Fail(WaybackMachineErrorCodes.WaybackMachineGetAvailabilityFailed);
         }
 
-        if (availabilityResponse.ArchivedSnapshots.Closest is null)
+        if (jsonArray.Length == 0)
         {
-            _logger.LogInformation("no closest snapshot found for url {Url} and timestamp {Timestamp}", url, timestamp);
             return Result.Fail(WaybackMachineErrorCodes.WaybackMachineNotFound);
         }
+
+        var searchResponse = new SearchResponse
+        {
+            Timestamp = DateTime.ParseExact(jsonArray[1][0], "yyyyMMddHHmmss", CultureInfo.InvariantCulture),
+            MimeType = jsonArray[1][1],
+            Status = jsonArray[1][2],
+        };
         
-        return availabilityResponse;
+        return searchResponse;
     }
 }

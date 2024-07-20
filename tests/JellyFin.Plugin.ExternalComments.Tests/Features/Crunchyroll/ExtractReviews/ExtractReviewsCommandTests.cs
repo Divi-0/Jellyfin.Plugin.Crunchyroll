@@ -1,3 +1,4 @@
+using System.Globalization;
 using AutoFixture;
 using FluentAssertions;
 using FluentResults;
@@ -9,13 +10,14 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractRevie
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client.Dto;
+using Jellyfin.Plugin.ExternalComments.Tests.Shared.Fixture;
 using Microsoft.Extensions.Logging;
 
 namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.ExtractReviews;
 
 public class ExtractReviewsCommandTests
 {
-    private readonly Fixture _fixture;
+    private readonly IFixture _fixture;
     
     private readonly ExtractReviewsCommandHandler _sut;
     private readonly IWaybackMachineClient _waybackMachineClient;
@@ -27,7 +29,8 @@ public class ExtractReviewsCommandTests
     
     public ExtractReviewsCommandTests()
     {
-        _fixture = new Fixture();
+        _fixture = new Fixture()
+            .Customize(new WaybackMachineSearchResponseCustomization());
         
         _waybackMachineClient = Substitute.For<IWaybackMachineClient>();
         _config = new PluginConfiguration();
@@ -49,30 +52,29 @@ public class ExtractReviewsCommandTests
         _getReviewsSession
             .GetReviewsForTitleIdAsync(titleId)
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+
+        var searchResponse = _fixture.Create<SearchResponse>();
         
-        var availabilityResponse = new AvailabilityResponse()
-        {
-            ArchivedSnapshots = new Snapshot()
-            {
-                Closest = new ClosestSnapshot()
-                {
-                    Timestamp = new DateTime(2024, 07, 1).ToString("yyyyMMddHHmmss"),
-                    Available = true,
-                    Url = _fixture.Create<Uri>().AbsoluteUri,
-                    Status = "200"
-                }
-            }
-        };
-        
-        _waybackMachineClient.GetAvailabilityAsync(
+        _waybackMachineClient.SearchAsync(
                 Arg.Any<string>(),
-                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 1),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
                 Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result.Ok(availabilityResponse)));
+            .Returns(Task.FromResult(Result.Ok(searchResponse)));
 
         var reviews = _fixture.CreateMany<ReviewItem>().ToList();
+        var url = Path.Combine(
+            _config.ArchiveOrgUrl, 
+            "web", 
+            searchResponse.Timestamp.ToString("yyyyMMddHHmmss"),
+            _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1],
+            new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
+            "series",
+            titleId,
+            slugTitle)
+            .Replace('\\', '/');
+        
         _htmlReviewsExtractor
-            .GetReviewsAsync(availabilityResponse.ArchivedSnapshots.Closest.Url, Arg.Any<CancellationToken>())
+            .GetReviewsAsync(url, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(reviews)));
         
         _addReviewsSession
@@ -93,103 +95,9 @@ public class ExtractReviewsCommandTests
 
         await _waybackMachineClient
             .Received(1)
-            .GetAvailabilityAsync(
+            .SearchAsync(
                 Arg.Any<string>(),
-                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 1),
-                Arg.Any<CancellationToken>());
-        
-        await _htmlReviewsExtractor
-            .Received(1)
-            .GetReviewsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        
-        await _addReviewsSession
-            .Received(1)
-            .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>());
-    }
-    
-    [Fact]
-    public async Task ReturnsSuccess_WhenFirstRequestWasOverDeletionDateOfReviews_GivenTitleIdAndSlugTitle()
-    {
-        //Arrange
-        var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
-        
-        _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)
-            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
-
-        var availabilityResponseTooNew = new AvailabilityResponse()
-        {
-            ArchivedSnapshots = new Snapshot()
-            {
-                Closest = new ClosestSnapshot()
-                {
-                    Timestamp = new DateTime(2024, 07, 15).ToString("yyyyMMddHHmmss")
-                }
-            }
-        };
-        
-        _waybackMachineClient.GetAvailabilityAsync(
-                Arg.Any<string>(),
-                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 1),
-                Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result.Ok(availabilityResponseTooNew)));
-        
-        var availabilityResponse = new AvailabilityResponse()
-        {
-            ArchivedSnapshots = new Snapshot()
-            {
-                Closest = new ClosestSnapshot()
-                {
-                    Timestamp = new DateTime(2024, 07, 1).ToString("yyyyMMddHHmmss"),
-                    Available = true,
-                    Url = _fixture.Create<Uri>().AbsoluteUri,
-                    Status = "200"
-                }
-            }
-        };
-        
-        _waybackMachineClient.GetAvailabilityAsync(
-                Arg.Any<string>(),
-                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 6 && x.Day == 1),
-                Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result.Ok(availabilityResponse)));
-
-        var reviews = _fixture.CreateMany<ReviewItem>().ToList();
-        _htmlReviewsExtractor
-            .GetReviewsAsync(availabilityResponse.ArchivedSnapshots.Closest!.Url, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(reviews)));
-        
-        _addReviewsSession
-            .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>())
-            .Returns(ValueTask.CompletedTask);
-        
-        //Act
-        var command = new ExtractReviewsCommand()
-        {
-            TitleId = titleId,
-            SlugTitle = slugTitle
-        };
-
-        var result = await _sut.Handle(command, CancellationToken.None);
-
-        //Assert
-        result.IsSuccess.Should().BeTrue();
-
-        //first request
-        await _waybackMachineClient
-            .Received(1)
-            .GetAvailabilityAsync(
-                Arg.Any<string>(),
-                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 1),
-                Arg.Any<CancellationToken>());
-        
-        //second request
-        await _waybackMachineClient
-            .Received(1)
-            .GetAvailabilityAsync(
-                Arg.Any<string>(),
-                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 6 && x.Day == 1),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
                 Arg.Any<CancellationToken>());
         
         await _htmlReviewsExtractor
@@ -202,7 +110,7 @@ public class ExtractReviewsCommandTests
     }
 
     [Fact]
-    public async Task ReturnsFailed_WhenGetAvailabilityFails_GivenTitleIdAndSlugTitle()
+    public async Task ReturnsFailed_WhenSearchFails_GivenTitleIdAndSlugTitle()
     {
         //Arrange
         var titleId = _fixture.Create<string>();
@@ -213,11 +121,11 @@ public class ExtractReviewsCommandTests
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
         
         var error = "error";
-        _waybackMachineClient.GetAvailabilityAsync(
+        _waybackMachineClient.SearchAsync(
                 Arg.Any<string>(),
-                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 1),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
                 Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result.Fail<AvailabilityResponse>(error)));
+            .Returns(Task.FromResult(Result.Fail<SearchResponse>(error)));
         
         //Act
         var command = new ExtractReviewsCommand()
@@ -234,9 +142,9 @@ public class ExtractReviewsCommandTests
 
         await _waybackMachineClient
             .Received(1)
-            .GetAvailabilityAsync(
+            .SearchAsync(
                 Arg.Any<string>(),
-                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 1),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
                 Arg.Any<CancellationToken>());
     }
 
@@ -251,29 +159,28 @@ public class ExtractReviewsCommandTests
             .GetReviewsForTitleIdAsync(titleId)
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
         
-        var availabilityResponse = new AvailabilityResponse()
-        {
-            ArchivedSnapshots = new Snapshot()
-            {
-                Closest = new ClosestSnapshot()
-                {
-                    Timestamp = new DateTime(2024, 07, 1).ToString("yyyyMMddHHmmss"),
-                    Available = true,
-                    Url = _fixture.Create<Uri>().AbsoluteUri,
-                    Status = "200"
-                }
-            }
-        };
+        var searchResponse = _fixture.Create<SearchResponse>();
         
-        _waybackMachineClient.GetAvailabilityAsync(
+        _waybackMachineClient.SearchAsync(
                 Arg.Any<string>(),
-                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 1),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
                 Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result.Ok(availabilityResponse)));
+            .Returns(Task.FromResult(Result.Ok(searchResponse)));
 
+        var url = Path.Combine(
+                _config.ArchiveOrgUrl, 
+                "web", 
+                searchResponse.Timestamp.ToString("yyyyMMddHHmmss"),
+                _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1],
+                new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
+                "series",
+                titleId,
+                slugTitle)
+            .Replace('\\', '/');
+        
         var error = "error123";
         _htmlReviewsExtractor
-            .GetReviewsAsync(availabilityResponse.ArchivedSnapshots.Closest.Url, Arg.Any<CancellationToken>())
+            .GetReviewsAsync(url, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Fail<IReadOnlyList<ReviewItem>>(error)));
         
         //Act
@@ -291,9 +198,9 @@ public class ExtractReviewsCommandTests
 
         await _waybackMachineClient
             .Received(1)
-            .GetAvailabilityAsync(
+            .SearchAsync(
                 Arg.Any<string>(),
-                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 1),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
                 Arg.Any<CancellationToken>());
     }
 

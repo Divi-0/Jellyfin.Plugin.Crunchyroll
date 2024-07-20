@@ -1,3 +1,5 @@
+using AutoFixture;
+using FluentAssertions;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId;
@@ -7,11 +9,12 @@ using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.DependencyInjection;
 using WireMock.Client;
 
-namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.Tests.LibraryScan;
+namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.WaybackMachine.Tests.Crunchyroll.LibraryScan;
 
 [Collection(CollectionNames.Plugin)]
 public class CrunchyrollScanTests
 {
+    private readonly CrunchyrollDatabaseFixture _crunchyrollDatabaseFixture;
     private readonly Fixture _fixture;
     
     private readonly CrunchyrollScan _crunchyrollScan;
@@ -19,8 +22,9 @@ public class CrunchyrollScanTests
     private readonly IWireMockAdminApi _wireMockAdminApi;
     private readonly PluginConfiguration _config;
 
-    public CrunchyrollScanTests(WireMockFixture wireMockFixture)
+    public CrunchyrollScanTests(WireMockFixture wireMockFixture, CrunchyrollDatabaseFixture crunchyrollDatabaseFixture)
     {
+        _crunchyrollDatabaseFixture = crunchyrollDatabaseFixture;
         _fixture = new Fixture();
         
         _crunchyrollScan =
@@ -43,34 +47,33 @@ public class CrunchyrollScanTests
         foreach (var item in itemList)
         { 
             await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, "de-DE");
-        }
-        
-        //Act
-        var progress = new Progress<double>();
-        await _crunchyrollScan.Run(progress, CancellationToken.None);
-        
-        //Assert
-        itemList.Should().AllSatisfy(x =>
-        {
-            x.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.Id);
-            x.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SlugTitle);
-            x.ProviderIds[CrunchyrollExternalKeys.Id].Should().NotBeEmpty();
-            x.ProviderIds[CrunchyrollExternalKeys.SlugTitle].Should().NotBeEmpty();
-        });
-    }
+            
+            var crunchyrollSearchResponse = await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, "de-DE");
 
-    [Fact]
-    public async Task SetsEmptyCrunchyrollTitleId_GivenCrunchyrollResponses()
-    {
-        //Arrange
-        var itemList = _libraryManager.MockCrunchyrollTitleIdScan();
-        
-        await _wireMockAdminApi.MockRootPageAsync();
-        await _wireMockAdminApi.MockAnonymousAuthAsync();
-        
-        foreach (var item in itemList)
-        {
-            await _wireMockAdminApi.MockCrunchyrollSearchResponseNoMatch(item.Name, "de-DE");
+            foreach (var searchData in crunchyrollSearchResponse.Data.Where(x => x.Type == "series"))
+            {
+                foreach (var dataItem in searchData.Items)
+                {
+                    string crunchyrollUrl = Path.Combine(
+                            _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
+                            "de",
+                            "series",
+                            dataItem.Id,
+                            dataItem.SlugTitle)
+                        .Replace('\\', '/');
+                    
+                    var waybackMachineSearchResponse = await _wireMockAdminApi.MockWaybackMachineSearchResponse(crunchyrollUrl);
+                    
+                    var snapshotUrl = Path.Combine(
+                            _config.ArchiveOrgUrl,
+                            "web",
+                            waybackMachineSearchResponse.Timestamp.ToString("yyyyMMddHHmmss"),
+                            crunchyrollUrl)
+                        .Replace('\\', '/');
+                    
+                    await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(snapshotUrl);
+                }
+            }
         }
         
         //Act
@@ -80,8 +83,7 @@ public class CrunchyrollScanTests
         //Assert
         itemList.Should().AllSatisfy(x =>
         {
-            x.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.Id);
-            x.ProviderIds[CrunchyrollExternalKeys.Id].Should().BeEmpty();
+            DatabaseMockHelper.ShouldHaveReviews(_crunchyrollDatabaseFixture.DbFilePath, x.ProviderIds[CrunchyrollExternalKeys.Id]);
         });
     }
 }

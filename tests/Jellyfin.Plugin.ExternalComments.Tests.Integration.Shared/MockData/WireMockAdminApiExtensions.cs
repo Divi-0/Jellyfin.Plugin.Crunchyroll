@@ -395,28 +395,27 @@ public static class WireMockAdminApiExtensions
         return searchResponse;
     }
     
-    public static async Task<AvailabilityResponse> MockWaybackMachineAvailabilityResponse(this IWireMockAdminApi wireMockAdminApi, 
-        string titleId, string slugTitle, string wireMockUrl)
+    public static async Task<SearchResponse> MockWaybackMachineSearchResponse(this IWireMockAdminApi wireMockAdminApi, 
+        string crunchyrollUrl)
     {
         var fixture = new Fixture()
-            .Customize(new WaybackMachineAvailabilityResponseCustomization(wireMockUrl));
+            .Customize(new WaybackMachineSearchResponseCustomization());
 
-        var response = fixture.Create<AvailabilityResponse>();
+        var searchResponse = fixture.Create<SearchResponse>();
+        string[][] response = [
+            ["", "", ""], 
+            [
+                searchResponse.Timestamp.ToString("yyyyMMddHHmmss"),
+                searchResponse.MimeType,
+                searchResponse.Status
+            ]];
         
         var builder = wireMockAdminApi.GetMappingBuilder();
-        
-        string url = Path.Combine(
-                wireMockUrl.Contains("www") ? wireMockUrl.Split("www.")[1] : wireMockUrl.Split("//")[1], 
-                "de",
-                "series",
-                titleId,
-                slugTitle)
-            .Replace('\\', '/');
         
         builder.Given(m => m
             .WithRequest(req => req
                 .UsingGet()
-                .WithPath($"/wayback/available")
+                .WithPath($"/cdx/search/cdx")
                 .WithParams(new List<ParamModel>()
                     {
                         new ParamModel()
@@ -427,19 +426,67 @@ public static class WireMockAdminApiExtensions
                                 new MatcherModel()
                                 {
                                     Name = "WildcardMatcher",
-                                    Pattern = url
+                                    Pattern = crunchyrollUrl
                                 }
                             }
                         },
                         new ParamModel()
                         {
-                            Name = "timestamp",
+                            Name = "output",
                             Matchers = new MatcherModel[]
                             {
                                 new MatcherModel()
                                 {
                                     Name = "WildcardMatcher",
-                                    Pattern = new DateTime(2024, 07, 07).ToString("YYYYMMDDhhmmss")
+                                    Pattern = "json"
+                                }
+                            }
+                        },
+                        new ParamModel()
+                        {
+                            Name = "limit",
+                            Matchers = new MatcherModel[]
+                            {
+                                new MatcherModel()
+                                {
+                                    Name = "WildcardMatcher",
+                                    Pattern = "-1"
+                                }
+                            }
+                        },
+                        new ParamModel()
+                        {
+                            Name = "to",
+                            Matchers = new MatcherModel[]
+                            {
+                                new MatcherModel()
+                                {
+                                    Name = "WildcardMatcher",
+                                    Pattern = new DateTime(2024, 07, 10).ToString("yyyyMMdd000000")
+                                }
+                            }
+                        },
+                        new ParamModel()
+                        {
+                            Name = "fastLatest",
+                            Matchers = new MatcherModel[]
+                            {
+                                new MatcherModel()
+                                {
+                                    Name = "WildcardMatcher",
+                                    Pattern = "true"
+                                }
+                            }
+                        },
+                        new ParamModel()
+                        {
+                            Name = "fl",
+                            Matchers = new MatcherModel[]
+                            {
+                                new MatcherModel()
+                                {
+                                    Name = "WildcardMatcher",
+                                    Pattern = "*"
                                 }
                             }
                         }
@@ -451,7 +498,7 @@ public static class WireMockAdminApiExtensions
 
         await builder.BuildAndPostAsync();
 
-        return response;
+        return searchResponse;
     }
     
     public static async Task MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(this IWireMockAdminApi wireMockAdminApi, 
