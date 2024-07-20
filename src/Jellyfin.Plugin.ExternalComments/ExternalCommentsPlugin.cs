@@ -25,20 +25,20 @@ public class ExternalCommentsPlugin : MediaBrowser.Common.Plugins.BasePlugin<Plu
     public IServiceProvider ServiceProvider { get; private set; } = null!;
     public static ExternalCommentsPlugin? Instance { get; private set; }
 
-    public ExternalCommentsPlugin(ILogger<ExternalCommentsPlugin> logger, IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, 
+    public ExternalCommentsPlugin(ILogger<ExternalCommentsPlugin> logger, ILoggerFactory loggerFactory, IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, 
         ILibraryManager libraryManager, Action<IServiceCollection>? serviceCollectionOptions = null) : base(applicationPaths, xmlSerializer)
     {
         _logger = logger;
         _libraryManager = libraryManager;
         _serviceCollectionOptions = serviceCollectionOptions;
 
-        BuildServiceCollection();
+        BuildServiceCollection(loggerFactory);
         InjectClientSideScriptIntoIndexFile(applicationPaths);
         
         Instance = this;
     }
 
-    private void BuildServiceCollection()
+    private void BuildServiceCollection(ILoggerFactory loggerFactory)
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddMediator();
@@ -49,6 +49,8 @@ public class ExternalCommentsPlugin : MediaBrowser.Common.Plugins.BasePlugin<Plu
 
         serviceCollection.AddSingleton<PluginConfiguration>(Configuration);
         serviceCollection.AddSingleton<ILibraryManager>(_libraryManager);
+        
+        serviceCollection.AddSingleton<ILoggerFactory>(loggerFactory);
 
         _serviceCollectionOptions?.Invoke(serviceCollection);
 

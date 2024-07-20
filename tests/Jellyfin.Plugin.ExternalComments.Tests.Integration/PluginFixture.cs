@@ -19,8 +19,9 @@ public class PluginFixture : IDisposable
         var applicationPaths = PluginWebApplicationFactory.Instance.Services.GetRequiredService<IApplicationPaths>();
         var xmlSerializer = PluginWebApplicationFactory.Instance.Services.GetRequiredService<IXmlSerializer>();
         var logger = PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILogger<ExternalCommentsPlugin>>();
+        var loggerFactory = PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILoggerFactory>();
         var libraryManager = PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILibraryManager>();
-       _ = new ExternalCommentsPlugin(logger, applicationPaths, xmlSerializer, libraryManager, ExtendServiceCollection);
+        _ = new ExternalCommentsPlugin(logger, loggerFactory, applicationPaths, xmlSerializer, libraryManager, ExtendServiceCollection);
     }
 
     private static void ExtendServiceCollection(IServiceCollection serviceCollection)
