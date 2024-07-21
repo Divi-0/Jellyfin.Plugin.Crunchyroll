@@ -64,6 +64,8 @@ public class GetReviewsTests
         const int pageNumber = 1;
         const int pageSize = 10;
         
+        PluginWebApplicationFactory.LibraryManagerMock.MockRetrieveItem(itemId, titleId);
+        
         await _wireMockAdminApi.MockRootPageAsync();
 
         //Act

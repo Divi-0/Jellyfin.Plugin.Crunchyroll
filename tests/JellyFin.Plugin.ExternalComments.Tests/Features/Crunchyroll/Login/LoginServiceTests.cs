@@ -9,42 +9,31 @@ using Xunit;
 
 namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.Login;
 
-public class LoginCommandTests
+public class LoginServiceTests
 {
-    private readonly ILogger<LoginCommandHandler> _loggerMock;
+    private readonly ILogger<LoginService> _loggerMock;
     private readonly ICrunchyrollSessionRepository _sessionRepositoryMock;
     private readonly ICrunchyrollLoginClient _crunchyrollClientMock;
+    
+    private readonly LoginService _sut;
 
-    public LoginCommandTests()
+    public LoginServiceTests()
     {
-        _loggerMock = Substitute.For<ILogger<LoginCommandHandler>>();
+        _loggerMock = Substitute.For<ILogger<LoginService>>();
         _sessionRepositoryMock = Substitute.For<ICrunchyrollSessionRepository>();
         _crunchyrollClientMock = Substitute.For<ICrunchyrollLoginClient>();
-    }
-
-    [Fact]
-    public async Task ReturnsSuccess_WhenTryingToLogin_GivenLoginCommand()
-    {
-        _crunchyrollClientMock.LoginAnonymousAsync(Arg.Any<CancellationToken>())
-            .Returns(Result.Ok(new CrunchyrollAuthResponse()
-            {
-                AccessToken = "token",
-                ExpiresIn = 3600,
-                TokenType = "Bearer",
-                Scope = "*",
-                Country = "de-DE"
-            }));
-
-        var loginCommandHandler = new LoginCommandHandler(_crunchyrollClientMock, _loggerMock, _sessionRepositoryMock);
-
-        var result = await loginCommandHandler.Handle(new LoginCommand(), CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
+        
+        _sut = new LoginService(_crunchyrollClientMock, _loggerMock, _sessionRepositoryMock);
     }
 
     [Fact]
     public async Task ReturnsSuccessAndSetsSession_WhenTryingToLogin_GivenLoginCommand()
     {
+        //Arrange
+        _sessionRepositoryMock
+            .GetAsync(Arg.Any<CancellationToken>())
+            .Returns((string?)null);
+        
         var authResponse = new CrunchyrollAuthResponse()
         {
             AccessToken = "token",
@@ -57,11 +46,15 @@ public class LoginCommandTests
         _crunchyrollClientMock.LoginAnonymousAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok(authResponse));
 
-        var loginCommandHandler = new LoginCommandHandler(_crunchyrollClientMock, _loggerMock, _sessionRepositoryMock);
+        //Act
+        var result = await _sut.LoginAnonymously(CancellationToken.None);
 
-        var result = await loginCommandHandler.Handle(new LoginCommand(), CancellationToken.None);
-
+        //Assert
         result.IsSuccess.Should().BeTrue();
+        
+        await _sessionRepositoryMock
+            .Received(1)
+            .GetAsync(Arg.Any<CancellationToken>());
 
         await _sessionRepositoryMock
             .Received(1)
@@ -71,20 +64,56 @@ public class LoginCommandTests
     [Fact]
     public async Task ReturnsFailedAndSessionNotSet_WhenCrunchyrollRequestFails_GivenLoginCommand()
     {
+        //Arrange
         const string errorMessage = "Error 123";
 
+        _sessionRepositoryMock
+            .GetAsync(Arg.Any<CancellationToken>())
+            .Returns((string?)null);
+        
         _crunchyrollClientMock.LoginAnonymousAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Fail(errorMessage));
 
-        var loginCommandHandler = new LoginCommandHandler(_crunchyrollClientMock, _loggerMock, _sessionRepositoryMock);
+        //Act
+        var result = await _sut.LoginAnonymously(CancellationToken.None);
 
-        var result = await loginCommandHandler.Handle(new LoginCommand(), CancellationToken.None);
-
+        //Assert
         result.IsSuccess.Should().BeFalse();
         result.Errors.First().Message.Should().Be(errorMessage);
+        
+        await _sessionRepositoryMock
+            .Received(1)
+            .GetAsync(Arg.Any<CancellationToken>());
 
         await _sessionRepositoryMock
             .Received(0)
+            .SetAsync(Arg.Any<string>(), Arg.Any<TimeSpan?>());
+    }
+
+    [Fact]
+    public async Task ReturnsSuccess_WhenSessionAlreadySet_GivenLoginCommand()
+    {
+        //Arrange
+        _sessionRepositoryMock
+            .GetAsync(Arg.Any<CancellationToken>())
+            .Returns(Guid.NewGuid().ToString());
+
+        //Act
+        var result = await _sut.LoginAnonymously(CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        
+        await _sessionRepositoryMock
+            .Received(1)
+            .GetAsync(Arg.Any<CancellationToken>());
+
+        await _crunchyrollClientMock
+            .DidNotReceive()
+            .LoginAnonymousAsync(Arg.Any<CancellationToken>());
+
+        await _sessionRepositoryMock
+            .DidNotReceive()
             .SetAsync(Arg.Any<string>(), Arg.Any<TimeSpan?>());
     }
 }

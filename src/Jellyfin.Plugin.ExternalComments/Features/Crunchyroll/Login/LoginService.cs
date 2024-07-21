@@ -3,29 +3,33 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login.Client;
-using Mediator;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 
-public record LoginCommand : IRequest<Result>;
-
-public class LoginCommandHandler : IRequestHandler<LoginCommand, Result>
+public class LoginService : ILoginService
 {
     private readonly ICrunchyrollLoginClient _crunchyrollClient;
-    private readonly ILogger<LoginCommandHandler> _logger;
+    private readonly ILogger<LoginService> _logger;
     private readonly ICrunchyrollSessionRepository _crunchyrollSessionRepository;
 
-    public LoginCommandHandler(ICrunchyrollLoginClient crunchyrollClient, ILogger<LoginCommandHandler> logger,
+    public LoginService(ICrunchyrollLoginClient crunchyrollClient, ILogger<LoginService> logger,
         ICrunchyrollSessionRepository crunchyrollSessionRepository)
     {
         _crunchyrollClient = crunchyrollClient;
         _logger = logger;
         _crunchyrollSessionRepository = crunchyrollSessionRepository;
     }
-
-    public async ValueTask<Result> Handle(LoginCommand request, CancellationToken cancellationToken)
+    
+    public async ValueTask<Result> LoginAnonymously(CancellationToken cancellationToken)
     {
+        var currentSession = await _crunchyrollSessionRepository.GetAsync(cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(currentSession))
+        {
+            return Result.Ok();
+        }
+        
         var loginAnonymousResponse = await _crunchyrollClient.LoginAnonymousAsync(cancellationToken);
 
         if (loginAnonymousResponse.IsFailed)

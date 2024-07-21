@@ -6,13 +6,14 @@ using FluentResults;
 using J2N.Collections.Generic;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Client;
 using MediaBrowser.Controller.Library;
 using Mediator;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
 
-public record GetReviewsQuery(string Id, int PageNumber, int PageSize) : IRequiresCrunchyrollLogin, IRequest<Result<ReviewsResponse>>;
+public record GetReviewsQuery(string Id, int PageNumber, int PageSize) : IRequest<Result<ReviewsResponse>>;
 
 public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<ReviewsResponse>>
 {
@@ -20,14 +21,16 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
     private readonly ILibraryManager _libraryManager;
     private readonly PluginConfiguration _config;
     private readonly IGetReviewsSession _getReviewsSession;
+    private readonly ILoginService _loginService;
 
     public GetReviewsQueryHandler(ICrunchyrollGetReviewsClient client, ILibraryManager libraryManager,
-        PluginConfiguration config, IGetReviewsSession getReviewsSession)
+        PluginConfiguration config, IGetReviewsSession getReviewsSession, ILoginService loginService)
     {
         _client = client;
         _libraryManager = libraryManager;
         _config = config;
         _getReviewsSession = getReviewsSession;
+        _loginService = loginService;
     }
     
     public async ValueTask<Result<ReviewsResponse>> Handle(GetReviewsQuery request, CancellationToken cancellationToken)
@@ -62,7 +65,10 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
         }
         else
         {
-            return await _client.GetReviewsAsync(titleId, pageNumber, pageSize, cancellationToken);
+            var loginResult = await _loginService.LoginAnonymously(cancellationToken);
+            return loginResult.IsFailed ? 
+                loginResult :
+                await _client.GetReviewsAsync(titleId, pageNumber, pageSize, cancellationToken);
         }
     }
 }

@@ -3,6 +3,7 @@ using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Client;
@@ -24,6 +25,7 @@ public class GetReviewsQueryTests
     private readonly ILibraryManager _libraryManager;
     private readonly PluginConfiguration _config;
     private readonly IGetReviewsSession _getReviewsSession;
+    private readonly ILoginService _loginService;
 
     public GetReviewsQueryTests()
     {
@@ -33,8 +35,9 @@ public class GetReviewsQueryTests
         _crunchyrollGetReviewsClient = Substitute.For<ICrunchyrollGetReviewsClient>();
         _getReviewsSession = Substitute.For<IGetReviewsSession>();
         _libraryManager = Substitute.For<ILibraryManager>();
+        _loginService = Substitute.For<ILoginService>();
         _sut = new GetReviewsQueryHandler(_crunchyrollGetReviewsClient, _libraryManager, _config,
-            _getReviewsSession);
+            _getReviewsSession, _loginService);
     }
     
     [Fact]
@@ -50,6 +53,10 @@ public class GetReviewsQueryTests
 
         _libraryManager.MockRetrieveItem(id, providerId);
         
+        _loginService
+            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
         var reviewsResponse = _fixture.Create<ReviewsResponse>();
         _crunchyrollGetReviewsClient
             .GetReviewsAsync(providerId, pageNumber, pageSize, Arg.Any<CancellationToken>())
@@ -61,6 +68,10 @@ public class GetReviewsQueryTests
 
         //Assert
         result.IsSuccess.Should().BeTrue();
+        
+        await _loginService
+            .Received(1)
+            .LoginAnonymously(Arg.Any<CancellationToken>());
 
         _libraryManager
             .Received(1)
@@ -132,6 +143,10 @@ public class GetReviewsQueryTests
 
         _libraryManager.MockRetrieveItem(id, providerId);
 
+        _loginService
+            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
         var errorCode = "999";
         _crunchyrollGetReviewsClient
             .GetReviewsAsync(providerId, pageNumber, pageSize, Arg.Any<CancellationToken>())
@@ -144,6 +159,10 @@ public class GetReviewsQueryTests
         //Assert
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().ContainSingle(x => x.Message.Equals(errorCode));
+        
+        await _loginService
+            .Received(1)
+            .LoginAnonymously(Arg.Any<CancellationToken>());
     }
     
     [Fact]
@@ -188,6 +207,10 @@ public class GetReviewsQueryTests
                 Arg.Any<CancellationToken>());
 
         result.Value.Should().Be(reviewsResponse);
+        
+        await _loginService
+            .DidNotReceive()
+            .LoginAnonymously(Arg.Any<CancellationToken>());
     }
     
     [Fact]
@@ -226,6 +249,49 @@ public class GetReviewsQueryTests
 
         await _crunchyrollGetReviewsClient
             .Received(0)
+            .GetReviewsAsync(
+                Arg.Any<string>(), 
+                Arg.Any<int>(), 
+                Arg.Any<int>(), 
+                Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task ReturnsFailed_WhenLoginFailed_GivenItemId()
+    {
+        //Arrange
+        var id = Guid.NewGuid();
+        const int pageNumber = 1;
+        const int pageSize = 10;
+        var titleId = Guid.NewGuid().ToString();
+
+        _config.IsWaybackMachineEnabled = false;
+
+        _libraryManager.MockRetrieveItem(id, titleId);
+        
+        var errorCode = "999";
+        _loginService
+            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .Returns(Result.Fail(errorCode));
+        
+        //Act
+        var query = new GetReviewsQuery(id.ToString(), pageNumber, pageSize);
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().ContainSingle(x => x.Message.Equals(errorCode));
+
+        _libraryManager
+            .Received(1)
+            .RetrieveItem(id);
+
+        await _loginService
+            .Received(1)
+            .LoginAnonymously(Arg.Any<CancellationToken>());
+        
+        await _crunchyrollGetReviewsClient
+            .DidNotReceive()
             .GetReviewsAsync(
                 Arg.Any<string>(), 
                 Arg.Any<int>(), 

@@ -13,8 +13,8 @@ public static class LoginServiceExtension
         serviceCollection.AddHttpClient<ICrunchyrollLoginClient, CrunchyrollLoginClient>()
             .AddFlareSolverrProxy(configuration)
             .AddPollyHttpClientDefaultPolicy();
-        
-        serviceCollection.AddSingleton(typeof(IPipelineBehavior<,>), typeof(LoginPipelineBehavior<,>));
+
+        serviceCollection.AddSingleton<ILoginService, LoginService>();
         
         return serviceCollection;
     }
