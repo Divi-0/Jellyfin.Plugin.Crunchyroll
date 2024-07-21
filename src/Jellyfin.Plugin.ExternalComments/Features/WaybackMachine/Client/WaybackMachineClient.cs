@@ -27,7 +27,7 @@ public class WaybackMachineClient : IWaybackMachineClient
         _httpClient.BaseAddress =
             new Uri(config.ArchiveOrgUrl);
         
-        _httpClient.Timeout = TimeSpan.FromSeconds(_timeoutInSeconds + 5); //+5 overhead
+        _httpClient.Timeout = TimeSpan.FromSeconds(_timeoutInSeconds);
     }
 
     public async Task<Result<SearchResponse>> SearchAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default)
@@ -41,8 +41,9 @@ public class WaybackMachineClient : IWaybackMachineClient
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            _logger.LogError(e, "Error occurred while searching snapshot for url {Url} and timestamp {Timestamp}", 
+                url, timestamp);
+            return Result.Fail(WaybackMachineErrorCodes.WaybackMachineRequestFailed);
         }
 
         if (!response.IsSuccessStatusCode)

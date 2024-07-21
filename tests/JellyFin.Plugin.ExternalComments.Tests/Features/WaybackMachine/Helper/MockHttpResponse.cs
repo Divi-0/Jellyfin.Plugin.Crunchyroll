@@ -34,6 +34,20 @@ public static class MockHttpResponse
         return (mockedRequest, searchResponse);
     }
     
+    public static MockedRequest MockSearchRequestThrows(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
+        DateTime timeStamp, Exception exception)
+    {
+        var fixture = new Fixture();
+        
+        
+        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-1&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
+        var mockedRequest = mockHttpMessageHandler
+            .When(fullUrl)
+            .Throw(exception);
+
+        return mockedRequest;
+    }
+    
     public static MockedRequest MockGetAvailableRequestFails(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
         DateTime timeStamp, HttpStatusCode httpStatusCode)
     {

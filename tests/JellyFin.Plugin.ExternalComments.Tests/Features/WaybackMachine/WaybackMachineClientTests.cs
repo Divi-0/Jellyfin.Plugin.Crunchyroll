@@ -129,4 +129,23 @@ public class WaybackMachineClientTests
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
     }
+
+    [Fact]
+    public async Task ReturnsFailed_WhenHttpClientThrows_GivenUrlAndTimeStamp()
+    {
+        //Arrange
+        var url = _fixture.Create<string>();
+        var timeStamp = _fixture.Create<DateTime>();
+        
+        var mockedRequest = _mockHttpMessageHandler.MockSearchRequestThrows(url, timeStamp, new TimeoutException());
+        
+        //Act
+        var response = await _sut.SearchAsync(url, timeStamp, CancellationToken.None);
+    
+        //Assert
+        response.IsSuccess.Should().BeFalse();
+        response.Errors.Should().Contain(x => x.Message == WaybackMachineErrorCodes.WaybackMachineRequestFailed);
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
+    }
 }
