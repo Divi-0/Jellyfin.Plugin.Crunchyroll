@@ -26,12 +26,13 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
     private readonly IAddReviewsSession _addReviewsSession;
     private readonly IGetReviewsSession _getReviewsSession;
     private readonly ILogger<ExtractReviewsCommandHandler> _logger;
+    private readonly IAvatarClient _avatarClient;
 
     private readonly DateTime _dateWhenReviewsWereDeleted = new DateTime(2024, 07, 10);
     
     public ExtractReviewsCommandHandler(IWaybackMachineClient waybackMachineClient, PluginConfiguration config, 
         IHtmlReviewsExtractor htmlReviewsExtractor, IAddReviewsSession addReviewsSession, IGetReviewsSession getReviewsSession,
-        ILogger<ExtractReviewsCommandHandler> logger)
+        ILogger<ExtractReviewsCommandHandler> logger, IAvatarClient avatarClient)
     {
         _waybackMachineClient = waybackMachineClient;
         _config = config;
@@ -39,6 +40,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         _addReviewsSession = addReviewsSession;
         _getReviewsSession = getReviewsSession;
         _logger = logger;
+        _avatarClient = avatarClient;
     }
     
     public async ValueTask<Result> Handle(ExtractReviewsCommand request, CancellationToken cancellationToken)
@@ -88,6 +90,26 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         }
         
         await _addReviewsSession.AddReviewsForTitleIdAsync(request.TitleId, reviewsResult.Value);
+        
+        var parallelOptions = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = Environment.ProcessorCount / 2,
+            CancellationToken = cancellationToken
+        };
+        
+        await Parallel.ForEachAsync(reviewsResult.Value.Select(x => x.Author.AvatarUri), parallelOptions, async (avatarUri, token) =>
+        {
+            var avatarResult = await _avatarClient.GetAvatarStreamAsync(avatarUri, cancellationToken);
+
+            if (avatarResult.IsFailed)
+            {
+                return;
+            }
+
+            var imageStream = avatarResult.Value;
+            
+            await _addReviewsSession.AddAvatarImageAsync(avatarUri, imageStream);
+        });
 
         return Result.Ok();
     }

@@ -57,4 +57,23 @@ public static class DatabaseMockHelper
             Semaphore.Release();
         }
     }
+    
+    public static void ShouldHaveAvatarUri(string dbFilePath, string uri)
+    {
+        Semaphore.Wait();
+
+        try
+        {
+            using var db = new LiteDatabase(dbFilePath);
+            var fileStorage = db.GetStorage<string>("avatarImageFiles", "avatarImageChunks");
+
+            var hasAvatarUri = fileStorage.Exists(uri);
+            
+            hasAvatarUri.Should().BeTrue();
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
 }

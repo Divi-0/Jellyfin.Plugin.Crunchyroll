@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using AutoFixture;
@@ -502,7 +503,7 @@ public static class WireMockAdminApiExtensions
     }
     
     public static async Task MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(this IWireMockAdminApi wireMockAdminApi, 
-        string url)
+        string url, string mockedArchiveOrgUrl)
     {
         var builder = wireMockAdminApi.GetMappingBuilder();
         
@@ -512,7 +513,27 @@ public static class WireMockAdminApiExtensions
                 .WithUrl(url))
             .WithResponse(rsp => rsp
                 .WithStatusCode(HttpStatusCode.OK)
-                .WithBody(Properties.Resources.CrunchyrollTitleHtml)
+                .WithBody(Properties.Resources.CrunchyrollTitleHtml
+                    .Replace("http://web.archive.org", mockedArchiveOrgUrl))
+            ));
+
+        await builder.BuildAndPostAsync();
+    }
+    
+    public static async Task MockAvatarUriRequest(this IWireMockAdminApi wireMockAdminApi, 
+        string uri)
+    {
+        var fixture = new Fixture();
+        
+        var builder = wireMockAdminApi.GetMappingBuilder();
+        
+        builder.Given(m => m
+            .WithRequest(req => req
+                .UsingGet()
+                .WithUrl(uri))
+            .WithResponse(rsp => rsp
+                .WithStatusCode(HttpStatusCode.OK)
+                .WithBody(Encoding.Default.GetString(fixture.Create<byte[]>()))
             ));
 
         await builder.BuildAndPostAsync();

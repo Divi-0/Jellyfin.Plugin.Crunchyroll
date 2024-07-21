@@ -12,7 +12,8 @@ public static class CrunchyrollExtractReviewsServiceExtension
         serviceCollection.AddHttpClient<IHtmlReviewsExtractor, HtmlReviewsExtractor>()
             .AddPollyHttpClientDefaultPolicy();
 
-        serviceCollection.AddSingleton<IAddReviewsSession, ReviewsUnitOfWork>();
+        serviceCollection.AddSingleton<IAddReviewsSession, CrunchyrollUnitOfWork>();
+        serviceCollection.AddHttpClient<IAvatarClient, AvatarClient>();
         
         return serviceCollection;
     }

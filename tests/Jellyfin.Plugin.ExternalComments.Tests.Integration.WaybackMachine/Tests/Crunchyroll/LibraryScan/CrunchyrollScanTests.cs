@@ -39,6 +39,16 @@ public class CrunchyrollScanTests
     public async Task SetsTitleIdsWithNoEmptyValues_GivenCrunchyrollResponses()
     {
         //Arrange
+        //uri from ResourcesHtml
+        var imageUris = new []
+        {
+            $"{_config.ArchiveOrgUrl}/web/20240707123516im_/https://static.crunchyroll.com/assets/avatar/170x170/1010-mitrasphere-upa.png",
+            $"{_config.ArchiveOrgUrl}/web/20240707123516im_/https://static.crunchyroll.com/assets/avatar/170x170/13-tower-of-god-rak.png",
+            $"{_config.ArchiveOrgUrl}/web/20240707123516im_/https://static.crunchyroll.com/assets/avatar/170x170/21-bananya-bananya.png",
+            $"{_config.ArchiveOrgUrl}/web/20240707123516im_/https://static.crunchyroll.com/assets/avatar/170x170/11-tower-of-god-bam.png",
+            $"{_config.ArchiveOrgUrl}/web/20240707123516im_/https://static.crunchyroll.com/assets/avatar/170x170/chainsawman-aki.png"
+        };
+        
         var itemList = _libraryManager.MockCrunchyrollTitleIdScan();
         
         await _wireMockAdminApi.MockRootPageAsync();
@@ -71,9 +81,14 @@ public class CrunchyrollScanTests
                             crunchyrollUrl)
                         .Replace('\\', '/');
                     
-                    await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(snapshotUrl);
+                    await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(snapshotUrl, _config.ArchiveOrgUrl);
                 }
             }
+        }
+
+        foreach (var uri in imageUris)
+        {
+            await _wireMockAdminApi.MockAvatarUriRequest(uri);
         }
         
         //Act
@@ -84,6 +99,11 @@ public class CrunchyrollScanTests
         itemList.Should().AllSatisfy(x =>
         {
             DatabaseMockHelper.ShouldHaveReviews(_crunchyrollDatabaseFixture.DbFilePath, x.ProviderIds[CrunchyrollExternalKeys.Id]);
+        });
+
+        imageUris.Should().AllSatisfy(x =>
+        {
+            DatabaseMockHelper.ShouldHaveAvatarUri(_crunchyrollDatabaseFixture.DbFilePath, x);
         });
     }
 }

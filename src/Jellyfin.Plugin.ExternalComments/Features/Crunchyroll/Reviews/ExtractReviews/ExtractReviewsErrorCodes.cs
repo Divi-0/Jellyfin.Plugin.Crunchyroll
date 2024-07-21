@@ -3,4 +3,5 @@ namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractR
 public static class ExtractReviewsErrorCodes
 {
     public const string TitleAlreadyHasReviews = "301";
+    public const string GetAvatarImageRequestFailed = "302";
 }

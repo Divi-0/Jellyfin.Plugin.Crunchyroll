@@ -13,7 +13,7 @@ public static class GetReviewsServiceExtension
             .AddFlareSolverrProxy(configuration)
             .AddPollyHttpClientDefaultPolicy();
         
-        serviceCollection.AddSingleton<IGetReviewsSession, ReviewsUnitOfWork>();
+        serviceCollection.AddSingleton<IGetReviewsSession, CrunchyrollUnitOfWork>();
         
         return serviceCollection;
     }

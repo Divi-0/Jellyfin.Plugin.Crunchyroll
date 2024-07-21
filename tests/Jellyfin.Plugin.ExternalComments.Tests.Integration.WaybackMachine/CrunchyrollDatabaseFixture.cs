@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.ExternalComments.Configuration;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,7 +11,7 @@ public class CrunchyrollDatabaseFixture : IAsyncLifetime
     
     public Task InitializeAsync()
     {
-        var location = typeof(ReviewsUnitOfWork).Assembly.Location;
+        var location = typeof(CrunchyrollUnitOfWork).Assembly.Location;
         DbFilePath = Path.Combine(Path.GetDirectoryName(location)!, $"Crunchyroll_{Guid.NewGuid()}.db");
 
         _ = Task.Run(() =>

@@ -80,7 +80,7 @@ public class CrunchyrollScan : ILibraryPostScanTask
         {
             var options = new ParallelOptions
             {
-                MaxDegreeOfParallelism = 5,
+                MaxDegreeOfParallelism = Environment.ProcessorCount / 2,
                 CancellationToken = cancellationToken
             };
             
