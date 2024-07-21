@@ -45,17 +45,24 @@
                     <div class="fieldDescription">Crunchyroll Language in ISO 639-1. Example: en-US</div>
                 </div>
                 <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="ArchiveOrgUrl">ArchiveOrgUrl</label>
+                    <input id="ArchiveOrgUrl" name="ArchiveOrgUrl" type="text" is="emby-input" />
+                    <div class="fieldDescription">ArchiveOrgUrl</div>
+                </div>
+                <div class="inputContainer">
                     <label class="inputLabel inputLabelUnfocused" for="LocalDatabasePath">LocalDatabasePath</label>
                     <input id="LocalDatabasePath" name="LocalDatabasePath" type="text" is="emby-input" />
                     <div class="fieldDescription">default: empty; if you want a different path instead of the plugin folder, enter here the absolute path</div>
                 </div>
                 <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="IsWaybackMachineEnabled">IsWaybackMachineEnabled</label>
-                    <input id="IsWaybackMachineEnabled" name="IsWaybackMachineEnabled" type="text" is="emby-input" />
+                    <label class="emby-checkbox-label">
+                        <input id="IsWaybackMachineEnabled" name="IsWaybackMachineEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>IsWaybackMachineEnabled</span>
+                    </label>
                     <div class="fieldDescription">
-                        Set to false if you want to use the Crunchyroll Api.
-                        It works but since the reviews & comments were disable it response with an empty response object.
-                        If someday the reviews & comments get enabled again you can use this feature instead.
+                        Uncheck if you want to use the Crunchyroll Api.
+                        It was developed before the reviews & comments were disabled, but currently it only returns an empty response.
+                        If someday the reviews & comments are enabled again, you can use this feature instead.
                     </div>
                 </div>
                 <div>
@@ -82,8 +89,9 @@
                     document.querySelector('#FlareSolverrProxyPassword').value = config.FlareSolverrProxyPassword;
                     document.querySelector('#CrunchyrollUrl').value = config.CrunchyrollUrl;
                     document.querySelector('#CrunchyrollLanguage').value = config.CrunchyrollLanguage;
+                    document.querySelector('#ArchiveOrgUrl').value = config.ArchiveOrgUrl;
                     document.querySelector('#LocalDatabasePath').value = config.LocalDatabasePath;
-                    document.querySelector('#IsWaybackMachineEnabled').value = config.IsWaybackMachineEnabled;
+                    document.querySelector('#IsWaybackMachineEnabled').checked = config.IsWaybackMachineEnabled;
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -99,8 +107,9 @@
                     config.FlareSolverrProxyPassword = document.querySelector('#FlareSolverrProxyPassword').value;
                     config.CrunchyrollUrl = document.querySelector('#CrunchyrollUrl').value;
                     config.CrunchyrollLanguage = document.querySelector('#CrunchyrollLanguage').value;
+                    config.ArchiveOrgUrl = document.querySelector('#ArchiveOrgUrl').value;
                     config.LocalDatabasePath = document.querySelector('#LocalDatabasePath').value;
-                    config.IsWaybackMachineEnabled = document.querySelector('#IsWaybackMachineEnabled').value;
+                    config.IsWaybackMachineEnabled = document.querySelector('#IsWaybackMachineEnabled').checked;
                     ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
