@@ -34,6 +34,8 @@ public class CrunchyrollScan : ILibraryPostScanTask
     
     public async Task Run(IProgress<double> progress, CancellationToken cancellationToken)
     {
+        var maxPercentForeachStep = 50.0;
+        
         var allItems = _libraryManager.GetItemList(new InternalItemsQuery())
             .Where(x => x is Series or Movie).ToList();
         
@@ -72,9 +74,11 @@ public class CrunchyrollScan : ILibraryPostScanTask
         
             _logger.LogDebug("Ids: {@Ids}", _libraryManager.GetItemById(item.Id)?.ProviderIds);
         
-            percent += 100.0 / allItems.Count;
+            percent += maxPercentForeachStep / allItems.Count;
             progress.Report(percent);
         }
+        
+        progress.Report(maxPercentForeachStep);
 
         if (_config.IsWaybackMachineEnabled)
         {
@@ -84,6 +88,7 @@ public class CrunchyrollScan : ILibraryPostScanTask
                 CancellationToken = cancellationToken
             };
             
+            var sumSemaphore = new SemaphoreSlim(1, 1);
             await Parallel.ForEachAsync(allItems, options, async (item, token) =>
             {
                 var hasId = item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? id) &&
@@ -103,6 +108,10 @@ public class CrunchyrollScan : ILibraryPostScanTask
                     TitleId = item.ProviderIds[CrunchyrollExternalKeys.Id],
                     SlugTitle = item.ProviderIds[CrunchyrollExternalKeys.SlugTitle]
                 }, token);
+
+                await sumSemaphore.WaitAsync(token);
+                percent += maxPercentForeachStep / allItems.Count;
+                sumSemaphore.Release();
             });
         }
 
