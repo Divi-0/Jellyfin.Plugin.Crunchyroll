@@ -8,30 +8,41 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.WaybackMachine.Helper;
 
 public static class MockHttpResponse
 {
-    public static (MockedRequest mockedRequest, SearchResponse response) MockSearchRequest(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
+    public static (MockedRequest mockedRequest, List<SearchResponse> response) MockSearchRequest(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
         DateTime timeStamp, string response = "")
     {
         var fixture = new Fixture();
         
-        var searchResponse = fixture.Create<SearchResponse>();
+        var searchResponses = fixture.CreateMany<SearchResponse>().ToList();
 
         if (string.IsNullOrWhiteSpace(response))
         {
             response = JsonSerializer.Serialize<string[][]>([
                 ["", "", ""], 
                 [
-                    searchResponse.Timestamp.ToString("yyyyMMdd000000"),
-                    searchResponse.MimeType,
-                    searchResponse.Status
-                ]]);
+                    searchResponses[0].Timestamp.ToString("yyyyMMddHHmmss"),
+                    searchResponses[0].MimeType,
+                    searchResponses[0].Status
+                ],
+                [
+                    searchResponses[1].Timestamp.ToString("yyyyMMddHHmmss"),
+                    searchResponses[1].MimeType,
+                    searchResponses[1].Status
+                ],
+                [
+                    searchResponses[2].Timestamp.ToString("yyyyMMddHHmmss"),
+                    searchResponses[2].MimeType,
+                    searchResponses[2].Status
+                ],
+            ]);
         }
         
-        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-1&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
+        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-3&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Respond("application/json", response);
 
-        return (mockedRequest, searchResponse);
+        return (mockedRequest, searchResponses);
     }
     
     public static MockedRequest MockSearchRequestThrows(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
@@ -40,7 +51,7 @@ public static class MockHttpResponse
         var fixture = new Fixture();
         
         
-        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-1&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
+        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-3&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Throw(exception);
@@ -51,7 +62,7 @@ public static class MockHttpResponse
     public static MockedRequest MockGetAvailableRequestFails(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
         DateTime timeStamp, HttpStatusCode httpStatusCode)
     {
-        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-1&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
+        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-3&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Respond(httpStatusCode);
@@ -62,7 +73,7 @@ public static class MockHttpResponse
     public static MockedRequest MockGetAvailableRequestNullResponse(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
         DateTime timeStamp)
     {
-        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-1&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
+        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-3&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Respond("application/json", JsonSerializer.Serialize<SearchResponse>(null!));

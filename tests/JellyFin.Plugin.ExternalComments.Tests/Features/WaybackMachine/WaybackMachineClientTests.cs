@@ -39,7 +39,7 @@ public class WaybackMachineClientTests
         var url = _fixture.Create<string>();
         var timeStamp = _fixture.Create<DateTime>();
         
-        var (mockedRequest, searchResponse) = _mockHttpMessageHandler.MockSearchRequest(url, timeStamp);
+        var (mockedRequest, searchResponses) = _mockHttpMessageHandler.MockSearchRequest(url, timeStamp);
         
         //Act
         var response = await _sut.SearchAsync(url, timeStamp, CancellationToken.None);
@@ -47,9 +47,9 @@ public class WaybackMachineClientTests
         //Assert
         response.IsSuccess.Should().BeTrue();
         response.Value.Should().NotBeNull();
-        response.Value.Timestamp.Should().Be(searchResponse.Timestamp.Date);
-        response.Value.MimeType.Should().Be(searchResponse.MimeType);
-        response.Value.Status.Should().Be(searchResponse.Status);
+        response.Value.Should().BeEquivalentTo(searchResponses, cfg =>
+            cfg.Using<DateTime>(ctx => ctx.Subject.ToString("yyyyMMddHHmmss").Should().Be(ctx.Expectation.ToString("yyyyMMddHHmmss")))
+                .WhenTypeIs<DateTime>());
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
     }

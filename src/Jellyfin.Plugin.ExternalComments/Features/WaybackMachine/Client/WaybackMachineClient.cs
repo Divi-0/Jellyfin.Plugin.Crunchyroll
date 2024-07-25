@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -30,9 +32,9 @@ public class WaybackMachineClient : IWaybackMachineClient
         _httpClient.Timeout = TimeSpan.FromSeconds(_timeoutInSeconds);
     }
 
-    public async Task<Result<SearchResponse>> SearchAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<SearchResponse>>> SearchAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default)
     {
-        var path = $"cdx/search/cdx?url={url}&output=json&limit=-1&to={timestamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
+        var path = $"cdx/search/cdx?url={url}&output=json&limit=-3&to={timestamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         
         HttpResponseMessage response;
         try
@@ -76,13 +78,13 @@ public class WaybackMachineClient : IWaybackMachineClient
             return Result.Fail(WaybackMachineErrorCodes.WaybackMachineNotFound);
         }
 
-        var searchResponse = new SearchResponse
+        var searchResponses = jsonArray.Skip(1).Select(searchData => new SearchResponse
         {
-            Timestamp = DateTime.ParseExact(jsonArray[1][0], "yyyyMMddHHmmss", CultureInfo.InvariantCulture),
-            MimeType = jsonArray[1][1],
-            Status = jsonArray[1][2],
-        };
+            Timestamp = DateTime.ParseExact(searchData[0], "yyyyMMddHHmmss", CultureInfo.InvariantCulture),
+            MimeType = searchData[1],
+            Status = searchData[2],
+        }).ToList();
         
-        return searchResponse;
+        return searchResponses;
     }
 }

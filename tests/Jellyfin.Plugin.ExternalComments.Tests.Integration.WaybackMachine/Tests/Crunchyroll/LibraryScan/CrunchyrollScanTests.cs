@@ -77,7 +77,7 @@ public class CrunchyrollScanTests
                     var snapshotUrl = Path.Combine(
                             _config.ArchiveOrgUrl,
                             "web",
-                            waybackMachineSearchResponse.Timestamp.ToString("yyyyMMddHHmmss"),
+                            waybackMachineSearchResponse.Last().Timestamp.ToString("yyyyMMddHHmmss"),
                             crunchyrollUrl)
                         .Replace('\\', '/');
                     

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
+using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;
 using Mediator;
 using Microsoft.Extensions.Logging;
@@ -75,14 +77,29 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
             return searchResult.ToResult();
         }
 
-        var snapshotUrl = Path.Combine(
-                _config.ArchiveOrgUrl,
-                "web",
-                searchResult.Value.Timestamp.ToString("yyyyMMddHHmmss"),
-                crunchyrollUrl)
-            .Replace('\\', '/');
+        //if invalid html error: retry with next timestamp; from last to first
+        Result<IReadOnlyList<ReviewItem>> reviewsResult = null!;
+        for (var index = searchResult.Value.Count - 1; index >= 0; index--)
+        {
+            var searchResponse = searchResult.Value[index];
+            var snapshotUrl = Path.Combine(
+                    _config.ArchiveOrgUrl,
+                    "web",
+                    searchResponse.Timestamp.ToString("yyyyMMddHHmmss"),
+                    crunchyrollUrl)
+                .Replace('\\', '/');
 
-        var reviewsResult = await _htmlReviewsExtractor.GetReviewsAsync(snapshotUrl, cancellationToken);
+            reviewsResult = await _htmlReviewsExtractor.GetReviewsAsync(snapshotUrl, cancellationToken);
+
+            if (reviewsResult.IsFailed &&
+                reviewsResult.Errors.First().Message ==
+                ExtractReviewsErrorCodes.HtmlExtractorInvalidCrunchyrollReviewsPage)
+            {
+                continue;
+            }
+
+            break;
+        }
 
         if (reviewsResult.IsFailed)
         {

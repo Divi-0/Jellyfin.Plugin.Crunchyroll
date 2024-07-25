@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -15,5 +16,5 @@ public interface IWaybackMachineClient
     /// <param name="timestamp">result will be filtered to the first snapshot that is before this timestamp</param>
     /// <param name="cancellationToken">cancellationToken</param>
     /// <returns></returns>
-    public Task<Result<SearchResponse>> SearchAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default);
+    public Task<Result<IReadOnlyList<SearchResponse>>> SearchAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default);
 }

@@ -396,20 +396,31 @@ public static class WireMockAdminApiExtensions
         return searchResponse;
     }
     
-    public static async Task<SearchResponse> MockWaybackMachineSearchResponse(this IWireMockAdminApi wireMockAdminApi, 
+    public static async Task<IReadOnlyList<SearchResponse>> MockWaybackMachineSearchResponse(this IWireMockAdminApi wireMockAdminApi, 
         string crunchyrollUrl)
     {
         var fixture = new Fixture()
             .Customize(new WaybackMachineSearchResponseCustomization());
 
-        var searchResponse = fixture.Create<SearchResponse>();
+        var searchResponses = fixture.CreateMany<SearchResponse>().ToList();
         string[][] response = [
             ["", "", ""], 
             [
-                searchResponse.Timestamp.ToString("yyyyMMddHHmmss"),
-                searchResponse.MimeType,
-                searchResponse.Status
-            ]];
+                searchResponses[0].Timestamp.ToString("yyyyMMddHHmmss"),
+                searchResponses[0].MimeType,
+                searchResponses[0].Status
+            ],
+            [
+                searchResponses[1].Timestamp.ToString("yyyyMMddHHmmss"),
+                searchResponses[1].MimeType,
+                searchResponses[1].Status
+            ],
+            [
+                searchResponses[2].Timestamp.ToString("yyyyMMddHHmmss"),
+                searchResponses[2].MimeType,
+                searchResponses[2].Status
+            ],
+        ];
         
         var builder = wireMockAdminApi.GetMappingBuilder();
         
@@ -451,7 +462,7 @@ public static class WireMockAdminApiExtensions
                                 new MatcherModel()
                                 {
                                     Name = "WildcardMatcher",
-                                    Pattern = "-1"
+                                    Pattern = "-3"
                                 }
                             }
                         },
@@ -499,7 +510,7 @@ public static class WireMockAdminApiExtensions
 
         await builder.BuildAndPostAsync();
 
-        return searchResponse;
+        return searchResponses;
     }
     
     public static async Task MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(this IWireMockAdminApi wireMockAdminApi, 
