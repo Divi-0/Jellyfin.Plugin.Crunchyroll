@@ -8,12 +8,9 @@ using System.Threading.Tasks;
 using FluentResults;
 using HtmlAgilityPack;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
-using Jellyfin.Plugin.ExternalComments.Domain.Constants;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
-using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews
 {
     public partial class HtmlReviewsExtractor : IHtmlReviewsExtractor
     {
@@ -36,13 +33,13 @@ namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews
             catch (Exception e)
             {
                 _logger.LogError(e, "Get request for url {Url}", url);
-                return Result.Fail(WaybackMachineErrorCodes.WaybackMachineArchivedUrlRequestFailed);
+                return Result.Fail(ExtractReviewsErrorCodes.HtmlUrlRequestFailed);
             }
 
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Get request for url {Url} failed with statuscode {StatusCode}", url, response.StatusCode);
-                return Result.Fail(WaybackMachineErrorCodes.WaybackMachineArchivedUrlRequestFailed);
+                return Result.Fail(ExtractReviewsErrorCodes.HtmlUrlRequestFailed);
             }
         
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -54,7 +51,7 @@ namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews
 
             if (reviewParentElement == null)
             {
-                return Result.Fail(WaybackMachineErrorCodes.WaybackMachineInvalidCrunchyrollReviewsPage);
+                return Result.Fail(ExtractReviewsErrorCodes.HtmlExtractorInvalidCrunchyrollReviewsPage);
             }
 
             var reviewElements = reviewParentElement.ChildNodes.Where(x => 
@@ -72,17 +69,6 @@ namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews
             
                 var createdAtString = reviewElement.SelectSingleNode(".//div[contains(@class, 'review__meta')]")
                     .ChildNodes[2].GetDirectInnerText();
-            
-                DateTime createdAt = new DateTime();
-
-                try
-                {
-                    createdAt = DateTime.Parse(createdAtString);
-                }
-                catch
-                {
-                    //ignore
-                }
             
                 var starRatingParentElement = reviewElement.SelectSingleNode(".//div[contains(@class, 'star-rating-controls')]");
                 var svgs = starRatingParentElement.SelectNodes(".//svg");

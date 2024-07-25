@@ -1,6 +1,5 @@
 using Jellyfin.Plugin.ExternalComments.Common;
 using Jellyfin.Plugin.ExternalComments.Configuration;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;

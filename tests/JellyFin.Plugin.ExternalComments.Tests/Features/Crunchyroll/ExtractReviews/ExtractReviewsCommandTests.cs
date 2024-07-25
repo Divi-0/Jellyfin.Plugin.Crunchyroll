@@ -4,10 +4,8 @@ using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client.Dto;
 using Jellyfin.Plugin.ExternalComments.Tests.Shared.Fixture;
@@ -82,6 +80,14 @@ public class ExtractReviewsCommandTests
         _addReviewsSession
             .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>())
             .Returns(ValueTask.CompletedTask);
+        
+        foreach (var review in reviews)
+        {
+            var stream = new MemoryStream(_fixture.Create<byte[]>());
+            _avatarClient
+                .GetAvatarStreamAsync(review.Author.AvatarUri, Arg.Any<CancellationToken>())
+                .Returns(Result.Ok<Stream>(stream));
+        }
         
         //Act
         var command = new ExtractReviewsCommand()
