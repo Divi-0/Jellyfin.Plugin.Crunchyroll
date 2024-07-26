@@ -1,11 +1,14 @@
 using System;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using J2N.Collections.Generic;
+using Jellyfin.Plugin.ExternalComments.Common;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Client;
 using MediaBrowser.Controller.Library;
@@ -59,9 +62,20 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
         if (_config.IsWaybackMachineEnabled)
         {
             var reviewsResult = await _getReviewsSession.GetReviewsForTitleIdAsync(titleId);
-            return reviewsResult.IsFailed ? 
-                reviewsResult.ToResult() : 
-                Result.Ok(new ReviewsResponse { Reviews = reviewsResult.Value ?? Array.Empty<ReviewItem>().ToList() });
+
+            if (reviewsResult.IsFailed)
+            {
+                return reviewsResult.ToResult();
+            }
+
+            var reviews = reviewsResult.Value ?? Array.Empty<ReviewItem>().ToList();
+
+            foreach (var review in reviews)
+            {
+                review.Author.AvatarUri = $"{Routes.Root}/{AvatarConstants.GetAvatarSubRoute}/{UrlEncoder.Default.Encode(review.Author.AvatarUri)}";
+            }
+            
+            return Result.Ok(new ReviewsResponse { Reviews = reviews });
         }
         else
         {

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar.Client;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;
 using Mediator;
 using Microsoft.Extensions.Logging;

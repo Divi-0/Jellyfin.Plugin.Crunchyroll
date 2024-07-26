@@ -4,6 +4,7 @@ using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;

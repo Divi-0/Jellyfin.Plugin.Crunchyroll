@@ -4,10 +4,11 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar.Client;
 
 public class AvatarClient : IAvatarClient
 {

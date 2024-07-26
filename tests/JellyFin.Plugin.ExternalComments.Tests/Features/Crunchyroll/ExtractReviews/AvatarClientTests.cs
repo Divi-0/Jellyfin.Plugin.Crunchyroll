@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using AutoFixture;
 using FluentAssertions;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 using JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.ExtractReviews.MockHelper;
 using Microsoft.Extensions.Logging;

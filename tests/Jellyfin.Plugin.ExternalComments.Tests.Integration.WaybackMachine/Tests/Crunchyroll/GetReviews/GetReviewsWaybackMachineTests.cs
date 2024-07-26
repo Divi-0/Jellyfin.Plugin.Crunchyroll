@@ -2,8 +2,10 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using Jellyfin.Plugin.ExternalComments.Common;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.MockData;
 using Jellyfin.Plugin.ExternalComments.Tests.Shared;
@@ -54,6 +56,11 @@ public class GetReviewsWaybackMachineTests
         var reviews = await response.Content.ReadFromJsonAsync<ReviewsResponse>();
 
         reviews!.Reviews.Should().Contain(x => x.Body == mockedReviews[0].Body);
+
+        reviews.Reviews.Should().AllSatisfy(x =>
+        {
+            x.Author.AvatarUri.Should().Contain($"{Routes.Root}/{AvatarConstants.GetAvatarSubRoute}");
+        });
 
         locacle.IsNeutralCulture.Should().BeFalse();
     }

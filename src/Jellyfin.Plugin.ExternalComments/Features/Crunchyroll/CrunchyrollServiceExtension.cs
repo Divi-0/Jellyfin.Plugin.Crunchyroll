@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.ExternalComments.Configuration;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
@@ -19,6 +20,7 @@ public static class CrunchyrollServiceExtension
         serviceCollection.AddCrunchyrollGetComments(configuration);
         serviceCollection.AddCrunchyrollGetReviews(configuration);
         serviceCollection.AddCrunchyrollExtractReviews(configuration);
+        serviceCollection.AddCrunchyrollAvatar(configuration);
         
         return serviceCollection;
     }

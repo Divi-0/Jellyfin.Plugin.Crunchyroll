@@ -1,8 +1,10 @@
 using AutoFixture;
 using FluentAssertions;
 using FluentResults;
+using Jellyfin.Plugin.ExternalComments.Common;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
@@ -206,7 +208,16 @@ public class GetReviewsQueryTests
                 Arg.Any<int>(), 
                 Arg.Any<CancellationToken>());
 
-        result.Value.Should().Be(reviewsResponse);
+        result.Value.Reviews.Should().AllSatisfy(actual =>
+        {
+            reviewsResponse.Reviews.Should().Contain(expected => expected.Title == actual.Title);
+            reviewsResponse.Reviews.Should().Contain(expected => expected.Body == actual.Body);
+            reviewsResponse.Reviews.Should().Contain(expected => expected.Rating == actual.Rating);
+            reviewsResponse.Reviews.Should().Contain(expected => expected.Author.Username == actual.Author.Username);
+            reviewsResponse.Reviews.Should().Contain(expected => expected.AuthorRating == actual.AuthorRating);
+            reviewsResponse.Reviews.Should().Contain(expected => expected.CreatedAt == actual.CreatedAt);
+            actual.Author.AvatarUri.Should().Contain($"{Routes.Root}/{AvatarConstants.GetAvatarSubRoute}");
+        });
         
         await _loginService
             .DidNotReceive()

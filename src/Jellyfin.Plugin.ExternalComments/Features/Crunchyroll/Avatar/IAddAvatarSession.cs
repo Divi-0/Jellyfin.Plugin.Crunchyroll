@@ -1,7 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 
 public interface IAddAvatarSession
 {

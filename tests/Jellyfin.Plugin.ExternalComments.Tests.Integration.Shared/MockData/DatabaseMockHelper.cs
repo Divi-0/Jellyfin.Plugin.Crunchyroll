@@ -76,4 +76,21 @@ public static class DatabaseMockHelper
             Semaphore.Release();
         }
     }
+    
+    public static void InsertAvatarImage(string dbFilePath, string imageUrl, Stream imageStream)
+    {
+        Semaphore.Wait();
+
+        try
+        {
+            using var db = new LiteDatabase(dbFilePath);
+            var fileStorage = db.GetStorage<string>("avatarImageFiles", "avatarImageChunks");
+
+            fileStorage.Upload(imageUrl, imageUrl, imageStream);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
 }

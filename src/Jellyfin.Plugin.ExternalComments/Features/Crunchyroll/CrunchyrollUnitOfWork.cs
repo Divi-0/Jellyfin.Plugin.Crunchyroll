@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
 using LiteDB;
@@ -137,7 +138,10 @@ public sealed class CrunchyrollUnitOfWork : IAddReviewsSession, IGetReviewsSessi
                 return ValueTask.FromResult<Stream?>(null);
             }
             
-            return ValueTask.FromResult<Stream?>(fileInfo.OpenRead());
+            var memoryStream = new MemoryStream();
+            fileInfo.CopyTo(memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            return ValueTask.FromResult<Stream?>(memoryStream);
         }
         finally
         {
