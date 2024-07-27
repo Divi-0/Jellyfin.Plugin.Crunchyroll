@@ -72,7 +72,7 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
 
             foreach (var review in reviews)
             {
-                review.Author.AvatarUri = $"{Routes.Root}/{AvatarConstants.GetAvatarSubRoute}/{UrlEncoder.Default.Encode(review.Author.AvatarUri)}";
+                review.Author.AvatarUri = $"/{Routes.Root}/{AvatarConstants.GetAvatarSubRoute}/{UrlEncoder.Default.Encode(review.Author.AvatarUri)}";
             }
             
             return Result.Ok(new ReviewsResponse { Reviews = reviews });

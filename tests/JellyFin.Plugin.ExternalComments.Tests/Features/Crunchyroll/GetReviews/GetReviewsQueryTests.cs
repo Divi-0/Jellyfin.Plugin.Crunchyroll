@@ -216,7 +216,7 @@ public class GetReviewsQueryTests
             reviewsResponse.Reviews.Should().Contain(expected => expected.Author.Username == actual.Author.Username);
             reviewsResponse.Reviews.Should().Contain(expected => expected.AuthorRating == actual.AuthorRating);
             reviewsResponse.Reviews.Should().Contain(expected => expected.CreatedAt == actual.CreatedAt);
-            actual.Author.AvatarUri.Should().Contain($"{Routes.Root}/{AvatarConstants.GetAvatarSubRoute}");
+            actual.Author.AvatarUri.Should().Contain($"/{Routes.Root}/{AvatarConstants.GetAvatarSubRoute}");
         });
         
         await _loginService
