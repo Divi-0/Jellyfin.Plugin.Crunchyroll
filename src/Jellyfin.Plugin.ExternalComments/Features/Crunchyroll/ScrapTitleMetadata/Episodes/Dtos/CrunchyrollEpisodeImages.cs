@@ -1,8 +1,8 @@
-using System.Collections.Generic;
+using System;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Episodes.Dtos;
 
 public record CrunchyrollEpisodeImages
 {
-    public IReadOnlyList<CrunchyrollEpisodeThumbnail> Thumbnail { get; init; } = new List<CrunchyrollEpisodeThumbnail>();
+    public CrunchyrollEpisodeThumbnailSizes[][] Thumbnail { get; init; } = new [] { Array.Empty<CrunchyrollEpisodeThumbnailSizes>() };
 }

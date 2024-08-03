@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
@@ -24,14 +24,16 @@ public class CrunchyrollScan : ILibraryPostScanTask
     private readonly IMediator _mediator;
     private readonly ILibraryManager _libraryManager;
     private readonly PluginConfiguration _config;
+    private readonly ILoginService _loginService;
 
     public CrunchyrollScan(ILogger<CrunchyrollScan> logger, ILibraryManager libraryManager, PluginConfiguration? config = null,
-        IMediator? mediator = null)
+        IMediator? mediator = null, ILoginService? loginService = null)
     {
         _logger = logger;
         _libraryManager = libraryManager;
         _config = config ?? ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
         _mediator = mediator ?? ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<IMediator>();
+        _loginService = loginService ?? ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<ILoginService>();
     }
     
     public async Task Run(IProgress<double> progress, CancellationToken cancellationToken)
@@ -43,15 +45,21 @@ public class CrunchyrollScan : ILibraryPostScanTask
             .Where(x => x is Series or Movie).ToList();
         
         var percent = 0.0;
+
+        var loginResult = await _loginService.LoginAnonymously(cancellationToken);
+
+        if (loginResult.IsFailed)
+        {
+            return;
+        }
         
         var options = new ParallelOptions
         {
-            MaxDegreeOfParallelism = Environment.ProcessorCount / 2,
-            CancellationToken = cancellationToken
+            MaxDegreeOfParallelism = Environment.ProcessorCount / 2
         };
             
         var sumSemaphore = new SemaphoreSlim(1, 1);
-        await Parallel.ForEachAsync(allItems, options, async (item, token) =>
+        await Parallel.ForEachAsync(allItems, options, async (item, _) =>
         {
             await SearchAndAssignTitleId(item, cancellationToken);
             await ScrapTitleMetadata(item, cancellationToken);
@@ -61,7 +69,7 @@ public class CrunchyrollScan : ILibraryPostScanTask
                 await ExtractReviews(item, cancellationToken);
             }
 
-            await sumSemaphore.WaitAsync(token);
+            await sumSemaphore.WaitAsync(cancellationToken);
             percent += maxPercentForeachStep / allItems.Count;
             progress.Report(percent);
             sumSemaphore.Release();

@@ -3,6 +3,7 @@ using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
@@ -23,6 +24,7 @@ public class CrunchyrollScanTests
     private readonly ILibraryManager _libraryManagerMock;
     private readonly IMediator _mediator;
     private readonly PluginConfiguration _config;
+    private readonly ILoginService _loginService;
 
     public CrunchyrollScanTests()
     {
@@ -31,8 +33,9 @@ public class CrunchyrollScanTests
         _loggerMock = Substitute.For<ILogger<CrunchyrollScan>>();
         _libraryManagerMock = Substitute.For<ILibraryManager>();
         _mediator = Substitute.For<IMediator>();
+        _loginService = Substitute.For<ILoginService>();
         _config = new PluginConfiguration();
-        _sut = new CrunchyrollScan(_loggerMock, _libraryManagerMock, _config, _mediator);
+        _sut = new CrunchyrollScan(_loggerMock, _libraryManagerMock, _config, _mediator, _loginService);
     }
     
     [Fact]
@@ -75,12 +78,20 @@ public class CrunchyrollScanTests
             titleIds.Add(titleId);
             slugTitles.Add(slugTitle);
         }
+
+        _loginService
+            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
         
         //Act
         var progress = new Progress<double>();
         await _sut.Run(progress, CancellationToken.None);
         
         //Assert
+        await _loginService
+            .Received(1)
+            .LoginAnonymously(Arg.Any<CancellationToken>());
+        
         foreach (var item in itemList)
         {
             item.ProviderIds[CrunchyrollExternalKeys.Id].Should().BeOneOf(titleIds);
@@ -120,11 +131,19 @@ public class CrunchyrollScanTests
             .GetItemList(Arg.Any<InternalItemsQuery>())
             .Returns(itemList);
         
+        _loginService
+            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
         //Act
         var progress = new Progress<double>();
         await _sut.Run(progress, CancellationToken.None);
         
         //Assert
+        await _loginService
+            .Received(1)
+            .LoginAnonymously(Arg.Any<CancellationToken>());
+        
         await _mediator
             .Received(0)
             .Send(Arg.Any<TitleIdQuery>(), Arg.Any<CancellationToken>());
@@ -167,11 +186,19 @@ public class CrunchyrollScanTests
                 })));
         }
         
+        _loginService
+            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
         //Act
         var progress = new Progress<double>();
         await _sut.Run(progress, CancellationToken.None);
         
         //Assert
+        await _loginService
+            .Received(1)
+            .LoginAnonymously(Arg.Any<CancellationToken>());
+        
         await _mediator
             .DidNotReceive()
             .Send(Arg.Any<ExtractReviewsCommand>(), Arg.Any<CancellationToken>());
