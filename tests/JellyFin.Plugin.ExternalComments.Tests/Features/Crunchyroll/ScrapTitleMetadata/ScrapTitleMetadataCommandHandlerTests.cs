@@ -1,13 +1,13 @@
 using AutoFixture;
 using FluentAssertions;
 using FluentResults;
-using Jellyfin.Plugin.ExternalComments.Entities;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Episodes;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Episodes.Dtos;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Seasons;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Seasons.Dtos;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons.Dtos;
 using Microsoft.Extensions.Logging;
 
 namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.ScrapTitleMetadata;

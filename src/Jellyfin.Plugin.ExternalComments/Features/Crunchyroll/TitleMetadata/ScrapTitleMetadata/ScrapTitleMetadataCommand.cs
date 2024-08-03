@@ -5,14 +5,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
-using Jellyfin.Plugin.ExternalComments.Entities;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Episodes;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Seasons;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 
 public record ScrapTitleMetadataCommand : IRequest<Result>
 {
@@ -80,7 +80,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         
         if (titleMetadata is null)
         {
-            titleMetadata = new TitleMetadata
+            titleMetadata = new Entities.TitleMetadata
             {
                 TitleId = request.TitleId,
                 SlugTitle = request.SlugTitle,
@@ -99,7 +99,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         return Result.Ok();
     }
 
-    private static void ApplyNewEpisodesToExistingEpisodes(TitleMetadata titleMetadata, ConcurrentDictionary<string, List<Episode>> seasonEpisodesDictionary)
+    private static void ApplyNewEpisodesToExistingEpisodes(Entities.TitleMetadata titleMetadata, ConcurrentDictionary<string, List<Episode>> seasonEpisodesDictionary)
     {
         foreach (var season in titleMetadata.Seasons)
         {
@@ -114,7 +114,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         }
     }
 
-    private static void ApplyNewSeasonsToExistingSeasons(TitleMetadata titleMetadata, List<Season> seasons)
+    private static void ApplyNewSeasonsToExistingSeasons(Entities.TitleMetadata titleMetadata, List<Season> seasons)
     {
         foreach (var season in seasons)
         {

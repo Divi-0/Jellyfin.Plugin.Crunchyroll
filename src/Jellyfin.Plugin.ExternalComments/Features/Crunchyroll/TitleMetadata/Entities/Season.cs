@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Jellyfin.Plugin.ExternalComments.Entities;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities;
 
 public record Season
 {

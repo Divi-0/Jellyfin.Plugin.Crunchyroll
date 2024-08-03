@@ -75,6 +75,10 @@
       <EmbeddedResource Include="Configuration\configPage.html" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\Crunchyroll\TitleMetadata\" />
+    </ItemGroup>
+
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
       <Exec Command="xcopy /y &quot;$(TargetDir)*.*&quot; &quot;%localAppData%\jellyfin\plugins\ExternalComments&quot;" />
     </Target>

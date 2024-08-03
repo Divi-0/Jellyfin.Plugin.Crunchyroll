@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using Jellyfin.Plugin.ExternalComments.Entities;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Seasons.Dtos;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons.Dtos;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Seasons;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons;
 
 public static class CrunchyrollSeasonsItemExtensions
 {

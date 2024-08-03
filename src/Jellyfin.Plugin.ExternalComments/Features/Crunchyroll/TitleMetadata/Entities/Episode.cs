@@ -1,4 +1,4 @@
-namespace Jellyfin.Plugin.ExternalComments.Entities;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities;
 
 public record Episode
 {

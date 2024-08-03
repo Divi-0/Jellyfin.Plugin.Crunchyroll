@@ -1,8 +1,8 @@
 using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
-using Jellyfin.Plugin.ExternalComments.Entities;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities;
 using LiteDB;
 
 namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.MockData;

@@ -1,7 +1,7 @@
-using Jellyfin.Plugin.ExternalComments.Entities;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Episodes.Dtos;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Episodes;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes;
 
 public static class CrunchyrollEpisodeItemExtensions
 {

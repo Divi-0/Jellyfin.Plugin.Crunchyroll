@@ -6,8 +6,8 @@ using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
@@ -38,9 +38,6 @@ public class CrunchyrollScan : ILibraryPostScanTask
     
     public async Task Run(IProgress<double> progress, CancellationToken cancellationToken)
     {
-        const double numberOfSteps = 2.0;
-        var maxPercentForeachStep = 100 / numberOfSteps;
-        
         var allItems = _libraryManager.GetItemList(new InternalItemsQuery())
             .Where(x => x is Series or Movie).ToList();
         
@@ -70,9 +67,15 @@ public class CrunchyrollScan : ILibraryPostScanTask
             }
 
             await sumSemaphore.WaitAsync(cancellationToken);
-            percent += maxPercentForeachStep / allItems.Count;
-            progress.Report(percent);
-            sumSemaphore.Release();
+            try
+            {
+                percent += 100.0 / allItems.Count;
+                progress.Report(percent);
+            }
+            finally
+            {
+                sumSemaphore.Release();
+            }
         });
 
         progress.Report(100);

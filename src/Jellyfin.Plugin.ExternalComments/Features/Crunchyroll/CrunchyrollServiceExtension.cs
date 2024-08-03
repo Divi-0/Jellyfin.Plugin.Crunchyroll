@@ -4,8 +4,8 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;

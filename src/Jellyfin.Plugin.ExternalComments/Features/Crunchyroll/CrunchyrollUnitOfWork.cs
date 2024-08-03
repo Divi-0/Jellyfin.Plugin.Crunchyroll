@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
-using Jellyfin.Plugin.ExternalComments.Entities;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using LiteDB;
 using Polly;
 using Polly.Retry;
@@ -197,7 +195,7 @@ public sealed class CrunchyrollUnitOfWork :
         }
     }
 
-    public ValueTask AddOrUpdateTitleMetadata(TitleMetadata titleMetadata)
+    public ValueTask AddOrUpdateTitleMetadata(TitleMetadata.Entities.TitleMetadata titleMetadata)
     {
         _semaphore.Wait();
 
@@ -207,7 +205,7 @@ public sealed class CrunchyrollUnitOfWork :
             {
                 using var db = new LiteDatabase(_connectionString);
 
-                var reviewsCollection = db.GetCollection<TitleMetadata>(TitleMetadataCollectionName);
+                var reviewsCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
             
                 reviewsCollection.Upsert(titleMetadata);
                 reviewsCollection.EnsureIndex(x => x.TitleId, true);
@@ -221,7 +219,7 @@ public sealed class CrunchyrollUnitOfWork :
         }
     }
 
-    public ValueTask<TitleMetadata?> GetTitleMetadata(string titleId)
+    public ValueTask<TitleMetadata.Entities.TitleMetadata?> GetTitleMetadata(string titleId)
     {
         _semaphore.Wait();
 
@@ -231,12 +229,12 @@ public sealed class CrunchyrollUnitOfWork :
             {
                 using var db = new LiteDatabase(_connectionString);
 
-                var reviewsCollection = db.GetCollection<TitleMetadata>(TitleMetadataCollectionName);
+                var reviewsCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
             
                 return reviewsCollection.FindOne(x => x.TitleId == titleId);
             });
 
-            return ValueTask.FromResult<TitleMetadata?>(metadata);
+            return ValueTask.FromResult<TitleMetadata.Entities.TitleMetadata?>(metadata);
         }
         finally
         {
