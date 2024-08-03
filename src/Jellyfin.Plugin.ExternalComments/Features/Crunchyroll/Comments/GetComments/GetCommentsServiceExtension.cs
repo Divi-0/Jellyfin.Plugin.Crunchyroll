@@ -1,11 +1,9 @@
 using Jellyfin.Plugin.ExternalComments.Common;
 using Jellyfin.Plugin.ExternalComments.Configuration;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments.Client;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
-using Mediator;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments;
 
 public static class GetCommentsServiceExtension
 {

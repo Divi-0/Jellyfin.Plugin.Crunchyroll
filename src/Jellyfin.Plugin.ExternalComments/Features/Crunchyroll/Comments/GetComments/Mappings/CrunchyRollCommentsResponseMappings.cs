@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using Jellyfin.Plugin.ExternalComments.Contracts.Comments;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments.Client;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments.Mappings;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Mappings;
 
 public static class CrunchyRollCommentsResponseMappings
 {

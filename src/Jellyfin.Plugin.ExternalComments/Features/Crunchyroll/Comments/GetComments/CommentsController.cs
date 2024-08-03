@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments;
 
 [Route($"{Routes.Root}/crunchyroll/comments")]
 public class CommentsController : ControllerBase

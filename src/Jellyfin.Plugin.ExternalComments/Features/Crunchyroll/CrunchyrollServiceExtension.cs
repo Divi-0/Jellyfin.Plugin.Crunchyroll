@@ -1,6 +1,6 @@
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;

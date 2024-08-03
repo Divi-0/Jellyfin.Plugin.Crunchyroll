@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Contracts.Comments;
 using Jellyfin.Plugin.ExternalComments.Domain.Constants;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments.Client;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
@@ -12,7 +12,7 @@ using MediaBrowser.Controller.Library;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments;
 
 public record GetCommentsQuery(string Id, int PageNumber, int PageSize) : IRequest<Result<CommentsResponse>>;
 

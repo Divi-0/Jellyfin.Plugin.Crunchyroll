@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Contracts.Comments;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments.Client;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
 
 public interface ICrunchyrollGetCommentsClient
 {

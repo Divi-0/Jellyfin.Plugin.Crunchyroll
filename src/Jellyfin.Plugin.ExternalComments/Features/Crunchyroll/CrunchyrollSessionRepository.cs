@@ -16,14 +16,14 @@ public class CrunchyrollSessionRepository : ICrunchyrollSessionRepository
     
     public ValueTask SetAsync(string token, TimeSpan? expiration = null, CancellationToken cancellationToken = default)
     {
-        _memoryCache.Set(CacheKeys.CRUNCHYROLL_SESSION, token, expiration ?? TimeSpan.MaxValue);
+        _memoryCache.Set(CacheKeys.CrunchyrollSession, token, expiration ?? TimeSpan.MaxValue);
 
         return ValueTask.CompletedTask;
     }
 
     public ValueTask<string?> GetAsync(CancellationToken cancellationToken = default)
     {
-        var value = _memoryCache.Get<string>(CacheKeys.CRUNCHYROLL_SESSION);
+        var value = _memoryCache.Get<string>(CacheKeys.CrunchyrollSession);
 
         return ValueTask.FromResult(value);
     }

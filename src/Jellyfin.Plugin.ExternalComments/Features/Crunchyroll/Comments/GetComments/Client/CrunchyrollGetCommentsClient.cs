@@ -9,11 +9,11 @@ using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Comments;
 using Jellyfin.Plugin.ExternalComments.Domain.Constants;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments.Mappings;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Mappings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments.Client;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
 
 public class CrunchyrollGetCommentsClient : ICrunchyrollGetCommentsClient
 {

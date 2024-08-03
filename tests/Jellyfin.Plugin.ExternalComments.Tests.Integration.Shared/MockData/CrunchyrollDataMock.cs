@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using AutoFixture;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments.Client;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId.Client;
 using RichardSzalay.MockHttp;

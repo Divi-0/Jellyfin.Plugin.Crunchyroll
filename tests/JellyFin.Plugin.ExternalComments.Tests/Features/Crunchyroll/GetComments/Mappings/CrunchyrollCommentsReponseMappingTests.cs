@@ -1,9 +1,8 @@
 using System.Text.Json;
 using AutoFixture.Xunit2;
 using FluentAssertions;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments.Client;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments.Mappings;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Mappings;
 using Xunit;
 
 namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.Client.Mappings;

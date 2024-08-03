@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments.Client;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
 
 public record CrunchyrollCommentsItemUser
 {
