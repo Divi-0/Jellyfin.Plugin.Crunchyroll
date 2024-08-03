@@ -4,14 +4,15 @@ using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
-namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.SearchAndAssignTitleId;
+namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll;
 
 public class CrunchyrollScanTests
 {
@@ -20,7 +21,7 @@ public class CrunchyrollScanTests
     private readonly CrunchyrollScan _sut;
     private readonly ILogger<CrunchyrollScan> _loggerMock;
     private readonly ILibraryManager _libraryManagerMock;
-    private readonly IMediator _mediatorMock;
+    private readonly IMediator _mediator;
     private readonly PluginConfiguration _config;
 
     public CrunchyrollScanTests()
@@ -29,13 +30,13 @@ public class CrunchyrollScanTests
         
         _loggerMock = Substitute.For<ILogger<CrunchyrollScan>>();
         _libraryManagerMock = Substitute.For<ILibraryManager>();
-        _mediatorMock = Substitute.For<IMediator>();
+        _mediator = Substitute.For<IMediator>();
         _config = new PluginConfiguration();
-        _sut = new CrunchyrollScan(_loggerMock, _libraryManagerMock, _config, _mediatorMock);
+        _sut = new CrunchyrollScan(_loggerMock, _libraryManagerMock, _config, _mediator);
     }
     
     [Fact]
-    public async Task SetsCrunchyrollIds_WhenTitleIdIsFound_GivenListOfItems()
+    public async Task SetsCrunchyrollIdsAndExtractReviews_WhenTitleIdIsFound_GivenListOfItems()
     {
         //Arrange
         BaseItem.LibraryManager = _libraryManagerMock;
@@ -63,7 +64,7 @@ public class CrunchyrollScanTests
         {
             var titleId = _fixture.Create<string>();
             var slugTitle = _fixture.Create<string>();
-            _mediatorMock
+            _mediator
                 .Send(new TitleIdQuery(item.Name), Arg.Any<CancellationToken>())!
                 .Returns(ValueTask.FromResult(Result.Ok(new SearchResponse()
                 {
@@ -85,9 +86,17 @@ public class CrunchyrollScanTests
             item.ProviderIds[CrunchyrollExternalKeys.Id].Should().BeOneOf(titleIds);
             item.ProviderIds[CrunchyrollExternalKeys.SlugTitle].Should().BeOneOf(slugTitles);
             
-            await _mediatorMock
+            await _mediator
                 .Received(1)
                 .Send(new ExtractReviewsCommand()
+                {
+                    TitleId = item.ProviderIds[CrunchyrollExternalKeys.Id], 
+                    SlugTitle = item.ProviderIds[CrunchyrollExternalKeys.SlugTitle]
+                }, Arg.Any<CancellationToken>());
+            
+            await _mediator
+                .Received(1)
+                .Send(new ScrapTitleMetadataCommand()
                 {
                     TitleId = item.ProviderIds[CrunchyrollExternalKeys.Id], 
                     SlugTitle = item.ProviderIds[CrunchyrollExternalKeys.SlugTitle]
@@ -116,7 +125,7 @@ public class CrunchyrollScanTests
         await _sut.Run(progress, CancellationToken.None);
         
         //Assert
-        await _mediatorMock
+        await _mediator
             .Received(0)
             .Send(Arg.Any<TitleIdQuery>(), Arg.Any<CancellationToken>());
     }
@@ -149,7 +158,7 @@ public class CrunchyrollScanTests
         {
             var titleId = _fixture.Create<string>();
             var slugTitle = _fixture.Create<string>();
-            _mediatorMock
+            _mediator
                 .Send(new TitleIdQuery(item.Name), Arg.Any<CancellationToken>())!
                 .Returns(ValueTask.FromResult(Result.Ok(new SearchResponse()
                 {
@@ -163,7 +172,7 @@ public class CrunchyrollScanTests
         await _sut.Run(progress, CancellationToken.None);
         
         //Assert
-        await _mediatorMock
+        await _mediator
             .DidNotReceive()
             .Send(Arg.Any<ExtractReviewsCommand>(), Arg.Any<CancellationToken>());
     }

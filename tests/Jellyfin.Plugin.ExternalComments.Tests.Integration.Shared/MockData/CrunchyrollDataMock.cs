@@ -4,7 +4,7 @@ using System.Text.Json;
 using AutoFixture;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login.Client;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId.Client;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId.Client;
 using RichardSzalay.MockHttp;
 
 namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.MockData;

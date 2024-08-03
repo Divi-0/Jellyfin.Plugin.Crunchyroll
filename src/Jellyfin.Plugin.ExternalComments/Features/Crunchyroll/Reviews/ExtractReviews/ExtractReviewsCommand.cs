@@ -117,7 +117,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         
         await Parallel.ForEachAsync(reviewsResult.Value.Select(x => x.Author.AvatarUri), parallelOptions, async (avatarUri, token) =>
         {
-            var avatarResult = await _avatarClient.GetAvatarStreamAsync(avatarUri, cancellationToken);
+            var avatarResult = await _avatarClient.GetAvatarStreamAsync(avatarUri, token);
 
             if (avatarResult.IsFailed)
             {

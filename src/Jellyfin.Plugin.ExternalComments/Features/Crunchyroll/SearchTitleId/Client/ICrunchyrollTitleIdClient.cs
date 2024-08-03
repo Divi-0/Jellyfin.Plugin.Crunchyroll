@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId.Client;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId.Client;
 
 public interface ICrunchyrollTitleIdClient
 {

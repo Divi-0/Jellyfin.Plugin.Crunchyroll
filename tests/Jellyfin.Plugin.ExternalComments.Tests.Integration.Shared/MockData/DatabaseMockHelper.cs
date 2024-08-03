@@ -1,6 +1,7 @@
 using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
+using Jellyfin.Plugin.ExternalComments.Entities;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
 using LiteDB;
 
@@ -18,7 +19,7 @@ public static class DatabaseMockHelper
         {
             var fixture = new Fixture();
 
-            using var db = new LiteDatabase(dbFilePath);
+            using var db = new LiteDatabase($"Filename={dbFilePath}; Connection=Shared;");
             var reviewsCollection = db.GetCollection<TitleReviews>("reviews");
 
             var reviews = fixture.CreateMany<ReviewItem>().ToList();
@@ -45,7 +46,7 @@ public static class DatabaseMockHelper
 
         try
         {
-            using var db = new LiteDatabase(dbFilePath);
+            using var db = new LiteDatabase($"Filename={dbFilePath}; Connection=Shared;");
             var reviewsCollection = db.GetCollection<TitleReviews>("reviews");
             
             var hasReviews = reviewsCollection.Exists(x => x.TitleId == titleId);
@@ -64,7 +65,7 @@ public static class DatabaseMockHelper
 
         try
         {
-            using var db = new LiteDatabase(dbFilePath);
+            using var db = new LiteDatabase($"Filename={dbFilePath}; Connection=Shared;");
             var fileStorage = db.GetStorage<string>("avatarImageFiles", "avatarImageChunks");
 
             var hasAvatarUri = fileStorage.Exists(uri);
@@ -83,10 +84,46 @@ public static class DatabaseMockHelper
 
         try
         {
-            using var db = new LiteDatabase(dbFilePath);
+            using var db = new LiteDatabase($"Filename={dbFilePath}; Connection=Shared;");
             var fileStorage = db.GetStorage<string>("avatarImageFiles", "avatarImageChunks");
 
             fileStorage.Upload(imageUrl, imageUrl, imageStream);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
+    
+    public static void ShouldHaveMetadata(string dbFilePath, string titleId)
+    {
+        Semaphore.Wait();
+
+        try
+        {
+            using var db = new LiteDatabase($"Filename={dbFilePath}; Connection=Shared;");
+            var reviewsCollection = db.GetCollection<TitleMetadata>("titleMetaData");
+            
+            var metadata = reviewsCollection.FindOne(x => x.TitleId == titleId);
+
+            metadata.Should().NotBeNull();
+            metadata.TitleId.Should().NotBeEmpty();
+            metadata.SlugTitle.Should().NotBeEmpty();
+            metadata.Seasons.Should().NotBeEmpty();
+            metadata.Seasons.Should().AllSatisfy(x =>
+            {
+                x.Id.Should().NotBeEmpty();
+                x.Title.Should().NotBeEmpty();
+                x.SlugTitle.Should().NotBeEmpty();
+                x.Episodes.Should().NotBeEmpty();
+                x.Episodes.Should().AllSatisfy(episode =>
+                {
+                   episode.Id.Should().NotBeEmpty(); 
+                   episode.Title.Should().NotBeEmpty(); 
+                   episode.SlugTitle.Should().NotBeEmpty(); 
+                   episode.Description.Should().NotBeEmpty(); 
+                });
+            });
         }
         finally
         {

@@ -1,36 +1,60 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
+using Jellyfin.Plugin.ExternalComments.Entities;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata;
 using LiteDB;
+using Polly;
+using Polly.Retry;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 
-public sealed class CrunchyrollUnitOfWork : IAddReviewsSession, IGetReviewsSession, IGetAvatarSession
+public sealed class CrunchyrollUnitOfWork : 
+    IAddReviewsSession, 
+    IGetReviewsSession, 
+    IGetAvatarSession,
+    IScrapTitleMetadataSession
 {
-    private readonly string _dbFilePath;
+    private readonly string _connectionString;
     private readonly SemaphoreSlim _semaphore;
     
+    private const string TitleMetadataCollectionName = "titleMetaData";
     private const string ReviewsCollectionName = "reviews";
     private const string AvatarImageFileStorageName = "avatarImageFiles";
     private const string AvatarImageChunkName = "avatarImageChunks";
 
+    private readonly ResiliencePipeline _resiliencePipeline;
+
     public CrunchyrollUnitOfWork(PluginConfiguration config)
     {
-        _dbFilePath = config.LocalDatabasePath;
+        _connectionString = config.LocalDatabasePath;
         _semaphore = new SemaphoreSlim(1, 1);
 
-        if (string.IsNullOrWhiteSpace(_dbFilePath))
+        if (string.IsNullOrWhiteSpace(_connectionString))
         {
             var location = typeof(CrunchyrollUnitOfWork).Assembly.Location;
-            _dbFilePath = Path.Combine(Path.GetDirectoryName(location)!, "Crunchyroll.db");
+            var dbFilePath = Path.Combine(Path.GetDirectoryName(location)!, "Crunchyroll.db");
+            _connectionString = $"Filename={dbFilePath}; Connection=Shared;";
         }
+        
+        _resiliencePipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions()
+            {
+                ShouldHandle = new PredicateBuilder().Handle<IOException>(),
+                MaxRetryAttempts = 3,
+                Delay = TimeSpan.FromSeconds(1)
+            })
+            .Build();
+
     }
     
     public ValueTask AddReviewsForTitleIdAsync(string titleId, IReadOnlyList<ReviewItem> reviews)
@@ -39,19 +63,23 @@ public sealed class CrunchyrollUnitOfWork : IAddReviewsSession, IGetReviewsSessi
 
         try
         {
-            using var db = new LiteDatabase(_dbFilePath);
 
-            var reviewsCollection = db.GetCollection<TitleReviews>(ReviewsCollectionName);
-
-            var entity = new TitleReviews()
+            _resiliencePipeline.Execute(() =>
             {
-                TitleId = titleId,
-                Reviews = reviews,
-            };
+                using var db = new LiteDatabase(_connectionString);
 
-            reviewsCollection.Insert(entity);
-            reviewsCollection.EnsureIndex(x => x.TitleId, true);
+                var reviewsCollection = db.GetCollection<TitleReviews>(ReviewsCollectionName);
 
+                var entity = new TitleReviews()
+                {
+                    TitleId = titleId,
+                    Reviews = reviews,
+                };
+
+                reviewsCollection.Insert(entity);
+                reviewsCollection.EnsureIndex(x => x.TitleId, true);
+            });
+            
             return ValueTask.CompletedTask;
         }
         finally
@@ -66,10 +94,13 @@ public sealed class CrunchyrollUnitOfWork : IAddReviewsSession, IGetReviewsSessi
 
         try
         {
-            using var db = new LiteDatabase(_dbFilePath);
+            var reviewsEntity = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
 
-            var reviewsCollection = db.GetCollection<TitleReviews>(ReviewsCollectionName);
-            var reviewsEntity = reviewsCollection.FindOne(x => x.TitleId == titleId);
+                var reviewsCollection = db.GetCollection<TitleReviews>(ReviewsCollectionName);
+                return reviewsCollection.FindOne(x => x.TitleId == titleId);
+            });
 
             if (reviewsEntity is null)
             {
@@ -90,10 +121,13 @@ public sealed class CrunchyrollUnitOfWork : IAddReviewsSession, IGetReviewsSessi
 
         try
         {
-            using var db = new LiteDatabase(_dbFilePath);
-            var fileStorage = db.GetStorage<string>(AvatarImageFileStorageName, AvatarImageChunkName);
+            _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+                var fileStorage = db.GetStorage<string>(AvatarImageFileStorageName, AvatarImageChunkName);
             
-            fileStorage.Upload(url, url, imageStream);
+                fileStorage.Upload(url, url, imageStream);
+            });
             
             return ValueTask.CompletedTask;
         }
@@ -109,10 +143,13 @@ public sealed class CrunchyrollUnitOfWork : IAddReviewsSession, IGetReviewsSessi
 
         try
         {
-            using var db = new LiteDatabase(_dbFilePath);
-            var fileStorage = db.GetStorage<string>(AvatarImageFileStorageName, AvatarImageChunkName);
+            var exists = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+                var fileStorage = db.GetStorage<string>(AvatarImageFileStorageName, AvatarImageChunkName);
 
-            var exists = fileStorage.Exists(url);
+                return fileStorage.Exists(url);
+            });
             
             return ValueTask.FromResult(exists);
         }
@@ -128,20 +165,78 @@ public sealed class CrunchyrollUnitOfWork : IAddReviewsSession, IGetReviewsSessi
 
         try
         {
-            using var db = new LiteDatabase(_dbFilePath);
-            var fileStorage = db.GetStorage<string>(AvatarImageFileStorageName, AvatarImageChunkName);
+            var memoryStream = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+                var fileStorage = db.GetStorage<string>(AvatarImageFileStorageName, AvatarImageChunkName);
 
-            var fileInfo = fileStorage.FindById(url);
+                var fileInfo = fileStorage.FindById(url);
+                
+                if (fileInfo is null)
+                {
+                    return null;
+                }
+            
+                var memoryStream = new MemoryStream();
+                fileInfo.CopyTo(memoryStream);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                
+                return memoryStream;
+            });
 
-            if (fileInfo is null)
+            if (memoryStream is null)
             {
                 return ValueTask.FromResult<Stream?>(null);
             }
             
-            var memoryStream = new MemoryStream();
-            fileInfo.CopyTo(memoryStream);
-            memoryStream.Seek(0, SeekOrigin.Begin);
             return ValueTask.FromResult<Stream?>(memoryStream);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public ValueTask AddOrUpdateTitleMetadata(TitleMetadata titleMetadata)
+    {
+        _semaphore.Wait();
+
+        try
+        {
+            _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var reviewsCollection = db.GetCollection<TitleMetadata>(TitleMetadataCollectionName);
+            
+                reviewsCollection.Upsert(titleMetadata);
+                reviewsCollection.EnsureIndex(x => x.TitleId, true);
+            });
+
+            return ValueTask.CompletedTask;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public ValueTask<TitleMetadata?> GetTitleMetadata(string titleId)
+    {
+        _semaphore.Wait();
+
+        try
+        {
+            var metadata = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var reviewsCollection = db.GetCollection<TitleMetadata>(TitleMetadataCollectionName);
+            
+                return reviewsCollection.FindOne(x => x.TitleId == titleId);
+            });
+
+            return ValueTask.FromResult<TitleMetadata?>(metadata);
         }
         finally
         {

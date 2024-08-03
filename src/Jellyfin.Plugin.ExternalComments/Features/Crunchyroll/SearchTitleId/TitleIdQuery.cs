@@ -2,10 +2,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId.Client;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId.Client;
 using Mediator;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
 
 public record TitleIdQuery(string Title) : IRequest<Result<SearchResponse?>>;
 

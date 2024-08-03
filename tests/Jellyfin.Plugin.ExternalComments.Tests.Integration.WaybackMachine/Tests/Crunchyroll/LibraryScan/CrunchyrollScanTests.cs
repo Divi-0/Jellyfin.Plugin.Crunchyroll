@@ -2,7 +2,6 @@ using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.MockData;
 using MediaBrowser.Controller.Library;
@@ -39,6 +38,8 @@ public class CrunchyrollScanTests
     public async Task SetsTitleIdsWithNoEmptyValues_GivenCrunchyrollResponses()
     {
         //Arrange
+        const string language = "de-DE";
+        
         //uri from ResourcesHtml
         var imageUris = new []
         {
@@ -56,14 +57,21 @@ public class CrunchyrollScanTests
         
         foreach (var item in itemList)
         { 
-            await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, "de-DE");
+            await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, language);
             
-            var crunchyrollSearchResponse = await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, "de-DE");
-
+            var crunchyrollSearchResponse = await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, language);
+            
             foreach (var searchData in crunchyrollSearchResponse.Data.Where(x => x.Type == "series"))
             {
                 foreach (var dataItem in searchData.Items)
                 {
+                    var seasonResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(dataItem.Id, language);
+
+                    foreach (var season in seasonResponse.Data)
+                    {
+                        await _wireMockAdminApi.MockCrunchyrollEpisodesResponse(season.Id, language);
+                    }
+                    
                     string crunchyrollUrl = Path.Combine(
                             _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
                             "de",

@@ -1,11 +1,11 @@
 using Jellyfin.Plugin.ExternalComments.Common;
 using Jellyfin.Plugin.ExternalComments.Configuration;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId.Client;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId.Client;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
 
-public static class SearchAndAssignTitleIdServiceExtension
+public static class SearchTitleIdServiceExtension
 {
     public static IServiceCollection AddSearchAndAssignTitleId(this IServiceCollection serviceCollection, PluginConfiguration configuration)
     {

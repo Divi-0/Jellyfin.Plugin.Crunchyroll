@@ -11,7 +11,7 @@ using Jellyfin.Plugin.ExternalComments.Domain.Constants;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId.Client;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId.Client;
 
 public class CrunchyrollTitleIdClient : ICrunchyrollTitleIdClient
 {

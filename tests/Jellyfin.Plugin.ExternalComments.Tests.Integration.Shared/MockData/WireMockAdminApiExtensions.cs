@@ -5,7 +5,9 @@ using System.Text.Json;
 using AutoFixture;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.Client;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId.Client;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Episodes.Dtos;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata.Seasons.Dtos;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId.Client;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client.Dto;
 using Jellyfin.Plugin.ExternalComments.Tests.Shared.Fixture;
 using Microsoft.Net.Http.Headers;
@@ -548,5 +550,107 @@ public static class WireMockAdminApiExtensions
             ));
 
         await builder.BuildAndPostAsync();
+    }
+    
+    public static async Task<CrunchyrollSeasonsResponse> MockCrunchyrollSeasonsResponse(this IWireMockAdminApi wireMockAdminApi, 
+        string titleId, string language)
+    {
+        var fixture = new Fixture();
+
+        var seasonsResponse = fixture.Create<CrunchyrollSeasonsResponse>();
+        
+        var builder = wireMockAdminApi.GetMappingBuilder();
+        
+        builder.Given(m => m
+            .WithRequest(req => req
+                .UsingGet()
+                .WithPath($"/content/v2/cms/series/{titleId}/seasons")
+                .WithParams(new List<ParamModel>()
+                {
+                    new ParamModel()
+                    {
+                        Name = "locale",
+                        Matchers = new MatcherModel[]
+                        {
+                            new MatcherModel()
+                            {
+                                Name = "WildcardMatcher",
+                                Pattern = language
+                            }
+                        }
+                    }
+                })
+                .WithHeaders(new List<HeaderModel>(){new HeaderModel()
+                {
+                    Name = HeaderNames.Authorization,
+                    Matchers = new List<MatcherModel>()
+                    {
+                        new MatcherModel()
+                        {
+                            Name = "RegexMatcher",
+                            Pattern = "Bearer .*"
+                        }
+                    }
+                }})
+            )
+            .WithResponse(rsp => rsp
+                .WithStatusCode(HttpStatusCode.OK)
+                .WithBody(JsonSerializer.Serialize(seasonsResponse))
+            ));
+
+        await builder.BuildAndPostAsync();
+
+        return seasonsResponse;
+    }
+    
+    public static async Task<CrunchyrollEpisodesResponse> MockCrunchyrollEpisodesResponse(this IWireMockAdminApi wireMockAdminApi, 
+        string seasonId, string language)
+    {
+        var fixture = new Fixture();
+
+        var episodesResponse = fixture.Create<CrunchyrollEpisodesResponse>();
+        
+        var builder = wireMockAdminApi.GetMappingBuilder();
+        
+        builder.Given(m => m
+            .WithRequest(req => req
+                .UsingGet()
+                .WithPath($"/content/v2/cms/seasons/{seasonId}/episodes")
+                .WithParams(new List<ParamModel>()
+                {
+                    new ParamModel()
+                    {
+                        Name = "locale",
+                        Matchers = new MatcherModel[]
+                        {
+                            new MatcherModel()
+                            {
+                                Name = "WildcardMatcher",
+                                Pattern = language
+                            }
+                        }
+                    }
+                })
+                .WithHeaders(new List<HeaderModel>(){new HeaderModel()
+                {
+                    Name = HeaderNames.Authorization,
+                    Matchers = new List<MatcherModel>()
+                    {
+                        new MatcherModel()
+                        {
+                            Name = "RegexMatcher",
+                            Pattern = "Bearer .*"
+                        }
+                    }
+                }})
+            )
+            .WithResponse(rsp => rsp
+                .WithStatusCode(HttpStatusCode.OK)
+                .WithBody(JsonSerializer.Serialize(episodesResponse))
+            ));
+
+        await builder.BuildAndPostAsync();
+
+        return episodesResponse;
     }
 }

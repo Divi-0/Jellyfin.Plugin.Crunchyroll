@@ -2,12 +2,10 @@
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId.Client;
-using NSubstitute;
-using Xunit;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId.Client;
 
-namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.SearchAndAssignTitleId
+namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.SearchTitleId
 {
     public class TitleIdQueryTests
     {

@@ -1,4 +1,4 @@
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
 
 public record SearchResponse
 {

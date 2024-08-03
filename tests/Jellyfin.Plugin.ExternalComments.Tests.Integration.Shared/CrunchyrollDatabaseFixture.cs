@@ -1,9 +1,9 @@
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
-namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.WaybackMachine;
+namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared;
 
 public class CrunchyrollDatabaseFixture : IAsyncLifetime
 {

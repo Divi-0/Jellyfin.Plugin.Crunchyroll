@@ -4,7 +4,8 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.GetComments;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.ScrapTitleMetadata;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
@@ -21,6 +22,7 @@ public static class CrunchyrollServiceExtension
         serviceCollection.AddCrunchyrollGetReviews(configuration);
         serviceCollection.AddCrunchyrollExtractReviews(configuration);
         serviceCollection.AddCrunchyrollAvatar(configuration);
+        serviceCollection.AddCrunchyrollScrapTitleMetadata(configuration);
         
         return serviceCollection;
     }

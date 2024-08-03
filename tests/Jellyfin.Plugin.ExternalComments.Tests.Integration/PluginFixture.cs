@@ -1,7 +1,6 @@
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login.Client;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId.Client;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Library;
@@ -40,7 +39,8 @@ public class PluginCollection :
     ICollectionFixture<PluginFixture>,
     ICollectionFixture<WireMockFixture>,
     ICollectionFixture<FlareSolverrFixture>,
-    ICollectionFixture<WaybackMachineDisabledConfigFixture>
+    ICollectionFixture<WaybackMachineDisabledConfigFixture>,
+    ICollectionFixture<CrunchyrollDatabaseFixture>
 {
     // This class has no code, and is never created. Its purpose is simply
     // to be the place to apply [CollectionDefinition] and all the

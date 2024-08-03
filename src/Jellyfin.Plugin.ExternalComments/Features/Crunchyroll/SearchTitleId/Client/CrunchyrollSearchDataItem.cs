@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchAndAssignTitleId.Client;
+namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId.Client;
 
 public record CrunchyrollSearchDataItem
 {
