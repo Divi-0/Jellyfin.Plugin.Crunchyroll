@@ -63,7 +63,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         _scrapTitleMetadataSession
             .GetTitleMetadata(titleId)
-            .Returns(ValueTask.FromResult((TitleMetadata?)null));
+            .Returns(ValueTask.FromResult<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?>(null));
         
         //Act
         var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
@@ -89,7 +89,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _scrapTitleMetadataSession
             .Received(1)
-            .AddOrUpdateTitleMetadata(Arg.Is<TitleMetadata>(x => 
+            .AddOrUpdateTitleMetadata(Arg.Is<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => 
                 x.TitleId == titleId &&
                 x.SlugTitle == slugTitle &&
                 x.Seasons.All(season => seasonsResponse.Data.Any(y => y.Id == season.Id)) &&
@@ -155,7 +155,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         _scrapTitleMetadataSession
             .GetTitleMetadata(titleId)
-            .Returns(ValueTask.FromResult((TitleMetadata?)null));
+            .Returns(ValueTask.FromResult((Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?)null));
         
         var error = _fixture.Create<string>();
         _crunchyrollEpisodesClient
@@ -182,7 +182,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _scrapTitleMetadataSession
             .Received(1)
-            .AddOrUpdateTitleMetadata(Arg.Is<TitleMetadata>(x => 
+            .AddOrUpdateTitleMetadata(Arg.Is<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => 
                 x.TitleId == titleId &&
                 x.SlugTitle == slugTitle &&
                 x.Seasons.All(season => seasonsResponse.Data.Any(y => y.Id == season.Id)) &&
@@ -225,7 +225,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .LoginAnonymously(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
-        var titleMetadata = _fixture.Create<TitleMetadata>();
+        var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
             .GetTitleMetadata(titleId)
             .Returns(titleMetadata);
@@ -283,7 +283,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _scrapTitleMetadataSession
             .Received(1)
-            .AddOrUpdateTitleMetadata(Arg.Is<TitleMetadata>(x => 
+            .AddOrUpdateTitleMetadata(Arg.Is<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => 
                 x.TitleId == titleMetadata.TitleId &&
                 x.SlugTitle == titleMetadata.SlugTitle &&
                 x.Seasons.All(season => titleMetadata.Seasons.Any(y => y.Id == season.Id)) &&
@@ -301,7 +301,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .LoginAnonymously(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
-        var titleMetadata = _fixture.Create<TitleMetadata>();
+        var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
             .GetTitleMetadata(titleId)
             .Returns(titleMetadata);
@@ -335,8 +335,9 @@ public class ScrapTitleMetadataCommandHandlerTests
             newSeasonEpisodes.Add(season.Id, episodes.Data);
         }
         
-        TitleMetadata actualMetadata = null!;
-        await _scrapTitleMetadataSession.AddOrUpdateTitleMetadata(Arg.Do<TitleMetadata>(x => actualMetadata = x));
+        Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
+        await _scrapTitleMetadataSession
+            .AddOrUpdateTitleMetadata(Arg.Do<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
         var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
@@ -390,7 +391,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .LoginAnonymously(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
-        var titleMetadata = _fixture.Create<TitleMetadata>();
+        var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
             .GetTitleMetadata(titleId)
             .Returns(titleMetadata);
@@ -435,8 +436,9 @@ public class ScrapTitleMetadataCommandHandlerTests
             newSeasonEpisodes.Add(season.Id, episodes);
         }
         
-        TitleMetadata actualMetadata = null!;
-        await _scrapTitleMetadataSession.AddOrUpdateTitleMetadata(Arg.Do<TitleMetadata>(x => actualMetadata = x));
+        Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
+        await _scrapTitleMetadataSession
+            .AddOrUpdateTitleMetadata(Arg.Do<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
         var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
@@ -490,7 +492,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .LoginAnonymously(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
-        var titleMetadata = _fixture.Create<TitleMetadata>();
+        var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
             .GetTitleMetadata(titleId)
             .Returns(titleMetadata);
@@ -518,8 +520,9 @@ public class ScrapTitleMetadataCommandHandlerTests
                 .Returns(_fixture.Create<CrunchyrollEpisodesResponse>());
         }
         
-        TitleMetadata actualMetadata = null!;
-        await _scrapTitleMetadataSession.AddOrUpdateTitleMetadata(Arg.Do<TitleMetadata>(x => actualMetadata = x));
+        Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
+        await _scrapTitleMetadataSession
+            .AddOrUpdateTitleMetadata(Arg.Do<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
         var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
@@ -566,7 +569,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .LoginAnonymously(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
-        var titleMetadata = _fixture.Create<TitleMetadata>();
+        var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
             .GetTitleMetadata(titleId)
             .Returns(titleMetadata);
@@ -597,8 +600,9 @@ public class ScrapTitleMetadataCommandHandlerTests
                 .Returns(_fixture.Create<CrunchyrollEpisodesResponse>());
         }
         
-        TitleMetadata actualMetadata = null!;
-        await _scrapTitleMetadataSession.AddOrUpdateTitleMetadata(Arg.Do<TitleMetadata>(x => actualMetadata = x));
+        Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
+        await _scrapTitleMetadataSession.AddOrUpdateTitleMetadata(
+            Arg.Do<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
         var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
@@ -641,7 +645,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .LoginAnonymously(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
-        var titleMetadata = _fixture.Create<TitleMetadata>();
+        var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
             .GetTitleMetadata(titleId)
             .Returns(titleMetadata);
@@ -650,8 +654,9 @@ public class ScrapTitleMetadataCommandHandlerTests
             .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
             .Returns(new CrunchyrollSeasonsResponse{Data = Array.Empty<CrunchyrollSeasonsItem>()});
         
-        TitleMetadata actualMetadata = null!;
-        await _scrapTitleMetadataSession.AddOrUpdateTitleMetadata(Arg.Do<TitleMetadata>(x => actualMetadata = x));
+        Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
+        await _scrapTitleMetadataSession.AddOrUpdateTitleMetadata(
+            Arg.Do<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
         var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };

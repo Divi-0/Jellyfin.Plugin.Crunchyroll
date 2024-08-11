@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -9,6 +10,7 @@ using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetSeasonId;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using LiteDB;
 using Polly;
@@ -20,7 +22,8 @@ public sealed class CrunchyrollUnitOfWork :
     IAddReviewsSession, 
     IGetReviewsSession, 
     IGetAvatarSession,
-    IScrapTitleMetadataSession
+    IScrapTitleMetadataSession,
+    IGetSeasonSession
 {
     private readonly string _connectionString;
     private readonly SemaphoreSlim _semaphore;
@@ -229,12 +232,72 @@ public sealed class CrunchyrollUnitOfWork :
             {
                 using var db = new LiteDatabase(_connectionString);
 
-                var reviewsCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
+                var metadataCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
             
-                return reviewsCollection.FindOne(x => x.TitleId == titleId);
+                return metadataCollection.FindOne(x => x.TitleId == titleId);
             });
 
             return ValueTask.FromResult<TitleMetadata.Entities.TitleMetadata?>(metadata);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public ValueTask<string?> GetSeasonIdByNumberAsync(string titleId, int seasonNumber, int duplicateCounter)
+    {
+        _semaphore.Wait();
+
+        try
+        {
+            var seasonId = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var metadataCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
+
+                var season = metadataCollection
+                    .Query()
+                    .Where(x => x.TitleId == titleId)
+                    .FirstOrDefault();
+
+                return season?.Seasons
+                    .Where(x => x.SeasonNumber == seasonNumber)
+                    .Skip(duplicateCounter)
+                    .FirstOrDefault()?
+                    .Id;
+            });
+
+            return ValueTask.FromResult<string?>(seasonId);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public ValueTask<string?> GetSeasonIdByNameAsync(string titleId, string name)
+    {
+        _semaphore.Wait();
+
+        try
+        {
+            var seasonId = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var metadataCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
+
+                var season = metadataCollection
+                        .Query()
+                        .Where(x => x.TitleId == titleId)
+                        .FirstOrDefault();
+                
+                return season?.Seasons.Find(x => x.Title.Contains(name))?.Id;
+            });
+
+            return ValueTask.FromResult<string?>(seasonId);
         }
         finally
         {

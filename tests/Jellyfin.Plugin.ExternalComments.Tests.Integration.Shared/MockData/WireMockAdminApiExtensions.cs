@@ -603,6 +603,71 @@ public static class WireMockAdminApiExtensions
         return seasonsResponse;
     }
     
+    public static async Task<CrunchyrollSeasonsResponse> MockCrunchyrollSeasonsResponseWithDuplicate(this IWireMockAdminApi wireMockAdminApi, 
+        string titleId, string language, int duplicateSeasonNumber)
+    {
+        var fixture = new Fixture();
+        
+        var duplicateSeasons = fixture
+            .Build<CrunchyrollSeasonsItem>()
+            .With(x => x.SeasonNumber, duplicateSeasonNumber)
+            .CreateMany(2);
+
+        var seasons = fixture
+            .CreateMany<CrunchyrollSeasonsItem>()
+            .ToList();
+        
+        seasons.AddRange(duplicateSeasons);
+
+        var seasonsResponse = new CrunchyrollSeasonsResponse()
+        {
+            Data = seasons
+        };
+        
+        var builder = wireMockAdminApi.GetMappingBuilder();
+        
+        builder.Given(m => m
+            .WithRequest(req => req
+                .UsingGet()
+                .WithPath($"/content/v2/cms/series/{titleId}/seasons")
+                .WithParams(new List<ParamModel>()
+                {
+                    new ParamModel()
+                    {
+                        Name = "locale",
+                        Matchers = new MatcherModel[]
+                        {
+                            new MatcherModel()
+                            {
+                                Name = "WildcardMatcher",
+                                Pattern = language
+                            }
+                        }
+                    }
+                })
+                .WithHeaders(new List<HeaderModel>(){new HeaderModel()
+                {
+                    Name = HeaderNames.Authorization,
+                    Matchers = new List<MatcherModel>()
+                    {
+                        new MatcherModel()
+                        {
+                            Name = "RegexMatcher",
+                            Pattern = "Bearer .*"
+                        }
+                    }
+                }})
+            )
+            .WithResponse(rsp => rsp
+                .WithStatusCode(HttpStatusCode.OK)
+                .WithBody(JsonSerializer.Serialize(seasonsResponse))
+            ));
+
+        await builder.BuildAndPostAsync();
+
+        return seasonsResponse;
+    }
+    
     public static async Task<CrunchyrollEpisodesResponse> MockCrunchyrollEpisodesResponse(this IWireMockAdminApi wireMockAdminApi, 
         string seasonId, string language)
     {

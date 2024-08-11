@@ -5,6 +5,7 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.MockData;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using WireMock.Client;
 
@@ -18,6 +19,7 @@ public class CrunchyrollScanTests
     
     private readonly CrunchyrollScan _crunchyrollScan;
     private readonly ILibraryManager _libraryManager;
+    private readonly IItemRepository _itemRepository;
     private readonly IWireMockAdminApi _wireMockAdminApi;
     private readonly PluginConfiguration _config;
 
@@ -30,6 +32,8 @@ public class CrunchyrollScanTests
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<CrunchyrollScan>();
         _libraryManager =
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILibraryManager>();
+        _itemRepository =
+            PluginWebApplicationFactory.Instance.Services.GetRequiredService<IItemRepository>();
         _wireMockAdminApi = wireMockFixture.AdminApiClient;
         _config = ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
     }
@@ -56,7 +60,9 @@ public class CrunchyrollScanTests
         await _wireMockAdminApi.MockAnonymousAuthAsync();
         
         foreach (var item in itemList)
-        { 
+        {
+            _itemRepository.MockGetChildren(item);
+            
             await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, language);
             
             var crunchyrollSearchResponse = await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, language);

@@ -3,6 +3,7 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Serialization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -17,6 +18,7 @@ public class PluginWebApplicationFactory : WebApplicationFactory<Program>
     public static PluginWebApplicationFactory Instance { get; private set; } = null!;
     public static MockHttpMessageHandler CrunchyrollHttpMessageHandlerMock { get; private set; } = null!;
     public static ILibraryManager LibraryManagerMock { get; private set; } = null!;
+    public static IItemRepository ItemRepositoryMock { get; private set; } = null!;
 
     public PluginWebApplicationFactory()
     {
@@ -31,8 +33,11 @@ public class PluginWebApplicationFactory : WebApplicationFactory<Program>
             services.AddLogging();
             services.AddSingleton<IApplicationPaths>(Substitute.For<IApplicationPaths>());
             LibraryManagerMock = Substitute.For<ILibraryManager>();
+            ItemRepositoryMock = Substitute.For<IItemRepository>();
             BaseItem.LibraryManager = LibraryManagerMock;
+            BaseItem.ItemRepository = ItemRepositoryMock;
             services.AddSingleton<ILibraryManager>(LibraryManagerMock);
+            services.AddSingleton<IItemRepository>(ItemRepositoryMock);
 
             var xmlSerializer = Substitute.For<IXmlSerializer>();
             xmlSerializer.DeserializeFromFile(Arg.Is(typeof(PluginConfiguration)), Arg.Any<string>())
