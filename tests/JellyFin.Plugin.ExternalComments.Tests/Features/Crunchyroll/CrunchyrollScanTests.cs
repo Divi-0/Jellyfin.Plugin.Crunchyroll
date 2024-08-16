@@ -221,6 +221,11 @@ public class CrunchyrollScanTests
             foreach (var season in ((Series)item).Children)
             {
                 season.ProviderIds[CrunchyrollExternalKeys.SeasonId].Should().BeOneOf(seasonIds);
+
+                await _libraryManagerMock
+                    .Received()
+                    .UpdateItemAsync(season, season.DisplayParent, ItemUpdateType.MetadataEdit,
+                        Arg.Any<CancellationToken>());
             }
         }
     }

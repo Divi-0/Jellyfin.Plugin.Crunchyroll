@@ -187,6 +187,8 @@ public class CrunchyrollScan : ILibraryPostScanTask
             }
         
             season.ProviderIds[CrunchyrollExternalKeys.SeasonId] = seasonIdResult.Value ?? string.Empty;
+            
+            await _libraryManager.UpdateItemAsync(season, season.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
         }
     }
 
