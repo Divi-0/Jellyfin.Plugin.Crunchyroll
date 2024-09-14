@@ -2,6 +2,7 @@ using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.MockData;
 using MediaBrowser.Controller.Library;

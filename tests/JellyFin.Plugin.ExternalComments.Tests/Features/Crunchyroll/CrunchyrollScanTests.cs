@@ -4,6 +4,7 @@ using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetEpisodeId;

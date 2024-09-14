@@ -1,5 +1,5 @@
 using Jellyfin.Plugin.ExternalComments.Configuration;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
