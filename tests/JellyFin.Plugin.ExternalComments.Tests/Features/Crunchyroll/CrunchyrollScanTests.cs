@@ -6,8 +6,10 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetSeasonId;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
+using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
@@ -226,6 +228,104 @@ public class CrunchyrollScanTests
                     .Received()
                     .UpdateItemAsync(season, season.DisplayParent, ItemUpdateType.MetadataEdit,
                         Arg.Any<CancellationToken>());
+            }
+        }
+    }
+    
+    [Fact]
+    public async Task SetsEpisodeIds_WhenSeasonsFound_GivenListOfItems()
+    {
+        //Arrange
+        BaseItem.LibraryManager = _libraryManagerMock;
+        BaseItem.ItemRepository = _itemRepository;
+        
+        var itemList = _fixture.Build<Series>()
+            .CreateMany<Series>()
+            .ToList<BaseItem>();
+        
+        _libraryManagerMock
+            .GetItemList(Arg.Any<InternalItemsQuery>())
+            .Returns(itemList);
+        
+        _libraryManagerMock
+            .GetItemById(Arg.Any<Guid>())
+            .Returns(_fixture.Create<Series>());
+        
+        _libraryManagerMock
+            .UpdateItemAsync(Arg.Any<BaseItem>(), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+       
+        
+        var episodeIds = new List<string>();
+        
+        foreach (var item in itemList.Select(x => (Series)x).ToList())
+        {
+            var titleId = _fixture.Create<string>();
+            var slugTitle = _fixture.Create<string>();
+            _mediator
+                .Send(new TitleIdQuery(item.Name), Arg.Any<CancellationToken>())!
+                .Returns(ValueTask.FromResult(Result.Ok(new SearchResponse()
+                {
+                    Id = titleId,
+                    SlugTitle = slugTitle
+                })));
+
+            _itemRepository
+                .GetItemList(Arg.Is<InternalItemsQuery>(x => x.ParentId == item.Id))
+                .Returns(_fixture.CreateMany<Season>().ToList<BaseItem>());
+
+            //Find Season By Number
+            foreach (var season in item.Children.Where(x => x.IndexNumber.HasValue))
+            {
+                var seasonId = _fixture.Create<string>();
+                _mediator
+                    .Send(new SeasonIdQueryByNumber(titleId, season.IndexNumber!.Value, 0))
+                    .Returns(seasonId);
+
+                _itemRepository
+                    .GetItemList(Arg.Is<InternalItemsQuery>(x => x.ParentId == season.Id))
+                    .Returns(_fixture.CreateMany<Episode>().ToList<BaseItem>());
+
+                foreach (var episode in ((Season)season).Children)
+                {
+                    var epsiodeId = _fixture.Create<string>();
+
+                    _mediator
+                        .Send(new EpisodeIdQuery(titleId, seasonId, episode.IndexNumber!.Value.ToString()))
+                        .Returns(epsiodeId);
+
+                    episodeIds.Add(epsiodeId);
+                }
+            }
+        }
+
+        _loginService
+            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
+        //Act
+        var progress = new Progress<double>();
+        await _sut.Run(progress, CancellationToken.None);
+        
+        //Assert
+        foreach (var item in itemList)
+        {
+            var seasons = ((Series)item).Children;
+            foreach (var season in seasons)
+            {
+                foreach (var episode in ((Season)season).Children)
+                {
+                    await _mediator
+                        .Received()
+                        .Send(Arg.Any<EpisodeIdQuery>(), Arg.Any<CancellationToken>());
+
+                    episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId].Should().BeOneOf(episodeIds);
+
+                    await _libraryManagerMock
+                        .Received()
+                        .UpdateItemAsync(episode, episode.DisplayParent, ItemUpdateType.MetadataEdit,
+                            Arg.Any<CancellationToken>());
+                }
             }
         }
     }

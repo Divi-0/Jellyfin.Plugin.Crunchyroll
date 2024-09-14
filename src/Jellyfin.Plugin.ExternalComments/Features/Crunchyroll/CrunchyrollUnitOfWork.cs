@@ -10,6 +10,7 @@ using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetSeasonId;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using LiteDB;
@@ -23,7 +24,8 @@ public sealed class CrunchyrollUnitOfWork :
     IGetReviewsSession, 
     IGetAvatarSession,
     IScrapTitleMetadataSession,
-    IGetSeasonSession
+    IGetSeasonSession,
+    IGetEpisodeSession
 {
     private readonly string _connectionString;
     private readonly SemaphoreSlim _semaphore;
@@ -289,15 +291,47 @@ public sealed class CrunchyrollUnitOfWork :
 
                 var metadataCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
 
-                var season = metadataCollection
+                var seasons = metadataCollection
                         .Query()
                         .Where(x => x.TitleId == titleId)
+                        .Select(x => x.Seasons)
                         .FirstOrDefault();
                 
-                return season?.Seasons.Find(x => x.Title.Contains(name))?.Id;
+                return seasons?.Find(x => x.Title.Contains(name))?.Id;
             });
 
             return ValueTask.FromResult<string?>(seasonId);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public ValueTask<string?> GetEpisodeIdAsync(string titleId, string seasonId, string episodeIdentifier)
+    {
+        _semaphore.Wait();
+
+        try
+        {
+            var epsiodeId = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var metadataCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
+
+                var seasons = metadataCollection
+                    .Query()
+                    .Where(x => x.TitleId == titleId)
+                    .Select(x => x.Seasons)
+                    .FirstOrDefault();
+                
+                var season = seasons?.Find(x => x.Id == seasonId);
+
+                return season?.Episodes.Find(x => x.EpisodeNumber == episodeIdentifier)?.Id;
+            });
+
+            return ValueTask.FromResult<string?>(epsiodeId);
         }
         finally
         {

@@ -11,6 +11,7 @@ public static class CrunchyrollExternalKeys
     public const string Id = "ExternalCommentsPlugin.Crunchyroll.Id";
     public const string SlugTitle = "ExternalCommentsPlugin.Crunchyroll.SlugTitle";
     public const string SeasonId = "ExternalCommentsPlugin.Crunchyroll.Season.Id";
+    public const string EpisodeId = "ExternalCommentsPlugin.Crunchyroll.Episode.Id";
 }
 
 public class CrunchyrollExternalId : IExternalId
@@ -57,6 +58,22 @@ public class CrunchyrollExternalSeasonId : IExternalId
     
     public bool Supports(IHasProviderIds item)
     {
-        return item is Series || item is Movie;
+        return item is Season;
+    }
+}
+
+public class CrunchyrollExternalEpisodeId : IExternalId
+{
+    public string ProviderName => "Crunchyroll";
+
+    public string Key => CrunchyrollExternalKeys.EpisodeId;
+    
+    public ExternalIdMediaType? Type => ExternalIdMediaType.Episode;
+    
+    public string? UrlFormatString => null;
+    
+    public bool Supports(IHasProviderIds item)
+    {
+        return item is Episode;
     }
 }

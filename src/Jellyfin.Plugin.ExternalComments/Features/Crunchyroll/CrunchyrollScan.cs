@@ -8,6 +8,7 @@ using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetSeasonId;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using MediaBrowser.Controller.Entities;
@@ -126,8 +127,8 @@ public class CrunchyrollScan : ILibraryPostScanTask
 
     private async ValueTask SetSeasonIds(BaseItem item, CancellationToken cancellationToken)
     {
-        var hasId = item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? id) &&
-                    !string.IsNullOrWhiteSpace(id);
+        var hasId = item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? titleId) &&
+                    !string.IsNullOrWhiteSpace(titleId);
         
         if (!hasId)
         {
@@ -152,7 +153,7 @@ public class CrunchyrollScan : ILibraryPostScanTask
             {
                 seasonNumberDuplicateCounters.TryGetValue(season.IndexNumber.Value, out var seasonCounter);
                 
-                var query = new SeasonIdQueryByNumber(id!, season.IndexNumber.Value, seasonCounter);
+                var query = new SeasonIdQueryByNumber(titleId!, season.IndexNumber.Value, seasonCounter);
                 seasonIdResult = await _mediator.Send(query, cancellationToken);
                 
                 seasonCounter += 1;
@@ -170,7 +171,7 @@ public class CrunchyrollScan : ILibraryPostScanTask
 
                 if (seasonIdResult.Value is null)
                 {
-                    var byNameQuery = new SeasonIdQueryByName(id!, season.Name);
+                    var byNameQuery = new SeasonIdQueryByName(titleId!, season.Name);
                     seasonIdResult = await _mediator.Send(byNameQuery, cancellationToken);
                 }
                 
@@ -189,6 +190,34 @@ public class CrunchyrollScan : ILibraryPostScanTask
             season.ProviderIds[CrunchyrollExternalKeys.SeasonId] = seasonIdResult.Value ?? string.Empty;
             
             await _libraryManager.UpdateItemAsync(season, season.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
+            
+            await SetEpisodeIds(season, titleId!, cancellationToken);
+        }
+    }
+    
+    private async ValueTask SetEpisodeIds(BaseItem season, string titleId, CancellationToken cancellationToken)
+    {
+        var hasSeasonId = season.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeasonId, out string? seasonId) && 
+                          !string.IsNullOrWhiteSpace(seasonId);
+            
+        if (!hasSeasonId)
+        {
+            //if the item has no indexNumber or already has a seasonId, ignore it
+            return;
+        }
+
+        foreach (var episode in ((Folder)season).Children)
+        {
+            if (!episode.IndexNumber.HasValue)
+            {
+                continue;
+            }
+
+            var episodeId = await _mediator.Send(new EpisodeIdQuery(titleId, seasonId!, episode.IndexNumber!.Value.ToString()), cancellationToken);
+
+            episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId] = episodeId ?? string.Empty;
+
+            await _libraryManager.UpdateItemAsync(episode, episode.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
         }
     }
 
