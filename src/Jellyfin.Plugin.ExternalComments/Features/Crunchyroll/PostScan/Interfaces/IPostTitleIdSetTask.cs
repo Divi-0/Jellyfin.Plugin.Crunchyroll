@@ -6,6 +6,6 @@ namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan.Interfa
 {
     public interface IPostTitleIdSetTask
     {
-        public Task RunAsync(BaseItem titleItem, CancellationToken cancellationToken);
+        public Task RunAsync(BaseItem seriesItem, CancellationToken cancellationToken);
     }
 }

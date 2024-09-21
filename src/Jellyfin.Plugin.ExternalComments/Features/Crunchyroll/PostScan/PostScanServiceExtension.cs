@@ -1,11 +1,6 @@
 ﻿using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan
 {
@@ -14,6 +9,7 @@ namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan
         public static IServiceCollection AddCrunchyroll(this IServiceCollection serviceCollection, PluginConfiguration configuration)
         {
             serviceCollection.AddSingleton<IPostScanTask, SetTitleIdTask>();
+            serviceCollection.AddSingleton<IPostTitleIdSetTask, SetSeasonIdTask>();
 
             return serviceCollection;
         }

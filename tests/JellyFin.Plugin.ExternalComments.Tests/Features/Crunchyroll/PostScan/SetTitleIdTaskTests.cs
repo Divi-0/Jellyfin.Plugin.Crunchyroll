@@ -5,12 +5,10 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetSeasonId;
 using Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Persistence;
 using Mediator;
 using Microsoft.Extensions.Logging;
 using NSubstitute.ExceptionExtensions;
@@ -26,7 +24,6 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
         private readonly IMediator _mediator;
         private readonly IPostTitleIdSetTask[] _postTitleIdSetTasks;
         private readonly ILibraryManager _libraryManager;
-        private readonly IItemRepository _itemRepository;
         private readonly ILogger<SetTitleIdTask> _logger;
 
         public SetTitleIdTaskTests()
@@ -34,16 +31,14 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
             _fixture = new Fixture();
 
             _mediator = Substitute.For<IMediator>();
-            _postTitleIdSetTasks = Enumerable.Range(0, Random.Shared.Next(10))
+            _postTitleIdSetTasks = Enumerable.Range(0, Random.Shared.Next(1, 10))
                 .Select(_ => 
                     Substitute.For<IPostTitleIdSetTask>())
                 .ToArray();
             _logger = Substitute.For<ILogger<SetTitleIdTask>>();
-            _libraryManager = Substitute.For<ILibraryManager>();
+            _libraryManager = MockHelper.LibraryManager;
 
             _sut = new SetTitleIdTask(_mediator, _postTitleIdSetTasks, _logger, _libraryManager);
-
-            BaseItem.LibraryManager = _libraryManager;
         }
 
         [Fact]
@@ -83,7 +78,7 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
 
             await _libraryManager
                 .Received(1)
-                .UpdateItemAsync(Arg.Any<BaseItem>(), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>());
+                .UpdateItemAsync(item, Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>());
 
             updatedBaseItem.Should().NotBeNull();
             updatedBaseItem!.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out var actualCrunchyrollId).Should().BeTrue();
@@ -152,7 +147,7 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
 
             await _libraryManager
                 .DidNotReceive()
-                .UpdateItemAsync(Arg.Any<BaseItem>(), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>());
+                .UpdateItemAsync(item, Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -228,7 +223,7 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
 
             await _libraryManager
                 .DidNotReceive()
-                .UpdateItemAsync(Arg.Any<BaseItem>(), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>());
+                .UpdateItemAsync(item, Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -262,7 +257,7 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
 
             await _libraryManager
                 .Received(1)
-                .UpdateItemAsync(Arg.Any<BaseItem>(), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>());
+                .UpdateItemAsync(item, Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>());
 
             updatedBaseItem.Should().NotBeNull();
             updatedBaseItem!.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out var actualCrunchyrollId).Should().BeTrue();
