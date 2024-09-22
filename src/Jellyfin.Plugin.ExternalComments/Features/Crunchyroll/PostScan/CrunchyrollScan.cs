@@ -208,7 +208,7 @@ public class CrunchyrollScan : ILibraryPostScanTask
 
             var episodeId = await _mediator.Send(new EpisodeIdQuery(titleId, seasonId!, episode.IndexNumber!.Value.ToString()), cancellationToken);
 
-            episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId] = episodeId ?? string.Empty;
+            episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId] = episodeId.Value ?? string.Empty;
 
             await _libraryManager.UpdateItemAsync(episode, episode.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
         }

@@ -36,7 +36,7 @@ public class GetReviewsQueryTests
         _config = new PluginConfiguration();
         _crunchyrollGetReviewsClient = Substitute.For<ICrunchyrollGetReviewsClient>();
         _getReviewsSession = Substitute.For<IGetReviewsSession>();
-        _libraryManager = Substitute.For<ILibraryManager>();
+        _libraryManager = Tests.MockHelper.LibraryManager;
         _loginService = Substitute.For<ILoginService>();
         _sut = new GetReviewsQueryHandler(_crunchyrollGetReviewsClient, _libraryManager, _config,
             _getReviewsSession, _loginService);

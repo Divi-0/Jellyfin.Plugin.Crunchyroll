@@ -1,5 +1,4 @@
-﻿using AutoFixture;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan.Interfaces;
+﻿using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -17,8 +16,6 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
 {
     public class SetSeasonIdTaskTests
     {
-        private readonly Fixture _fixture;
-
         private readonly SetSeasonIdTask _sut;
 
         private readonly IMediator _mediator;
@@ -28,8 +25,6 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
 
         public SetSeasonIdTaskTests()
         {
-            _fixture = new Fixture();
-            
             _postSeasonIdSetTasks = Enumerable.Range(0, Random.Shared.Next(1, 10))
             .Select(_ => Substitute.For<IPostSeasonIdSetTask>())
             .ToArray();
@@ -47,8 +42,12 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
         {
             //Arrange
             var series = SeriesFaker.GenerateWithTitleId();
-
             var season = SeasonFaker.Generate(series);
+
+            _libraryManager
+                .GetItemById(series.Id)
+                .Returns(series);
+            
             _itemRepository
                 .GetItemList(Arg.Is<InternalItemsQuery>(x =>
                     x.ParentId == series.Id &&
@@ -75,7 +74,11 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
 
             await _libraryManager
                 .Received(1)
-                .UpdateItemAsync(child, series, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+                .UpdateItemAsync(
+                    Arg.Is<BaseItem>(x => x == child), 
+                    Arg.Is<BaseItem>(x => x == series), 
+                    ItemUpdateType.MetadataEdit, 
+                    Arg.Any<CancellationToken>());
 
             child.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeasonId, out var seasonId).Should().BeTrue();
             seasonId.Should().Be(crunchyrollSeasonId);
@@ -94,8 +97,12 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
         {
             //Arrange
             var series = SeriesFaker.GenerateWithTitleId();
-
             var season = SeasonFaker.Generate(series);
+            
+            _libraryManager
+                .GetItemById(series.Id)
+                .Returns(series);
+            
             _itemRepository
                 .GetItemList(Arg.Is<InternalItemsQuery>(x =>
                     x.ParentId == series.Id &&
@@ -121,7 +128,11 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
 
             await _libraryManager
                 .DidNotReceive()
-                .UpdateItemAsync(child, series, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+                .UpdateItemAsync(
+                    Arg.Is<BaseItem>(x => x == child),
+                    Arg.Is<BaseItem>(x => x == series), 
+                    ItemUpdateType.MetadataEdit, 
+                    Arg.Any<CancellationToken>());
 
             foreach (var seasonItem in series.Children)
             {
@@ -137,10 +148,13 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
         {
             //Arrange
             var series = SeriesFaker.Generate();
-            
             var seasons = Enumerable.Range(0, Random.Shared.Next(1, 10))
                 .Select(_ => SeasonFaker.Generate(series))
                 .ToList<BaseItem>();
+            
+            _libraryManager
+                .GetItemById(series.Id)
+                .Returns(series);
             
             _itemRepository
                 .GetItemList(Arg.Is<InternalItemsQuery>(x =>
@@ -162,7 +176,11 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
                 
                 await _libraryManager
                     .DidNotReceive()
-                    .UpdateItemAsync(seasonItem, series, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+                    .UpdateItemAsync(
+                        Arg.Is<BaseItem>(x => x == seasonItem),
+                        Arg.Is<BaseItem>(x => x == series), 
+                        ItemUpdateType.MetadataEdit, 
+                        Arg.Any<CancellationToken>());
                 
                 _postSeasonIdSetTasks.Should().AllSatisfy(x =>
                 {
@@ -176,10 +194,13 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
         {
             //Arrange
             var series = SeriesFaker.GenerateWithTitleId();
-            
             var seasons = Enumerable.Range(0, Random.Shared.Next(1, 10))
                 .Select(_ => SeasonFaker.GenerateWithSeasonId(series))
                 .ToList<BaseItem>();
+            
+            _libraryManager
+                .GetItemById(series.Id)
+                .Returns(series);
             
             _itemRepository
                 .GetItemList(Arg.Is<InternalItemsQuery>(x =>
@@ -201,7 +222,11 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
                 
                 await _libraryManager
                     .DidNotReceive()
-                    .UpdateItemAsync(seasonItem, series, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+                    .UpdateItemAsync(
+                        Arg.Is<BaseItem>(x => x == seasonItem),
+                        Arg.Is<BaseItem>(x => x == series), 
+                        ItemUpdateType.MetadataEdit, 
+                        Arg.Any<CancellationToken>());
                 
                 _postSeasonIdSetTasks.Should().AllSatisfy(x =>
                 {
@@ -215,10 +240,13 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
         {
             //Arrange
             var series = SeriesFaker.GenerateWithTitleId();
-
             var seasons = Enumerable.Range(0, Random.Shared.Next(1, 10))
                 .Select(_ => SeasonFaker.Generate(series))
                 .ToList<BaseItem>();
+
+            _libraryManager
+                .GetItemById(series.Id)
+                .Returns(series);
 
             _mediator
                 .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[0].Name), 
@@ -248,10 +276,14 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
                 .Received(1)
                 .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[0].Name),
                     Arg.Any<CancellationToken>());
-                
+            
             await _libraryManager
                 .DidNotReceive()
-                .UpdateItemAsync(seasons[0], series, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+                .UpdateItemAsync(
+                    Arg.Is<BaseItem>(x => x == seasons[0]),
+                    Arg.Is<BaseItem>(x => x == series), 
+                    ItemUpdateType.MetadataEdit, 
+                    Arg.Any<CancellationToken>());
             
             _postSeasonIdSetTasks.Should().AllSatisfy(x =>
             {
@@ -260,18 +292,24 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
             
             for (int i = 1; i < seasons.Count - 1; i++)
             {
+                var season = seasons[i];
+                
                 await _mediator
                     .Received(1)
-                    .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[i].Name),
+                    .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], season.Name),
                         Arg.Any<CancellationToken>());
                 
                 await _libraryManager
                     .Received(1)
-                    .UpdateItemAsync(seasons[i], series, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+                    .UpdateItemAsync(
+                        Arg.Is<BaseItem>(x => x == season), 
+                        Arg.Is<BaseItem>(x => x == series), 
+                        ItemUpdateType.MetadataEdit, 
+                        Arg.Any<CancellationToken>());
                 
                 _postSeasonIdSetTasks.Should().AllSatisfy(x =>
                 {
-                    x.Received(1).RunAsync(seasons[i], Arg.Any<CancellationToken>());
+                    x.Received(1).RunAsync(season, Arg.Any<CancellationToken>());
                 });
             }
         }
@@ -281,10 +319,13 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
         {
             //Arrange
             var series = SeriesFaker.GenerateWithTitleId();
-
             var seasons = Enumerable.Range(0, Random.Shared.Next(1, 10))
                 .Select(_ => SeasonFaker.Generate(series))
                 .ToList<BaseItem>();
+
+            _libraryManager
+                .GetItemById(series.Id)
+                .Returns(series);
 
             _mediator
                 .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[0].Name), 
@@ -324,10 +365,14 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
                 .Received(1)
                 .Send(new SeasonIdQueryByNumber(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[0].IndexNumber!.Value, 0),
                     Arg.Any<CancellationToken>());
-                
+            
             await _libraryManager
                 .DidNotReceive()
-                .UpdateItemAsync(seasons[0], series, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+                .UpdateItemAsync(
+                    Arg.Is<BaseItem>(x => x == seasons[0]),
+                    Arg.Is<BaseItem>(x => x == series), 
+                    ItemUpdateType.MetadataEdit, 
+                    Arg.Any<CancellationToken>());
             
             _postSeasonIdSetTasks.Should().AllSatisfy(x =>
             {
@@ -336,18 +381,24 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
             
             for (int i = 1; i < seasons.Count - 1; i++)
             {
+                var season = seasons[i];
+                
                 await _mediator
                     .Received(1)
-                    .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[i].Name),
+                    .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], season.Name),
                         Arg.Any<CancellationToken>());
                 
                 await _libraryManager
                     .Received(1)
-                    .UpdateItemAsync(seasons[i], series, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+                    .UpdateItemAsync(
+                        Arg.Is<BaseItem>(x => x == season),
+                        Arg.Is<BaseItem>(x => x == series), 
+                        ItemUpdateType.MetadataEdit, 
+                        Arg.Any<CancellationToken>());
                 
                 _postSeasonIdSetTasks.Should().AllSatisfy(x =>
                 {
-                    x.Received(1).RunAsync(seasons[i], Arg.Any<CancellationToken>());
+                    x.Received(1).RunAsync(season, Arg.Any<CancellationToken>());
                 });
             }
         }
@@ -359,8 +410,11 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
         {
             //Arrange
             var series = SeriesFaker.GenerateWithTitleId();
-
             var season = SeasonFaker.Generate(series);
+
+            _libraryManager
+                .GetItemById(series.Id)
+                .Returns(series);
 
             _mediator
                 .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], season.Name),
@@ -382,10 +436,14 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
                 .Received(1)
                 .Send(Arg.Is<SeasonIdQueryByName>(x => x.SeasonName == season.Name),
                     Arg.Any<CancellationToken>());
-                
+            
             await _libraryManager
                 .DidNotReceive()
-                .UpdateItemAsync(season, series, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+                .UpdateItemAsync(
+                    Arg.Is<BaseItem>(x => x == season),
+                    Arg.Is<BaseItem>(x => x == series), 
+                    ItemUpdateType.MetadataEdit, 
+                    Arg.Any<CancellationToken>());
             
             _postSeasonIdSetTasks.Should().AllSatisfy(x =>
             {

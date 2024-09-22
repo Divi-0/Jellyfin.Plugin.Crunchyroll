@@ -15,22 +15,6 @@ namespace Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker
                 .RuleFor(x => x.Name, f => f.Random.Word())
                 .Generate();
 
-            var seasons = Enumerable
-                .Range(1, 10)
-                .Select(_ => SeasonFaker.Generate())
-                .ToList<BaseItem>();
-
-            BaseItem.ItemRepository
-                .GetItemList(Arg.Is<InternalItemsQuery>(x =>
-                    x.ParentId == series.Id &&
-                    x.GroupByPresentationUniqueKey == false &&
-                    x.DtoOptions.Fields.Count != 0))
-                .Returns(seasons);
-
-            BaseItem.LibraryManager
-                .GetItemById(series.Id)
-                .Returns(series);
-
             return series;
         }
 

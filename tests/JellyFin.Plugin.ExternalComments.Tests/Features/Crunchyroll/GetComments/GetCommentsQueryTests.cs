@@ -30,7 +30,7 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.GetComment
 
             _loggerMock = Substitute.For<ILogger<GetCommentsQueryHandler>>();
             _crunchyrollClientMock = Substitute.For<ICrunchyrollGetCommentsClient>();
-            _libraryManagerMock = Substitute.For<ILibraryManager>();
+            _libraryManagerMock = MockHelper.LibraryManager;
             _loginService = Substitute.For<ILoginService>();
 
             _sut = new GetCommentsQueryHandler(

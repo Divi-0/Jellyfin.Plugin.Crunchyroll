@@ -10,6 +10,7 @@ namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan
         {
             serviceCollection.AddSingleton<IPostScanTask, SetTitleIdTask>();
             serviceCollection.AddSingleton<IPostTitleIdSetTask, SetSeasonIdTask>();
+            serviceCollection.AddSingleton<IPostSeasonIdSetTask, SetEpisodeIdTask>();
 
             return serviceCollection;
         }

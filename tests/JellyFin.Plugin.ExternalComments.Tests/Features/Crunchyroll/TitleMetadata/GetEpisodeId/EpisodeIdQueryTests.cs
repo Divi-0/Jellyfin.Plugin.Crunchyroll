@@ -1,6 +1,7 @@
 using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
+using Microsoft.Extensions.Logging;
 
 namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
 
@@ -16,7 +17,8 @@ public class EpisodeIdQueryTests
         _fixture = new Fixture();
 
         _getEpisodeSession = Substitute.For<IGetEpisodeSession>();
-        _sut = new EpisodeIdQueryHandler(_getEpisodeSession);
+        var logger = Substitute.For<ILogger<EpisodeIdQueryHandler>>();
+        _sut = new EpisodeIdQueryHandler(_getEpisodeSession, logger);
     }
 
     [Fact]
@@ -33,10 +35,11 @@ public class EpisodeIdQueryTests
         
         //Act
         var query = new EpisodeIdQuery(titleId, seasonId, episodeIdentifier);
-        var id = await _sut.Handle(query, CancellationToken.None);
+        var result = await _sut.Handle(query, CancellationToken.None);
         
         //Assert
-        id.Should().NotBeEmpty();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeEmpty();
         
         await _getEpisodeSession
             .Received(1)
@@ -57,10 +60,11 @@ public class EpisodeIdQueryTests
         
         //Act
         var query = new EpisodeIdQuery(titleId, seasonId, episodeIdentifier);
-        var id = await _sut.Handle(query, CancellationToken.None);
+        var result = await _sut.Handle(query, CancellationToken.None);
         
         //Assert
-        id.Should().BeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeNull();
         
         await _getEpisodeSession
             .Received(1)

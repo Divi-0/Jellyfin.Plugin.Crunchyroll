@@ -37,8 +37,8 @@ public class CrunchyrollScanTests
         _fixture = new Fixture();
         
         _loggerMock = Substitute.For<ILogger<CrunchyrollScan>>();
-        _libraryManagerMock = Substitute.For<ILibraryManager>();
-        _itemRepository = Substitute.For<IItemRepository>();
+        _libraryManagerMock = MockHelper.LibraryManager;
+        _itemRepository = MockHelper.ItemRepository;
         _mediator = Substitute.For<IMediator>();
         _loginService = Substitute.For<ILoginService>();
         _config = new PluginConfiguration();

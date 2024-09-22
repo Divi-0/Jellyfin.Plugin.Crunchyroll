@@ -1,23 +1,37 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentResults;
 using Mediator;
+using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
 
-public record EpisodeIdQuery(string TitleId, string SeasonId, string EpisodeIdentifier) : IRequest<string?>;
+public record EpisodeIdQuery(string TitleId, string SeasonId, string EpisodeIdentifier) : IRequest<Result<string?>>;
 
-public class EpisodeIdQueryHandler : IRequestHandler<EpisodeIdQuery, string?>
+public class EpisodeIdQueryHandler : IRequestHandler<EpisodeIdQuery, Result<string?>>
 {
     private readonly IGetEpisodeSession _getEpisodeSession;
+    private readonly ILogger<EpisodeIdQueryHandler> _logger;
 
-    public EpisodeIdQueryHandler(IGetEpisodeSession getEpisodeSession)
+    public EpisodeIdQueryHandler(IGetEpisodeSession getEpisodeSession, ILogger<EpisodeIdQueryHandler> logger)
     {
         _getEpisodeSession = getEpisodeSession;
+        _logger = logger;
     }
     
-    public async ValueTask<string?> Handle(EpisodeIdQuery request, CancellationToken cancellationToken)
+    public async ValueTask<Result<string?>> Handle(EpisodeIdQuery request, CancellationToken cancellationToken)
     {
-        return await _getEpisodeSession.GetEpisodeIdAsync(request.TitleId, request.SeasonId, request.EpisodeIdentifier);
+        try
+        {
+            return await _getEpisodeSession.GetEpisodeIdAsync(request.TitleId, request.SeasonId,
+                request.EpisodeIdentifier);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "An error occured while getting episode Id");
+            return Result.Fail(EpisodeIdQueryErrorCodes.Internal);
+        }
     }
 }
 
