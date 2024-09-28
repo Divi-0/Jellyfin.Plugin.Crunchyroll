@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan.Interfaces;
@@ -14,10 +15,10 @@ public class SetEpisodeIdTask : IPostSeasonIdSetTask
     private readonly IMediator _mediator;
     private readonly ILibraryManager _libraryManager;
     private readonly ILogger<SetEpisodeIdTask> _logger;
-    private readonly IPostEpisodeIdSetTask[] _postEpisodeIdSetTasks;
+    private readonly IEnumerable<IPostEpisodeIdSetTask> _postEpisodeIdSetTasks;
 
     public SetEpisodeIdTask(IMediator mediator, ILibraryManager libraryManager, ILogger<SetEpisodeIdTask> logger,
-        IPostEpisodeIdSetTask[] postEpisodeIdSetTasks)
+        IEnumerable<IPostEpisodeIdSetTask> postEpisodeIdSetTasks)
     {
         _mediator = mediator;
         _libraryManager = libraryManager;

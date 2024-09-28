@@ -28,7 +28,7 @@ public static class CrunchyrollServiceExtension
         serviceCollection.AddCrunchyrollScrapTitleMetadata(configuration);
         serviceCollection.AddCrunchyrollGetSeasonId();
         serviceCollection.AddCrunchyrollGetEpisodeId();
-        serviceCollection.AddCrunchyrollPostScanTasks(configuration);
+        serviceCollection.AddCrunchyrollPostScanTasks();
         
         return serviceCollection;
     }

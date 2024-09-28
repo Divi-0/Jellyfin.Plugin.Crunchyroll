@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
 using MediaBrowser.Controller.Entities;
@@ -12,15 +13,22 @@ public class ExtractReviewsTask : IPostTitleIdSetTask
 {
     private readonly IMediator _mediator;
     private readonly ILogger<ExtractReviewsTask> _logger;
+    private readonly PluginConfiguration _config;
 
-    public ExtractReviewsTask(IMediator mediator, ILogger<ExtractReviewsTask> logger)
+    public ExtractReviewsTask(IMediator mediator, ILogger<ExtractReviewsTask> logger, PluginConfiguration config)
     {
         _mediator = mediator;
         _logger = logger;
+        _config = config;
     }
     
     public async Task RunAsync(BaseItem seriesItem, CancellationToken cancellationToken)
     {
+        if (!_config.IsWaybackMachineEnabled)
+        {
+            return;
+        }
+        
         var hasId = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? id) &&
                     !string.IsNullOrWhiteSpace(id);
 

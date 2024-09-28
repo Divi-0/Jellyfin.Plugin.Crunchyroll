@@ -5,18 +5,18 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.MockData;
+using Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using WireMock.Client;
 
-namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.WaybackMachine.Tests.Crunchyroll.LibraryScan;
+namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.WaybackMachine.Tests.Crunchyroll.PostScan;
 
 [Collection(CollectionNames.Plugin)]
 public class CrunchyrollScanTests
 {
     private readonly CrunchyrollDatabaseFixture _crunchyrollDatabaseFixture;
-    private readonly Fixture _fixture;
     
     private readonly CrunchyrollScan _crunchyrollScan;
     private readonly ILibraryManager _libraryManager;
@@ -27,7 +27,6 @@ public class CrunchyrollScanTests
     public CrunchyrollScanTests(WireMockFixture wireMockFixture, CrunchyrollDatabaseFixture crunchyrollDatabaseFixture)
     {
         _crunchyrollDatabaseFixture = crunchyrollDatabaseFixture;
-        _fixture = new Fixture();
         
         _crunchyrollScan =
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<CrunchyrollScan>();
@@ -40,7 +39,7 @@ public class CrunchyrollScanTests
     }
 
     [Fact]
-    public async Task SetsTitleIdsWithNoEmptyValues_GivenCrunchyrollResponses()
+    public async Task ExtractsReviewsAndAvatarUris_WhenWaybackMachineIsEnabled_GivenCrunchyrollResponses()
     {
         //Arrange
         const string language = "de-DE";
@@ -55,55 +54,45 @@ public class CrunchyrollScanTests
             $"{_config.ArchiveOrgUrl}/web/20240707123516im_/https://static.crunchyroll.com/assets/avatar/170x170/chainsawman-aki.png"
         };
         
-        var itemList = _libraryManager.MockCrunchyrollTitleIdScan();
+        foreach (var uri in imageUris)
+        {
+            await _wireMockAdminApi.MockAvatarUriRequest(uri);
+        }
+        
+        var itemList = _libraryManager.MockCrunchyrollTitleIdScan([SeriesFaker.GenerateWithTitleId()]);
         
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
         
-        foreach (var item in itemList)
+        foreach (var series in itemList)
         {
-            _itemRepository.MockGetChildren(item);
+            _itemRepository.MockGetChildrenEmpty(series);
             
-            await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, language);
-            
-            var crunchyrollSearchResponse = await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, language);
-            
-            foreach (var searchData in crunchyrollSearchResponse.Data.Where(x => x.Type == "series"))
+            var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse([SeasonFaker.Generate(series)], language);
+
+            foreach (var seasonResponse in seasonsResponse.Data)
             {
-                foreach (var dataItem in searchData.Items)
-                {
-                    var seasonResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(dataItem.Id, language);
-
-                    foreach (var season in seasonResponse.Data)
-                    {
-                        await _wireMockAdminApi.MockCrunchyrollEpisodesResponse(season.Id, language);
-                    }
-                    
-                    string crunchyrollUrl = Path.Combine(
-                            _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
-                            "de",
-                            "series",
-                            dataItem.Id,
-                            dataItem.SlugTitle)
-                        .Replace('\\', '/');
-                    
-                    var waybackMachineSearchResponse = await _wireMockAdminApi.MockWaybackMachineSearchResponse(crunchyrollUrl);
-                    
-                    var snapshotUrl = Path.Combine(
-                            _config.ArchiveOrgUrl,
-                            "web",
-                            waybackMachineSearchResponse.Last().Timestamp.ToString("yyyyMMddHHmmss"),
-                            crunchyrollUrl)
-                        .Replace('\\', '/');
-                    
-                    await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(snapshotUrl, _config.ArchiveOrgUrl);
-                }
+                await _wireMockAdminApi.MockCrunchyrollEpisodesResponse([], seasonResponse.Id, language);
             }
-        }
-
-        foreach (var uri in imageUris)
-        {
-            await _wireMockAdminApi.MockAvatarUriRequest(uri);
+            
+            var crunchyrollUrl = Path.Combine(
+                    _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
+                    "de",
+                    "series",
+                    series.ProviderIds[CrunchyrollExternalKeys.Id],
+                    series.ProviderIds[CrunchyrollExternalKeys.SlugTitle])
+                .Replace('\\', '/');
+                    
+            var waybackMachineSearchResponse = await _wireMockAdminApi.MockWaybackMachineSearchResponse(crunchyrollUrl);
+                    
+            var snapshotUrl = Path.Combine(
+                    _config.ArchiveOrgUrl,
+                    "web",
+                    waybackMachineSearchResponse.Last().Timestamp.ToString("yyyyMMddHHmmss"),
+                    crunchyrollUrl)
+                .Replace('\\', '/');
+                    
+            await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(snapshotUrl, _config.ArchiveOrgUrl);
         }
         
         //Act

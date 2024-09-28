@@ -1,5 +1,6 @@
 using AutoFixture;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
+using Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
@@ -9,25 +10,26 @@ namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.MockData;
 
 public static class LibraryManagerMock
 {
-    public static List<BaseItem> MockCrunchyrollTitleIdScan(this ILibraryManager libraryManager)
+    public static List<Series> MockCrunchyrollTitleIdScan(this ILibraryManager libraryManager, List<Series>? items = null)
     {
-        var fixture = new Fixture();
-        
-        var itemList = fixture.Build<Series>()
-            .CreateMany<Series>()
-            .ToList<BaseItem>();
+        var itemList = items?.ToList() ?? Enumerable.Range(0, Random.Shared.Next(1, 10))
+            .Select(_ => SeriesFaker.Generate())
+            .ToList();
         
         libraryManager
             .GetItemList(Arg.Any<InternalItemsQuery>())
-            .Returns(itemList);
-        
-        libraryManager
-            .GetItemById(Arg.Any<Guid>())
-            .Returns(fixture.Create<Series>());
-        
-        libraryManager
-            .UpdateItemAsync(Arg.Any<BaseItem>(), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
+            .Returns(itemList.ToList<BaseItem>());
+
+        foreach (var item in itemList)
+        {
+            libraryManager
+                .GetItemById(item.Id)
+                .Returns(item);
+            
+            libraryManager
+                .UpdateItemAsync(item, item.DisplayParent, Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
+                .Returns(Task.CompletedTask);
+        }
 
         return itemList;
     }

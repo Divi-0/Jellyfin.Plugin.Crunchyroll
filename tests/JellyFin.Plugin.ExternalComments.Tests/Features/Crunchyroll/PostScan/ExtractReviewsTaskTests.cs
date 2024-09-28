@@ -1,4 +1,5 @@
 using FluentResults;
+using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
@@ -13,13 +14,17 @@ public class ExtractReviewsTaskTests
     private readonly ExtractReviewsTask _sut;
     
     private readonly IMediator _mediator;
+    private readonly PluginConfiguration _config;
 
     public ExtractReviewsTaskTests()
     {
         _mediator = Substitute.For<IMediator>();
         var logger = Substitute.For<ILogger<ExtractReviewsTask>>();
+        _config = new PluginConfiguration();
         
-        _sut = new ExtractReviewsTask(_mediator, logger);
+        _config.IsWaybackMachineEnabled = true;
+        
+        _sut = new ExtractReviewsTask(_mediator, logger, _config);
     }
     
     [Fact]
@@ -65,6 +70,23 @@ public class ExtractReviewsTaskTests
     {
         //Arrange
         var series = SeriesFaker.Generate();
+        
+        //Act
+        await _sut.RunAsync(series, CancellationToken.None);
+
+        //Assert
+        await _mediator
+            .DidNotReceive()
+            .Send(Arg.Any<ExtractReviewsCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DoesNotCallMediatorCommand_WhenWaybackMachineIsDisabled_GivenSeriesWithTitleId()
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+        
+        _config.IsWaybackMachineEnabled = false;
         
         //Act
         await _sut.RunAsync(series, CancellationToken.None);

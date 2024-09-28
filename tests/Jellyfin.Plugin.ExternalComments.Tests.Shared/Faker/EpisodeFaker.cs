@@ -11,7 +11,7 @@ public static class EpisodeFaker
         return new Bogus.Faker<Episode>()
             .RuleFor(x => x.Id, Guid.NewGuid())
             .RuleFor(x => x.IndexNumber, f => f.Random.Number(99))
-            .RuleFor(x => x.SeriesId, parent?.Id ?? Guid.NewGuid())
+            .RuleFor(x => x.SeasonId, parent?.Id ?? Guid.NewGuid())
             .RuleFor(x => x.Name, f => f.Random.Word())
             .Generate();
     }    

@@ -291,13 +291,12 @@ public sealed class CrunchyrollUnitOfWork :
 
                 var metadataCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
 
-                var seasons = metadataCollection
-                        .Query()
-                        .Where(x => x.TitleId == titleId)
-                        .Select(x => x.Seasons)
-                        .FirstOrDefault();
+                var titleMetadata = metadataCollection
+                    .Query()
+                    .Where(x => x.TitleId == titleId)
+                    .FirstOrDefault();
                 
-                return seasons?.Find(x => x.Title.Contains(name))?.Id;
+                return titleMetadata?.Seasons.FirstOrDefault(x => x.Title.Contains(name))?.Id;
             });
 
             return ValueTask.FromResult<string?>(seasonId);
@@ -320,15 +319,14 @@ public sealed class CrunchyrollUnitOfWork :
 
                 var metadataCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
 
-                var seasons = metadataCollection
+                var titleMetadata = metadataCollection
                     .Query()
                     .Where(x => x.TitleId == titleId)
-                    .Select(x => x.Seasons)
                     .FirstOrDefault();
                 
-                var season = seasons?.Find(x => x.Id == seasonId);
+                var season = titleMetadata?.Seasons.FirstOrDefault(x => x.Id == seasonId);
 
-                return season?.Episodes.Find(x => x.EpisodeNumber == episodeIdentifier)?.Id;
+                return season?.Episodes.FirstOrDefault(x => x.EpisodeNumber == episodeIdentifier)?.Id;
             });
 
             return ValueTask.FromResult<string?>(epsiodeId);

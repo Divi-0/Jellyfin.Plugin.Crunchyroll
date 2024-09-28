@@ -3,14 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetSeasonId;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan.Interfaces;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
@@ -24,19 +19,19 @@ namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan;
 public class CrunchyrollScan : ILibraryPostScanTask
 {
     private readonly ILogger<CrunchyrollScan> _logger;
-    private readonly IMediator _mediator;
     private readonly ILibraryManager _libraryManager;
-    private readonly PluginConfiguration _config;
-    private readonly ILoginService _loginService;
+    private readonly IEnumerable<IPostScanTask>? _postScanTasks;
 
-    public CrunchyrollScan(ILogger<CrunchyrollScan> logger, ILibraryManager libraryManager, PluginConfiguration? config = null,
-        IMediator? mediator = null, ILoginService? loginService = null)
+    public CrunchyrollScan(ILogger<CrunchyrollScan> logger, ILibraryManager libraryManager, 
+        IEnumerable<IPostScanTask> postScanTasks)
     {
         _logger = logger;
         _libraryManager = libraryManager;
-        _config = config ?? ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
-        _mediator = mediator ?? ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<IMediator>();
-        _loginService = loginService ?? ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<ILoginService>();
+        
+        var scanTasks = postScanTasks.ToArray();
+        _postScanTasks = scanTasks.Length != 0 ? 
+            scanTasks : 
+            ExternalCommentsPlugin.Instance!.ServiceProvider.GetServices<IPostScanTask>();
     }
 
     public async Task Run(IProgress<double> progress, CancellationToken cancellationToken)
@@ -46,213 +41,26 @@ public class CrunchyrollScan : ILibraryPostScanTask
 
         var percent = 0.0;
 
-        var options = new ParallelOptions
-        {
-            MaxDegreeOfParallelism = Environment.ProcessorCount / 2
-        };
-
-        var sumSemaphore = new SemaphoreSlim(1, 1);
-        await Parallel.ForEachAsync(allItems, options, async (item, _) =>
+        foreach (var item in allItems)
         {
             try
             {
-                await SearchAndAssignTitleId(item, cancellationToken);
-                await ScrapTitleMetadata(item, cancellationToken);
-                await SetSeasonIds(item, cancellationToken);
-
-                if (_config.IsWaybackMachineEnabled)
+                foreach (var postScanTask in _postScanTasks ?? [])
                 {
-                    await ExtractReviews(item, cancellationToken);
-                }
-
-                await sumSemaphore.WaitAsync(cancellationToken);
-                try
-                {
-                    percent += 100.0 / allItems.Count;
-                    progress.Report(percent);
-                }
-                finally
-                {
-                    sumSemaphore.Release();
+                    await postScanTask.RunAsync(item, cancellationToken);
                 }
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "An error occured during crunchyroll scan");
             }
-        });
+            finally
+            {
+                percent += 100.0 / allItems.Count;
+                progress.Report(percent);
+            }
+        }
 
         progress.Report(100);
-    }
-
-    private async ValueTask SearchAndAssignTitleId(BaseItem item, CancellationToken cancellationToken)
-    {
-        _logger.LogDebug("Found {Name}", item.Name);
-
-        if (item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? id) && !string.IsNullOrWhiteSpace(id))
-        {
-            //if an id already exists skip this item
-            return;
-        }
-
-        Result<SearchResponse?> titleIdResult;
-        try
-        {
-            titleIdResult = await _mediator.Send(new TitleIdQuery(item.Name), cancellationToken);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error on getting title id for {Name}", item.Name);
-            return;
-        }
-
-        if (titleIdResult.IsFailed)
-        {
-            _logger.LogWarning("Failed to get title id for {Name} Error: {@Errors}", item.Name, titleIdResult.Errors);
-            return;
-        }
-
-        item.ProviderIds[CrunchyrollExternalKeys.Id] = titleIdResult.Value?.Id ?? string.Empty;
-        item.ProviderIds[CrunchyrollExternalKeys.SlugTitle] = titleIdResult.Value?.SlugTitle ?? string.Empty;
-
-        await _libraryManager.UpdateItemAsync(item, item.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
-    }
-
-    private async ValueTask SetSeasonIds(BaseItem item, CancellationToken cancellationToken)
-    {
-        var hasId = item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? titleId) &&
-                    !string.IsNullOrWhiteSpace(titleId);
-
-        if (!hasId)
-        {
-            //if item has no id, skip this item
-            return;
-        }
-
-        var seasonNumberDuplicateCounters = new Dictionary<int, int>();
-        foreach (var season in ((Folder)item).Children)
-        {
-            var hasSeasonId = season.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeasonId, out string? seasonId) &&
-                              !string.IsNullOrWhiteSpace(seasonId);
-
-            if (!season.IndexNumber.HasValue || hasSeasonId)
-            {
-                //if the item has no indexNumber or already has a seasonId, ignore it
-                continue;
-            }
-
-            Result<string?> seasonIdResult;
-            try
-            {
-                seasonNumberDuplicateCounters.TryGetValue(season.IndexNumber.Value, out var seasonCounter);
-
-                var query = new SeasonIdQueryByNumber(titleId!, season.IndexNumber.Value, seasonCounter);
-                seasonIdResult = await _mediator.Send(query, cancellationToken);
-
-                seasonCounter += 1;
-
-                if (seasonIdResult.IsFailed)
-                {
-                    _logger.LogWarning("Failed to get season id by number for {Name} Error: {@Errors}", item.Name, seasonIdResult.Errors);
-                    continue;
-                }
-
-                if (seasonIdResult.Value is not null)
-                {
-                    seasonNumberDuplicateCounters[season.IndexNumber.Value] = seasonCounter;
-                }
-
-                if (seasonIdResult.Value is null)
-                {
-                    var byNameQuery = new SeasonIdQueryByName(titleId!, season.Name);
-                    seasonIdResult = await _mediator.Send(byNameQuery, cancellationToken);
-                }
-
-                if (seasonIdResult.IsFailed)
-                {
-                    _logger.LogWarning("Failed to get season id by name for {Name} Error: {@Errors}", item.Name, seasonIdResult.Errors);
-                    continue;
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error on getting season id for {Name}", item.Name);
-                continue;
-            }
-
-            season.ProviderIds[CrunchyrollExternalKeys.SeasonId] = seasonIdResult.Value ?? string.Empty;
-
-            await _libraryManager.UpdateItemAsync(season, season.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
-
-            await SetEpisodeIds(season, titleId!, cancellationToken);
-        }
-    }
-
-    private async ValueTask SetEpisodeIds(BaseItem season, string titleId, CancellationToken cancellationToken)
-    {
-        var hasSeasonId = season.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeasonId, out string? seasonId) &&
-                          !string.IsNullOrWhiteSpace(seasonId);
-
-        if (!hasSeasonId)
-        {
-            //if the item has no indexNumber or already has a seasonId, ignore it
-            return;
-        }
-
-        foreach (var episode in ((Folder)season).Children)
-        {
-            if (!episode.IndexNumber.HasValue)
-            {
-                continue;
-            }
-
-            var episodeId = await _mediator.Send(new EpisodeIdQuery(titleId, seasonId!, episode.IndexNumber!.Value.ToString()), cancellationToken);
-
-            episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId] = episodeId.Value ?? string.Empty;
-
-            await _libraryManager.UpdateItemAsync(episode, episode.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
-        }
-    }
-
-    private async ValueTask ScrapTitleMetadata(BaseItem item, CancellationToken cancellationToken)
-    {
-        var hasId = item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? id) &&
-                    !string.IsNullOrWhiteSpace(id);
-
-        var hasSlugTitle = item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SlugTitle, out string? slugTitle) &&
-                           !string.IsNullOrWhiteSpace(slugTitle);
-
-        if (!hasId || !hasSlugTitle)
-        {
-            //if item has no id or slugTitle, skip this item
-            return;
-        }
-
-        _ = await _mediator.Send(new ScrapTitleMetadataCommand()
-        {
-            TitleId = id!,
-            SlugTitle = slugTitle!
-        }, cancellationToken);
-    }
-
-    private async ValueTask ExtractReviews(BaseItem item, CancellationToken cancellationToken)
-    {
-        var hasId = item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? id) &&
-                    !string.IsNullOrWhiteSpace(id);
-
-        var hasSlugTitle = item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SlugTitle, out string? slugTitle) &&
-                           !string.IsNullOrWhiteSpace(slugTitle);
-
-        if (!hasId || !hasSlugTitle)
-        {
-            //if item has no id or slugTitle, skip this item
-            return;
-        }
-
-        _ = await _mediator.Send(new ExtractReviewsCommand()
-        {
-            TitleId = item.ProviderIds[CrunchyrollExternalKeys.Id],
-            SlugTitle = item.ProviderIds[CrunchyrollExternalKeys.SlugTitle]
-        }, cancellationToken);
     }
 }

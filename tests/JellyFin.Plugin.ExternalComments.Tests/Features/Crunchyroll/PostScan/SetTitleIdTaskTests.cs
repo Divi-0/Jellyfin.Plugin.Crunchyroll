@@ -185,7 +185,7 @@ namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.PostScan
             await _libraryManager
                 .DidNotReceive()
                 .UpdateItemAsync(
-                    Arg.Any<BaseItem>(), 
+                    item, 
                     Arg.Any<BaseItem>(), 
                     Arg.Any<ItemUpdateType>(), 
                     Arg.Any<CancellationToken>());
