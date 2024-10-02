@@ -31,7 +31,7 @@ public class EpisodeIdQueryTests
         
         _getEpisodeSession
             .GetEpisodeIdAsync(titleId, seasonId, episodeIdentifier)
-            .Returns(_fixture.Create<string>());
+            .Returns(_fixture.Create<EpisodeIdResult>());
         
         //Act
         var query = new EpisodeIdQuery(titleId, seasonId, episodeIdentifier);
@@ -39,7 +39,7 @@ public class EpisodeIdQueryTests
         
         //Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeEmpty();
+        result.Value.Should().NotBeNull();
         
         await _getEpisodeSession
             .Received(1)
@@ -56,7 +56,7 @@ public class EpisodeIdQueryTests
         
         _getEpisodeSession
             .GetEpisodeIdAsync(titleId, seasonId, episodeIdentifier)
-            .Returns((string?)null);
+            .Returns((EpisodeIdResult?)null);
         
         //Act
         var query = new EpisodeIdQuery(titleId, seasonId, episodeIdentifier);

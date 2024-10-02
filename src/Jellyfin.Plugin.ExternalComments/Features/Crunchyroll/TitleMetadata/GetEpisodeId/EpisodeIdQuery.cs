@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
 
-public record EpisodeIdQuery(string TitleId, string SeasonId, string EpisodeIdentifier) : IRequest<Result<string?>>;
+public record EpisodeIdQuery(string TitleId, string SeasonId, string EpisodeIdentifier) : IRequest<Result<EpisodeIdResult?>>;
 
-public class EpisodeIdQueryHandler : IRequestHandler<EpisodeIdQuery, Result<string?>>
+public class EpisodeIdQueryHandler : IRequestHandler<EpisodeIdQuery, Result<EpisodeIdResult?>>
 {
     private readonly IGetEpisodeSession _getEpisodeSession;
     private readonly ILogger<EpisodeIdQueryHandler> _logger;
@@ -20,7 +20,7 @@ public class EpisodeIdQueryHandler : IRequestHandler<EpisodeIdQuery, Result<stri
         _logger = logger;
     }
     
-    public async ValueTask<Result<string?>> Handle(EpisodeIdQuery request, CancellationToken cancellationToken)
+    public async ValueTask<Result<EpisodeIdResult?>> Handle(EpisodeIdQuery request, CancellationToken cancellationToken)
     {
         try
         {

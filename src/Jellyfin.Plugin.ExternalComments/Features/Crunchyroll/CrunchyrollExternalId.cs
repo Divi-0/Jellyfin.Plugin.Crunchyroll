@@ -12,6 +12,7 @@ public static class CrunchyrollExternalKeys
     public const string SlugTitle = "ExternalCommentsPlugin.Crunchyroll.SlugTitle";
     public const string SeasonId = "ExternalCommentsPlugin.Crunchyroll.Season.Id";
     public const string EpisodeId = "ExternalCommentsPlugin.Crunchyroll.Episode.Id";
+    public const string EpisodeSlugTitle = "ExternalCommentsPlugin.Crunchyroll.Episode.SlugTitle";
 }
 
 public class CrunchyrollExternalId : IExternalId
@@ -67,6 +68,22 @@ public class CrunchyrollExternalEpisodeId : IExternalId
     public string ProviderName => "Crunchyroll";
 
     public string Key => CrunchyrollExternalKeys.EpisodeId;
+    
+    public ExternalIdMediaType? Type => ExternalIdMediaType.Episode;
+    
+    public string? UrlFormatString => null;
+    
+    public bool Supports(IHasProviderIds item)
+    {
+        return item is Episode;
+    }
+}
+
+public class CrunchyrollExternalEpisodeSlugTitle : IExternalId
+{
+    public string ProviderName => "Crunchyroll";
+
+    public string Key => CrunchyrollExternalKeys.EpisodeSlugTitle;
     
     public ExternalIdMediaType? Type => ExternalIdMediaType.Episode;
     

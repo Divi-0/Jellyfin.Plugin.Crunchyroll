@@ -61,13 +61,14 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         
         var parallelOptions = new ParallelOptions
         {
-            MaxDegreeOfParallelism = Environment.ProcessorCount / 2
+            MaxDegreeOfParallelism = Environment.ProcessorCount / 2,
+            CancellationToken = cancellationToken
         };
 
         var seasonEpisodesDictionary = new ConcurrentDictionary<string, List<Episode>>();
-        await Parallel.ForEachAsync(crunchyrollSeasons, parallelOptions, async (item, _) =>
+        await Parallel.ForEachAsync(crunchyrollSeasons, parallelOptions, async (item, token) =>
         {
-            var episodesResult =  await _episodesClient.GetEpisodesAsync(item.Id, cancellationToken);
+            var episodesResult =  await _episodesClient.GetEpisodesAsync(item.Id, token);
             
             seasonEpisodesDictionary[item.Id] = episodesResult.IsFailed ? 
                 Array.Empty<Episode>().ToList() : 

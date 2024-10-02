@@ -550,6 +550,24 @@ public static class WireMockAdminApiExtensions
         await builder.BuildAndPostAsync();
     }
     
+    public static async Task MockWaybackMachineArchivedUrlWithCrunchyrollCommentsHtml(this IWireMockAdminApi wireMockAdminApi, 
+        string url, string mockedArchiveOrgUrl)
+    {
+        var builder = wireMockAdminApi.GetMappingBuilder();
+        
+        builder.Given(m => m
+            .WithRequest(req => req
+                .UsingGet()
+                .WithUrl(url))
+            .WithResponse(rsp => rsp
+                .WithStatusCode(HttpStatusCode.OK)
+                .WithBody(Properties.Resources.CrunchyrollEpisodeHtml
+                    .Replace("http://web.archive.org", mockedArchiveOrgUrl))
+            ));
+
+        await builder.BuildAndPostAsync();
+    }
+    
     public static async Task MockAvatarUriRequest(this IWireMockAdminApi wireMockAdminApi, 
         string uri)
     {
@@ -570,7 +588,7 @@ public static class WireMockAdminApiExtensions
     }
     
     public static async Task<CrunchyrollSeasonsResponse> MockCrunchyrollSeasonsResponse(this IWireMockAdminApi wireMockAdminApi, 
-        List<Season> seasons, string language)
+        List<Season> seasons, Series series, string language)
     {
         var seasonsResponse = new CrunchyrollSeasonsResponse()
         {
@@ -589,7 +607,7 @@ public static class WireMockAdminApiExtensions
                 .ToList()
         };
 
-        var titleId = seasons.First().DisplayParent.ProviderIds[CrunchyrollExternalKeys.Id];
+        var titleId = series.ProviderIds[CrunchyrollExternalKeys.Id];
         
         var builder = wireMockAdminApi.GetMappingBuilder();
         builder.Given(m => m

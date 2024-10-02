@@ -77,4 +77,13 @@ public static class MockHttpResponse
 
         return mockedRequest;
     }
+    
+    public static MockedRequest MockWaybackMachineUrlHtmlCommentsResponse(this MockHttpMessageHandler mockHttpMessageHandler, string url)
+    {
+        var mockedRequest = mockHttpMessageHandler
+            .When(url)
+            .Respond("text/html", Properties.Resources.WaybackHtmlCrunchyrollComments);
+
+        return mockedRequest;
+    }
 }

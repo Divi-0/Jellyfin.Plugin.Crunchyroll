@@ -6,8 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
+using Jellyfin.Plugin.ExternalComments.Contracts.Comments;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.Entites;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.ExtractComments;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
@@ -25,7 +28,8 @@ public sealed class CrunchyrollUnitOfWork :
     IGetAvatarSession,
     IScrapTitleMetadataSession,
     IGetSeasonSession,
-    IGetEpisodeSession
+    IGetEpisodeSession,
+    IExtractCommentsSession
 {
     private readonly string _connectionString;
     private readonly SemaphoreSlim _semaphore;
@@ -34,6 +38,7 @@ public sealed class CrunchyrollUnitOfWork :
     private const string ReviewsCollectionName = "reviews";
     private const string AvatarImageFileStorageName = "avatarImageFiles";
     private const string AvatarImageChunkName = "avatarImageChunks";
+    private const string CommentsCollectionName = "comments";
 
     private readonly ResiliencePipeline _resiliencePipeline;
 
@@ -140,7 +145,7 @@ public sealed class CrunchyrollUnitOfWork :
         }
     }
 
-    public ValueTask<bool> ExistsAsync(string url)
+    public ValueTask<bool> AvatarExistsAsync(string url)
     {
         _semaphore.Wait();
 
@@ -299,7 +304,7 @@ public sealed class CrunchyrollUnitOfWork :
                 return titleMetadata?.Seasons.FirstOrDefault(x => x.Title.Contains(name))?.Id;
             });
 
-            return ValueTask.FromResult<string?>(seasonId);
+            return ValueTask.FromResult(seasonId);
         }
         finally
         {
@@ -307,13 +312,13 @@ public sealed class CrunchyrollUnitOfWork :
         }
     }
 
-    public ValueTask<string?> GetEpisodeIdAsync(string titleId, string seasonId, string episodeIdentifier)
+    public ValueTask<EpisodeIdResult?> GetEpisodeIdAsync(string titleId, string seasonId, string episodeIdentifier)
     {
         _semaphore.Wait();
 
         try
         {
-            var epsiodeId = _resiliencePipeline.Execute(() =>
+            var episode = _resiliencePipeline.Execute(() =>
             {
                 using var db = new LiteDatabase(_connectionString);
 
@@ -326,10 +331,36 @@ public sealed class CrunchyrollUnitOfWork :
                 
                 var season = titleMetadata?.Seasons.FirstOrDefault(x => x.Id == seasonId);
 
-                return season?.Episodes.FirstOrDefault(x => x.EpisodeNumber == episodeIdentifier)?.Id;
+                return season?.Episodes.FirstOrDefault(x => x.EpisodeNumber == episodeIdentifier);
             });
 
-            return ValueTask.FromResult<string?>(epsiodeId);
+            return ValueTask.FromResult(episode is null ? 
+                null : 
+                new EpisodeIdResult(episode.Id, episode.SlugTitle));
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public ValueTask InsertComments(EpisodeComments comments)
+    {
+        _semaphore.Wait();
+
+        try
+        {
+            _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var reviewsCollection = db.GetCollection<EpisodeComments>(CommentsCollectionName);
+
+                reviewsCollection.Insert(comments);
+                reviewsCollection.EnsureIndex(x => x.EpisodeId, true);
+            });
+
+            return ValueTask.CompletedTask;
         }
         finally
         {

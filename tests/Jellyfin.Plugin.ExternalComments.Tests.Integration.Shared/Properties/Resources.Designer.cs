@@ -60,6 +60,17 @@ namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;&lt;html lang=&quot;de&quot; dir=&quot;ltr&quot; data-react-helmet=&quot;lang&quot;&gt;&lt;head&gt;&lt;script src=&quot;//archive.org/includes/athena.js&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
+        ///    &lt;script type=&quot;text/javascript&quot;&gt;window.addEventListener(&apos;DOMContentLoaded&apos;,function(){var v=archive_analytics.values;v.service=&apos;wb&apos;;v.server_name=&apos;wwwb-app202.us.archive.org&apos;;v.server_ms=1178;archive_analytics.send_pageview({});});&lt;/script&gt;
+        ///    &lt;script type=&quot;text/javascript&quot; src=&quot;https://web-static.archive.org/_static/js/bundle-playback.js?v=HxkREWBo&quot; c [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string CrunchyrollEpisodeHtml {
+            get {
+                return ResourceManager.GetString("CrunchyrollEpisodeHtml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;&lt;html lang=&quot;de&quot; dir=&quot;ltr&quot; data-react-helmet=&quot;lang&quot;&gt;&lt;head&gt;&lt;script type=&quot;text/javascript&quot; src=&quot;https://web-static.archive.org/_static/js/bundle-playback.js?v=qM_6omlu&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
         ///&lt;script type=&quot;text/javascript&quot; src=&quot;https://web-static.archive.org/_static/js/wombat.js?v=txqj7nKC&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
         ///&lt;script&gt;window.RufflePlayer=window.RufflePlayer||{};window.RufflePlayer.config={&quot;autoplay&quot;:&quot;on&quot;,&quot;unmuteOverlay&quot;:&quot;hidden&quot;};&lt;/script&gt;

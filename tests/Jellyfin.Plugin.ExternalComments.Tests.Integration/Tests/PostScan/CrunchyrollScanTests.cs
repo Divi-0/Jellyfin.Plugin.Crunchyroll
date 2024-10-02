@@ -82,20 +82,15 @@ public class CrunchyrollScanTests
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
         
-        foreach (var item in seriesItems)
+        foreach (var series in seriesItems)
         {
-            var seasons = _itemRepository.MockGetChildren(item);
-
-            List<Episode> episodes = null!;
-            foreach (var season in seasons)
-            {
-                episodes = _itemRepository.MockGetChildren(season);
-            }
-            
-            var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(seasons, language);
+            var seasons = _itemRepository.MockGetChildren(series);
+            var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(seasons, series, language);
 
             foreach (var seasonResponse in seasonsResponse.Data)
             {
+                var season = seasons.First(x => x.IndexNumber!.Value == seasonResponse.SeasonNumber);
+                var episodes = _itemRepository.MockGetChildren(season);
                 await _wireMockAdminApi.MockCrunchyrollEpisodesResponse(episodes, seasonResponse.Id, language);
             }
         }
@@ -117,7 +112,9 @@ public class CrunchyrollScanTests
                 foreach (var episode in ((Season)season).Children)
                 {
                     episode.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeId);
+                    episode.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
                     episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId].Should().NotBeEmpty();
+                    episode.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle].Should().NotBeEmpty();
                 }
             }
         });

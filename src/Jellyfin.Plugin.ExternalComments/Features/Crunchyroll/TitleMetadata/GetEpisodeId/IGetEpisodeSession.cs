@@ -4,5 +4,5 @@ namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Ge
 
 public interface IGetEpisodeSession
 {
-    public ValueTask<string?> GetEpisodeIdAsync(string titleId, string seasonId, string episodeIdentifier);
+    public ValueTask<EpisodeIdResult?> GetEpisodeIdAsync(string titleId, string seasonId, string episodeIdentifier);
 }

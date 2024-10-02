@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using FluentResults;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
@@ -31,7 +32,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
     private readonly ILogger<ExtractReviewsCommandHandler> _logger;
     private readonly IAvatarClient _avatarClient;
 
-    private readonly DateTime _dateWhenReviewsWereDeleted = new DateTime(2024, 07, 10);
+    private static readonly DateTime DateWhenReviewsWereDeleted = new DateTime(2024, 07, 10);
     
     public ExtractReviewsCommandHandler(IWaybackMachineClient waybackMachineClient, PluginConfiguration config, 
         IHtmlReviewsExtractor htmlReviewsExtractor, IAddReviewsSession addReviewsSession, IGetReviewsSession getReviewsSession,
@@ -71,7 +72,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
             request.SlugTitle)
             .Replace('\\', '/');
         
-        var searchResult = await _waybackMachineClient.SearchAsync(crunchyrollUrl, _dateWhenReviewsWereDeleted, cancellationToken);
+        var searchResult = await _waybackMachineClient.SearchAsync(HttpUtility.UrlEncode(crunchyrollUrl), DateWhenReviewsWereDeleted, cancellationToken);
 
         if (searchResult.IsFailed)
         {

@@ -14,6 +14,8 @@ internal static class PostScanServiceExtension
         serviceCollection.AddSingleton<IPostTitleIdSetTask, ExtractReviewsTask>();
             
         serviceCollection.AddSingleton<IPostSeasonIdSetTask, SetEpisodeIdTask>();
+        
+        serviceCollection.AddSingleton<IPostEpisodeIdSetTask, ExtractCommentsTask>();
 
         return serviceCollection;
     }

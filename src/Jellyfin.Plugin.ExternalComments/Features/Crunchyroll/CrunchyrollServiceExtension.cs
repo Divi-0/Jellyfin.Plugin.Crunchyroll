@@ -1,6 +1,6 @@
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
-using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.ExtractReviews;
@@ -21,7 +21,7 @@ public static class CrunchyrollServiceExtension
 
         serviceCollection.AddCrunchyrollLogin(configuration);
         serviceCollection.AddSearchAndAssignTitleId(configuration);
-        serviceCollection.AddCrunchyrollGetComments(configuration);
+        serviceCollection.AddCrunchyrollComments(configuration);
         serviceCollection.AddCrunchyrollGetReviews(configuration);
         serviceCollection.AddCrunchyrollExtractReviews(configuration);
         serviceCollection.AddCrunchyrollAvatar(configuration);

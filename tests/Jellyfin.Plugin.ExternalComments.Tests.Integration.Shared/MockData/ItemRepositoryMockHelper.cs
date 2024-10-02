@@ -8,12 +8,12 @@ namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.MockData;
 
 public static class ItemRepositoryMockHelper
 {
-    public static List<Season> MockGetChildren(this IItemRepository itemRepository, Series parent)
+    public static List<Season> MockGetChildren(this IItemRepository itemRepository, Series parent, bool isSeasonIdSet = false)
     {
         var children = Enumerable.Range(1, Random.Shared.Next(1, 10))
             .Select(number =>
             {
-                var season = SeasonFaker.Generate(parent);
+                var season = isSeasonIdSet ? SeasonFaker.GenerateWithSeasonId(parent) : SeasonFaker.Generate(parent);
                 season.IndexNumber = number;
                 return season;
             })
@@ -26,12 +26,12 @@ public static class ItemRepositoryMockHelper
         return children;
     }    
     
-    public static List<Episode> MockGetChildren(this IItemRepository itemRepository, Season parent)
+    public static List<Episode> MockGetChildren(this IItemRepository itemRepository, Season parent, bool isEpisodeIdSet = false)
     {
         var children = Enumerable.Range(1, Random.Shared.Next(1, 10))
             .Select(number =>
             {
-                var episode = EpisodeFaker.Generate(parent);
+                var episode = isEpisodeIdSet ? EpisodeFaker.GenerateWithEpisodeId(parent) : EpisodeFaker.Generate(parent);
                 episode.IndexNumber = number;
                 return episode;
             })

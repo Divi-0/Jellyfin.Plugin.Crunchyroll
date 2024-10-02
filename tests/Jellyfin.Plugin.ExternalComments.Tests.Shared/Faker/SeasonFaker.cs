@@ -7,12 +7,16 @@ namespace Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker
     public static class SeasonFaker
     {
         public static Season Generate(BaseItem? parent = null)
-         => new Bogus.Faker<Season>()
-            .RuleFor(x => x.Id, Guid.NewGuid())
-            .RuleFor(x => x.IndexNumber, f => f.Random.Number(99))
-            .RuleFor(x => x.SeriesId, parent?.Id ?? Guid.NewGuid())
-            .RuleFor(x => x.Name, f => f.Random.Word())
-            .Generate();
+        {
+            var parentId = parent?.Id ?? Guid.NewGuid();
+            return new Bogus.Faker<Season>()
+                .RuleFor(x => x.Id, Guid.NewGuid())
+                .RuleFor(x => x.IndexNumber, f => f.Random.Number(99))
+                .RuleFor(x => x.ParentId, parentId)
+                .RuleFor(x => x.SeriesId, parentId)
+                .RuleFor(x => x.Name, f => f.Random.Word())
+                .Generate();
+        }
         
         public static Season GenerateWithSeasonId(BaseItem? parent = null)
         {

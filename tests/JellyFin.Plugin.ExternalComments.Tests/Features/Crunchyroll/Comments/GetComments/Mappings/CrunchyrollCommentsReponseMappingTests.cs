@@ -3,9 +3,8 @@ using AutoFixture.Xunit2;
 using FluentAssertions;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Mappings;
-using Xunit;
 
-namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.Client.Mappings;
+namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.Comments.GetComments.Mappings;
 
 public class CrunchyrollCommentsReponseMappingTests
 {

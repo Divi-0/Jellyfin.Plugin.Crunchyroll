@@ -11,7 +11,7 @@ using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging;
 
-namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.GetComments
+namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.Comments.GetComments
 {
     public class GetCommentsQueryTests
     {

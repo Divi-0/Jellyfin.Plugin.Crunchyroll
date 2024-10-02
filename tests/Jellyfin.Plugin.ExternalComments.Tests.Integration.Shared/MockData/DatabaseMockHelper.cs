@@ -1,6 +1,7 @@
 using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities;
 using LiteDB;
@@ -52,6 +53,25 @@ public static class DatabaseMockHelper
             var hasReviews = reviewsCollection.Exists(x => x.TitleId == titleId);
 
             hasReviews.Should().BeTrue();
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
+    
+    public static void ShouldHaveComments(string dbFilePath, string episodeId)
+    {
+        Semaphore.Wait();
+
+        try
+        {
+            using var db = new LiteDatabase($"Filename={dbFilePath}; Connection=Shared;");
+            var commentsCollection = db.GetCollection<EpisodeComments>("comments");
+            
+            var hasComments = commentsCollection.Exists(x => x.EpisodeId == episodeId);
+
+            hasComments.Should().BeTrue();
         }
         finally
         {
