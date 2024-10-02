@@ -1,5 +1,6 @@
 using AutoFixture;
 using FluentAssertions;
+using Jellyfin.Plugin.ExternalComments.Contracts.Comments;
 using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
@@ -12,7 +13,7 @@ public static class DatabaseMockHelper
 {
     private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
     
-    public static IReadOnlyList<ReviewItem> InsertMockData(string dbFilePath, string titleId)
+    public static IReadOnlyList<ReviewItem> InsertRandomReviews(string dbFilePath, string titleId)
     {
         Semaphore.Wait();
 
@@ -34,6 +35,35 @@ public static class DatabaseMockHelper
             reviewsCollection.Insert(entity);
 
             return reviews;
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
+    
+    public static IReadOnlyList<CommentItem> InsertRandomComments(string dbFilePath, string episodeId)
+    {
+        Semaphore.Wait();
+
+        try
+        {
+            var fixture = new Fixture();
+
+            using var db = new LiteDatabase($"Filename={dbFilePath}; Connection=Shared;");
+            var commentsCollection = db.GetCollection<EpisodeComments>("comments");
+
+            var comments = fixture.CreateMany<CommentItem>().ToList();
+
+            var entity = new EpisodeComments()
+            {
+                EpisodeId = episodeId,
+                Comments = comments
+            };
+
+            commentsCollection.Insert(entity);
+
+            return comments;
         }
         finally
         {

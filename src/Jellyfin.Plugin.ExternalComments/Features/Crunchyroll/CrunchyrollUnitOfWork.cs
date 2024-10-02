@@ -11,6 +11,7 @@ using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.ExtractComments;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
@@ -29,7 +30,8 @@ public sealed class CrunchyrollUnitOfWork :
     IScrapTitleMetadataSession,
     IGetSeasonSession,
     IGetEpisodeSession,
-    IExtractCommentsSession
+    IExtractCommentsSession,
+    IGetCommentsSession
 {
     private readonly string _connectionString;
     private readonly SemaphoreSlim _semaphore;
@@ -361,6 +363,34 @@ public sealed class CrunchyrollUnitOfWork :
             });
 
             return ValueTask.CompletedTask;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public ValueTask<IReadOnlyList<CommentItem>> GetCommentsAsync(string episodeId, int pageSize, int pageNumber)
+    {
+        _semaphore.Wait();
+
+        try
+        {
+            var comments = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var commentsCollection = db.GetCollection<EpisodeComments>(CommentsCollectionName);
+
+                var comments = commentsCollection
+                    .Query()
+                    .Where(x => x.EpisodeId == episodeId)
+                    .FirstOrDefault();
+
+                return comments?.Comments.Skip(pageSize * (pageNumber - 1)).Take(pageSize).ToList() ?? [];
+            });
+
+            return ValueTask.FromResult<IReadOnlyList<CommentItem>>(comments);
         }
         finally
         {

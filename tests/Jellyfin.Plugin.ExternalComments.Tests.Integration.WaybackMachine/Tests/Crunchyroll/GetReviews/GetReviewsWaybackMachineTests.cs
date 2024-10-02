@@ -45,7 +45,7 @@ public class GetReviewsWaybackMachineTests
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
 
-        var mockedReviews = DatabaseMockHelper.InsertMockData(_crunchyrollDatabaseFixture.DbFilePath, titleId);
+        var mockedReviews = DatabaseMockHelper.InsertRandomReviews(_crunchyrollDatabaseFixture.DbFilePath, titleId);
 
         //Act
         var path = $"api/externalcomments/crunchyroll/reviews/{itemId}?pageNumber={pageNumber}&pageSize={pageSize}";

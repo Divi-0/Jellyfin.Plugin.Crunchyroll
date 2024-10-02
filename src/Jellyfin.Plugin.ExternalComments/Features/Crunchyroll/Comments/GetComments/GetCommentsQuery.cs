@@ -1,16 +1,14 @@
-using System.Linq;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Comments;
 using Jellyfin.Plugin.ExternalComments.Domain.Constants;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using Mediator;
-using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments;
 
@@ -18,39 +16,56 @@ public record GetCommentsQuery(string Id, int PageNumber, int PageSize) : IReque
 
 public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, Result<CommentsResponse>>
 {
-    private readonly ILogger<GetCommentsQueryHandler> _logger;
     private readonly ICrunchyrollGetCommentsClient _crunchyrollClient;
     private readonly ILibraryManager _libraryManager;
     private readonly ILoginService _loginService;
+    private readonly PluginConfiguration _config;
+    private readonly IGetCommentsSession _session;
 
-    public GetCommentsQueryHandler(ILogger<GetCommentsQueryHandler> logger, ICrunchyrollGetCommentsClient crunchyrollClient,
-        ILibraryManager libraryManager, ILoginService loginService)
+    public GetCommentsQueryHandler(ICrunchyrollGetCommentsClient crunchyrollClient,
+        ILibraryManager libraryManager, ILoginService loginService, PluginConfiguration config,
+        IGetCommentsSession session)
     {
-        _logger = logger;
         _crunchyrollClient = crunchyrollClient;
         _libraryManager = libraryManager;
         _loginService = loginService;
+        _config = config;
+        _session = session;
     }
 
     public async ValueTask<Result<CommentsResponse>> Handle(GetCommentsQuery request, CancellationToken cancellationToken)
     {
-        var queryResult = _libraryManager.GetItemsResult(new InternalItemsQuery()
-        {
-            AncestorWithPresentationUniqueKey = request.Id
-        });
+        var item = _libraryManager.RetrieveItem(Guid.Parse(request.Id));
 
-        var item = queryResult.Items.FirstOrDefault(x => x.DisplayParent is Series);
-
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (item is null)
         {
             return Result.Fail(ErrorCodes.ItemNotFound);
         }
 
-        if (!item.DisplayParent.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? cruncyrollId))
+        if (!item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeId, out var episodeId) ||
+            string.IsNullOrWhiteSpace(episodeId))
         {
             return Result.Fail(ErrorCodes.ProviderIdNotSet);
         }
 
+        Result<CommentsResponse> commentsResult;
+        if (_config.IsWaybackMachineEnabled)
+        {
+            commentsResult = await GetCommentsFromDatabase(episodeId, request.PageSize, request.PageNumber);
+        }
+        else
+        {
+            commentsResult = await GetCommentsFromApi(episodeId, request.PageSize, request.PageNumber, 
+                cancellationToken);
+        }
+
+        return commentsResult;
+    }
+    
+    private async ValueTask<Result<CommentsResponse>> GetCommentsFromApi(string episodeId, int pageSize, int pageNumber, 
+        CancellationToken cancellationToken)
+    {
         var loginResult = await _loginService.LoginAnonymously(cancellationToken);
 
         if (loginResult.IsFailed)
@@ -58,14 +73,17 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, Result<
             return loginResult;
         }
 
-        var commentsResult = await _crunchyrollClient.GetCommentsAsync(cruncyrollId!, request.PageNumber,
-            request.PageSize, cancellationToken);
-
-        if (commentsResult.IsFailed)
+        return await _crunchyrollClient.GetCommentsAsync(episodeId, pageNumber,
+            pageSize, cancellationToken);
+    }
+    
+    private async ValueTask<Result<CommentsResponse>> GetCommentsFromDatabase(string episodeId, int pageSize, int pageNumber)
+    {
+        var comments = await _session.GetCommentsAsync(episodeId, pageSize, pageNumber);
+        return new CommentsResponse
         {
-            return Result.Fail(commentsResult.Errors);
-        }
-
-        return commentsResult;
+            Comments = comments,
+            Total = comments.Count
+        };
     }
 }

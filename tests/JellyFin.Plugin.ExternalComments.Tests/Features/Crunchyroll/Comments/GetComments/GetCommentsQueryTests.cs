@@ -1,155 +1,170 @@
 ﻿using AutoFixture;
 using FluentAssertions;
 using FluentResults;
+using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Comments;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.TV;
+using Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker;
 using MediaBrowser.Controller.Library;
-using Microsoft.Extensions.Logging;
 
-namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.Comments.GetComments
+namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.Comments.GetComments;
+
+public class GetCommentsQueryTests
 {
-    public class GetCommentsQueryTests
+    private readonly ICrunchyrollGetCommentsClient _crunchyrollClient;
+    private readonly ILibraryManager _libraryManager;
+    private readonly ILoginService _loginService;
+    private readonly PluginConfiguration _config;
+    private readonly IGetCommentsSession _session;
+
+    private readonly GetCommentsQueryHandler _sut;
+    
+    private readonly Fixture _fixture;
+
+    public GetCommentsQueryTests()
     {
-        private readonly ILogger<GetCommentsQueryHandler> _loggerMock;
-        private readonly ICrunchyrollGetCommentsClient _crunchyrollClientMock;
-        private readonly ILibraryManager _libraryManagerMock;
-        private readonly ILoginService _loginService;
+        _fixture = new Fixture();
+        
+        _crunchyrollClient = Substitute.For<ICrunchyrollGetCommentsClient>();
+        _libraryManager = MockHelper.LibraryManager;
+        _loginService = Substitute.For<ILoginService>();
+        _config = new PluginConfiguration();
+        _session = Substitute.For<IGetCommentsSession>();
 
-        private GetCommentsQueryHandler _sut;
+        _sut = new GetCommentsQueryHandler(
+            _crunchyrollClient, 
+            _libraryManager,
+            _loginService,
+            _config,
+            _session
+        );
+    }
 
-        private readonly Fixture _fixture;
-
-        public GetCommentsQueryTests()
-        {
-            _fixture = new Fixture();
-
-            _loggerMock = Substitute.For<ILogger<GetCommentsQueryHandler>>();
-            _crunchyrollClientMock = Substitute.For<ICrunchyrollGetCommentsClient>();
-            _libraryManagerMock = MockHelper.LibraryManager;
-            _loginService = Substitute.For<ILoginService>();
-
-            _sut = new GetCommentsQueryHandler(
-                _loggerMock, 
-                _crunchyrollClientMock, 
-                _libraryManagerMock,
-                _loginService
-            );
-        }
-
-        [Fact]
-        public async Task ReturnsPaginatedComments_WhenTitleIdIsUsedToGetComments_GivenTitleId()
-        {
-            //Arrange
-            var titleId = Guid.NewGuid().ToString();
-            var parentId = Guid.NewGuid();
-            const int pageNumber = 1;
-            const int pageSize = 10;
-
-            _libraryManagerMock
-                .GetItemById(parentId)
-                .Returns(new Series()
-                {
-                    ProviderIds = new Dictionary<string, string>
-                    {
-                        { CrunchyrollExternalKeys.Id, titleId }
-                    }
-                });
-
-            _libraryManagerMock
-                .GetItemsResult(Arg.Is<InternalItemsQuery>(x => x.AncestorWithPresentationUniqueKey == titleId))
-                .Returns(new MediaBrowser.Model.Querying.QueryResult<BaseItem>()
-                {
-                    Items = new List<BaseItem>()
-                    {
-                        new Series()
-                        {
-                            ParentId = parentId
-                        }
-                    }
-                });
+    [Fact]
+    public async Task ReturnsPaginatedComments_WhenTitleIdIsUsedToGetComments_GivenJellyfinId()
+    {
+        //Arrange
+        var jellyfinId = Guid.NewGuid().ToString();
+        const int pageNumber = 1;
+        const int pageSize = 10;
             
-            _loginService
-                .LoginAnonymously(Arg.Any<CancellationToken>())
-                .Returns(Result.Ok());
+        _config.IsWaybackMachineEnabled = false;
 
-            _crunchyrollClientMock
-                .GetCommentsAsync(titleId, pageNumber, pageSize, Arg.Any<CancellationToken>())
-                .Returns(new CommentsResponse());
-
-            BaseItem.LibraryManager = _libraryManagerMock;
-
-            //Act
-            var query = new GetCommentsQuery(titleId, pageNumber, pageSize);
-            var result = await _sut.Handle(query, CancellationToken.None);
-
-            //Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Should().NotBeNull();
+        var episode = EpisodeFaker.GenerateWithEpisodeId();
+        _libraryManager
+            .RetrieveItem(Guid.Parse(jellyfinId))
+            .Returns(episode);
             
-            await _loginService
-                .Received(1)
-                .LoginAnonymously(Arg.Any<CancellationToken>());
-        }
+        _loginService
+            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
 
-        [Fact]
-        public async Task ReturnsFailed_WhenLoginFails_GivenTitleId()
-        {
-            //Arrange
-            var titleId = Guid.NewGuid().ToString();
-            var parentId = Guid.NewGuid();
-            const int pageNumber = 1;
-            const int pageSize = 10;
+        _crunchyrollClient
+            .GetCommentsAsync(episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId], pageNumber, pageSize, Arg.Any<CancellationToken>())
+            .Returns(new CommentsResponse());
 
-            _libraryManagerMock
-                .GetItemById(parentId)
-                .Returns(new Series()
-                {
-                    ProviderIds = new Dictionary<string, string>
-                    {
-                        { CrunchyrollExternalKeys.Id, titleId }
-                    }
-                });
+        //Act
+        var query = new GetCommentsQuery(jellyfinId, pageNumber, pageSize);
+        var result = await _sut.Handle(query, CancellationToken.None);
 
-            _libraryManagerMock
-                .GetItemsResult(Arg.Is<InternalItemsQuery>(x => x.AncestorWithPresentationUniqueKey == titleId))
-                .Returns(new MediaBrowser.Model.Querying.QueryResult<BaseItem>()
-                {
-                    Items = new List<BaseItem>()
-                    {
-                        new Series()
-                        {
-                            ParentId = parentId
-                        }
-                    }
-                });
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
             
-            var error = Guid.NewGuid().ToString();
-            _loginService
-                .LoginAnonymously(Arg.Any<CancellationToken>())
-                .Returns(Result.Fail(error));
+        await _loginService
+            .Received(1)
+            .LoginAnonymously(Arg.Any<CancellationToken>());
+        
+        await _session
+            .DidNotReceive()
+            .GetCommentsAsync(episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId], pageSize, pageNumber);
+    }
 
-            BaseItem.LibraryManager = _libraryManagerMock;
-
-            //Act
-            var query = new GetCommentsQuery(titleId, pageNumber, pageSize);
-            var result = await _sut.Handle(query, CancellationToken.None);
-
-            //Assert
-            result.IsSuccess.Should().BeFalse();
-            result.Errors.Should().Contain(x => x.Message.Equals(error));
+    [Fact]
+    public async Task ReturnsFailed_WhenLoginFails_GivenJellyfinId()
+    {
+        //Arrange
+        var jellyfinId = Guid.NewGuid().ToString();
+        const int pageNumber = 1;
+        const int pageSize = 10;
             
-            await _loginService
-                .Received(1)
-                .LoginAnonymously(Arg.Any<CancellationToken>());
+        _config.IsWaybackMachineEnabled = false;
 
-            await _crunchyrollClientMock
-                .DidNotReceive()
-                .GetCommentsAsync(titleId, pageNumber, pageSize, Arg.Any<CancellationToken>());
-        }
+        var episode = EpisodeFaker.GenerateWithEpisodeId();
+        _libraryManager
+            .RetrieveItem(Guid.Parse(jellyfinId))
+            .Returns(episode);
+            
+        var error = Guid.NewGuid().ToString();
+        _loginService
+            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .Returns(Result.Fail(error));
+
+        //Act
+        var query = new GetCommentsQuery(jellyfinId, pageNumber, pageSize);
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(x => x.Message.Equals(error));
+            
+        await _loginService
+            .Received(1)
+            .LoginAnonymously(Arg.Any<CancellationToken>());
+
+        await _crunchyrollClient
+            .DidNotReceive()
+            .GetCommentsAsync(jellyfinId, pageNumber, pageSize, Arg.Any<CancellationToken>());
+        
+        await _session
+            .DidNotReceive()
+            .GetCommentsAsync(episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId], pageSize, pageNumber);
+    }
+
+    [Fact]
+    public async Task ReturnsComments_WhenWaybackMachineIsEnabled_GivenEpisodeJellyfinId()
+    {
+        //Arrange
+        var jellyfinId = Guid.NewGuid().ToString();
+        const int pageNumber = 1;
+        const int pageSize = 10;
+            
+        _config.IsWaybackMachineEnabled = true;
+
+        var episode = EpisodeFaker.GenerateWithEpisodeId();
+        _libraryManager
+            .RetrieveItem(Guid.Parse(jellyfinId))
+            .Returns(episode);
+
+        var comments = _fixture.Create<List<CommentItem>>();
+        _session
+            .GetCommentsAsync(Arg.Any<string>(), pageSize, pageNumber)
+            .Returns(comments);
+
+        //Act
+        var query = new GetCommentsQuery(jellyfinId, pageNumber, pageSize);
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        var commentsResponse = result.Value;
+        commentsResponse.Comments.Should().BeEquivalentTo(comments);
+
+        _libraryManager
+            .Received(1)
+            .RetrieveItem(Guid.Parse(jellyfinId));
+
+        await _session
+            .Received(1)
+            .GetCommentsAsync(episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId], pageSize, pageNumber);
+
+        await _crunchyrollClient
+            .DidNotReceive()
+            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<int>(), 
+                Arg.Any<CancellationToken>());
+
     }
 }
