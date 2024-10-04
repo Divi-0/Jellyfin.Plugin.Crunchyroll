@@ -8,7 +8,6 @@ using Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using WireMock.Client;
 
 namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.WaybackMachine.Tests.Crunchyroll.GetComments;
 
