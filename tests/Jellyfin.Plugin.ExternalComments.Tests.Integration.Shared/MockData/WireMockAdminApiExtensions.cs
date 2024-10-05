@@ -10,6 +10,7 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.GetReviews.C
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.SearchTitleId.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons.Dtos;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client.Dto;
 using Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker;
 using Jellyfin.Plugin.ExternalComments.Tests.Shared.Fixture;
@@ -782,5 +783,82 @@ public static class WireMockAdminApiExtensions
         await builder.BuildAndPostAsync();
 
         return episodesResponse;
+    }
+    
+    public static async Task<CrunchyrollSeriesContentResponse> MockCrunchyrollSeriesResponse(this IWireMockAdminApi wireMockAdminApi, 
+        Series series, string language)
+    {
+        var faker = new Faker();
+
+        var titleId = series.ProviderIds[CrunchyrollExternalKeys.Id];
+        var fakeTitle = faker.Commerce.ProductName();
+        var seriesMetadataResponse = new CrunchyrollSeriesContentResponse
+        {
+            Id = titleId,
+            Title = fakeTitle,
+            SlugTitle = CrunchyrollSlugFaker.Generate(fakeTitle),
+            Description = faker.Lorem.Sentences(),
+            ContentProvider = faker.Company.CompanyName(),
+            Images = new CrunchyrollSeriesImageItem()
+            {
+                PosterTall = [[new CrunchyrollSeriesImage
+                {
+                    Source = faker.Internet.UrlWithPath(),
+                    Type = "poster_tall",
+                    Height = "",
+                    Width = ""
+                },new CrunchyrollSeriesImage
+                {
+                    Source = faker.Internet.UrlWithPath(),
+                    Type = "poster_tall",
+                    Height = "",
+                    Width = ""
+                }]],
+                PosterWide = [[new CrunchyrollSeriesImage
+                {
+                    Source = faker.Internet.UrlWithPath(),
+                    Type = "poster_wide",
+                    Height = "",
+                    Width = ""
+                },new CrunchyrollSeriesImage
+                {
+                    Source = faker.Internet.UrlWithPath(),
+                    Type = "poster_wide",
+                    Height = "",
+                    Width = ""
+                }]],
+            }
+        };
+        
+        var builder = wireMockAdminApi.GetMappingBuilder();
+        
+        builder.Given(m => m
+            .WithRequest(req => req
+                .UsingGet()
+                .WithPath($"/content/v2/cms/series/{titleId}")
+                .WithParams(new List<ParamModel>()
+                {
+                    new ParamModel()
+                    {
+                        Name = "locale",
+                        Matchers = new MatcherModel[]
+                        {
+                            new MatcherModel()
+                            {
+                                Name = "WildcardMatcher",
+                                Pattern = language
+                            }
+                        }
+                    }
+                })
+            )
+            .WithResponse(rsp => rsp
+                .WithStatusCode(HttpStatusCode.OK)
+                .WithBody(JsonSerializer.Serialize(seriesMetadataResponse))
+            ));
+
+        await builder.BuildAndPostAsync();
+
+        return seriesMetadataResponse;
     }
 }

@@ -5,6 +5,7 @@ using Jellyfin.Plugin.ExternalComments.Contracts.Reviews;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Reviews.Entities;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
 using LiteDB;
 
 namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.MockData;
@@ -145,20 +146,25 @@ public static class DatabaseMockHelper
         }
     }
     
-    public static void ShouldHaveMetadata(string dbFilePath, string titleId)
+    public static void ShouldHaveMetadata(string dbFilePath, string titleId, CrunchyrollSeriesContentResponse seriesContentResponse)
     {
         Semaphore.Wait();
 
         try
         {
             using var db = new LiteDatabase($"Filename={dbFilePath}; Connection=Shared;");
-            var reviewsCollection = db.GetCollection<TitleMetadata>("titleMetaData");
+            var metadataCollection = db.GetCollection<TitleMetadata>("titleMetaData");
             
-            var metadata = reviewsCollection.FindOne(x => x.TitleId == titleId);
+            var metadata = metadataCollection.FindOne(x => x.TitleId == titleId);
 
             metadata.Should().NotBeNull();
             metadata.TitleId.Should().NotBeEmpty();
-            metadata.SlugTitle.Should().NotBeEmpty();
+            metadata.SlugTitle.Should().Be(seriesContentResponse.SlugTitle);
+            metadata.Title.Should().Be(seriesContentResponse.Title);
+            metadata.Description.Should().Be(seriesContentResponse.Description);
+            metadata.Studio.Should().Be(seriesContentResponse.ContentProvider);
+            metadata.PosterTallUri.Should().Be(seriesContentResponse.Images.PosterTall.First().Last().Source);
+            metadata.PosterWideUri.Should().Be(seriesContentResponse.Images.PosterWide.First().Last().Source);
             metadata.Seasons.Should().NotBeEmpty();
             metadata.Seasons.Should().AllSatisfy(x =>
             {

@@ -73,6 +73,8 @@ public class CrunchyrollScanTests
         
         foreach (var series in itemList)
         {
+            await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series, language);
+            
             var seasons = _itemRepository.MockGetChildren(series, isSeasonIdSet: true);
             var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(seasons, series, language);
 

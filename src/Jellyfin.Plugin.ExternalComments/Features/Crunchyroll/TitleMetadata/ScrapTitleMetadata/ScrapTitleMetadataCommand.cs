@@ -9,6 +9,8 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
@@ -25,18 +27,18 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
     private readonly IScrapTitleMetadataSession _unitOfWork;
     private readonly ICrunchyrollSeasonsClient _seasonsClient;
     private readonly ICrunchyrollEpisodesClient _episodesClient;
-    private readonly ILogger<ScrapTitleMetadataCommandHandler> _logger;
     private readonly ILoginService _loginService;
+    private readonly ICrunchyrollSeriesClient _crunchyrollSeriesClient;
 
     public ScrapTitleMetadataCommandHandler(IScrapTitleMetadataSession unitOfWork,
-        ICrunchyrollSeasonsClient seasonsClient, ICrunchyrollEpisodesClient episodesClient, 
-        ILogger<ScrapTitleMetadataCommandHandler> logger, ILoginService loginService)
+        ICrunchyrollSeasonsClient seasonsClient, ICrunchyrollEpisodesClient episodesClient, ILoginService loginService, 
+        ICrunchyrollSeriesClient crunchyrollSeriesClient)
     {
         _unitOfWork = unitOfWork;
         _seasonsClient = seasonsClient;
         _episodesClient = episodesClient;
-        _logger = logger;
         _loginService = loginService;
+        _crunchyrollSeriesClient = crunchyrollSeriesClient;
     }
     
     public async ValueTask<Result> Handle(ScrapTitleMetadataCommand request, CancellationToken cancellationToken)
@@ -79,18 +81,30 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         var seasons = crunchyrollSeasons.Select(x =>
             x.ToSeasonEntity(seasonEpisodesDictionary[x.Id])).ToList();
         
+        var seriesMetadataResult = await _crunchyrollSeriesClient.GetSeriesMetadataAsync(request.TitleId, cancellationToken);
+
+        if (seriesMetadataResult.IsFailed)
+        {
+            return seriesMetadataResult.ToResult();
+        }
+        
         if (titleMetadata is null)
         {
             titleMetadata = new Entities.TitleMetadata
             {
                 TitleId = request.TitleId,
-                SlugTitle = request.SlugTitle,
-                Description = "",
+                SlugTitle = seriesMetadataResult.Value.SlugTitle,
+                Description = seriesMetadataResult.Value.Description,
+                Title = seriesMetadataResult.Value.Title,
+                Studio = seriesMetadataResult.Value.ContentProvider,
+                PosterTallUri = seriesMetadataResult.Value.Images.PosterTall.First().Last().Source,
+                PosterWideUri = seriesMetadataResult.Value.Images.PosterWide.First().Last().Source,
                 Seasons = seasons
             };
         }
         else
         {
+            ApplyNewSeriesMetadataToTitleMetadata(titleMetadata, seriesMetadataResult.Value);
             ApplyNewSeasonsToExistingSeasons(titleMetadata, seasons);
             ApplyNewEpisodesToExistingEpisodes(titleMetadata, seasonEpisodesDictionary);
         }
@@ -124,5 +138,15 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
                 titleMetadata.Seasons.Add(season);
             }
         }
+    }
+
+    private static void ApplyNewSeriesMetadataToTitleMetadata(Entities.TitleMetadata titleMetadata, CrunchyrollSeriesContentResponse seriesContentResponse)
+    {
+        titleMetadata.Title = seriesContentResponse.Title;
+        titleMetadata.SlugTitle = seriesContentResponse.SlugTitle;
+        titleMetadata.Description = seriesContentResponse.Description;
+        titleMetadata.Studio = seriesContentResponse.ContentProvider;
+        titleMetadata.PosterTallUri = seriesContentResponse.Images.PosterTall.First().Last().Source; //Last(), to get the highest quality of all images
+        titleMetadata.PosterWideUri = seriesContentResponse.Images.PosterWide.First().Last().Source; //Last(), to get the highest quality of all images
     }
 }

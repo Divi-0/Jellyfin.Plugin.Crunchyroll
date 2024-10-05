@@ -1,6 +1,7 @@
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared;
 using Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.MockData;
 using Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker;
@@ -81,9 +82,13 @@ public class CrunchyrollScanTests
         
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
-        
+
+        var seriesResponses = new Dictionary<Series, CrunchyrollSeriesContentResponse>();
         foreach (var series in seriesItems)
         {
+            var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series, language);
+            seriesResponses.Add(series, seriesResponse);
+            
             var seasons = _itemRepository.MockGetChildren(series);
             var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(seasons, series, language);
 
@@ -102,7 +107,9 @@ public class CrunchyrollScanTests
         //Assert
         seriesItems.Should().AllSatisfy(series =>
         {
-            DatabaseMockHelper.ShouldHaveMetadata(_databaseFixture.DbFilePath, series.ProviderIds[CrunchyrollExternalKeys.Id]);
+            DatabaseMockHelper.ShouldHaveMetadata(_databaseFixture.DbFilePath, 
+                series.ProviderIds[CrunchyrollExternalKeys.Id],
+                seriesResponses[series]);
             
             foreach (var season in series.Children)
             {

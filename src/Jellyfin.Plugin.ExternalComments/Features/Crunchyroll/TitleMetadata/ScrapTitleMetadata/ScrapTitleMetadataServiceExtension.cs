@@ -2,6 +2,7 @@ using Jellyfin.Plugin.ExternalComments.Common;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
@@ -15,6 +16,10 @@ public static class ScrapTitleMetadataServiceExtension
             .AddPollyHttpClientDefaultPolicy();
         
         serviceCollection.AddHttpClient<ICrunchyrollEpisodesClient, CrunchyrollEpisodesClient>()
+            .AddFlareSolverrProxy(configuration)
+            .AddPollyHttpClientDefaultPolicy();
+        
+        serviceCollection.AddHttpClient<ICrunchyrollSeriesClient, CrunchyrollSeriesClient>()
             .AddFlareSolverrProxy(configuration)
             .AddPollyHttpClientDefaultPolicy();
 
