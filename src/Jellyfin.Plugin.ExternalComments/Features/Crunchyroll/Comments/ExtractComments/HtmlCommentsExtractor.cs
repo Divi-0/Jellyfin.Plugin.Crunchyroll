@@ -87,7 +87,7 @@ public class HtmlCommentsExtractor : IHtmlCommentsExtractor
             }
             else
             {
-                likes = commentActionElement.SelectSingleNode("//button[@data-t='comment-like-btn']")
+                likes = commentActionElement.SelectSingleNode(".//button[@data-t='comment-like-btn']")
                     .GetDirectInnerText();
             }
 

@@ -1,9 +1,11 @@
 ﻿using AutoFixture;
 using FluentAssertions;
 using FluentResults;
+using Jellyfin.Plugin.ExternalComments.Common;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Comments;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
@@ -151,7 +153,13 @@ public class GetCommentsQueryTests
         //Assert
         result.IsSuccess.Should().BeTrue();
         var commentsResponse = result.Value;
-        commentsResponse.Comments.Should().BeEquivalentTo(comments);
+        commentsResponse.Comments.Should().BeEquivalentTo(comments, o => 
+            o.Excluding(x => x.AvatarIconUri));
+
+        commentsResponse.Comments.Should().AllSatisfy(comment =>
+        {
+            comment.AvatarIconUri.Should().Contain("/api/externalcomments/crunchyroll/avatar");
+        }, because: "avatar icons are cached in the database");
 
         _libraryManager
             .Received(1)

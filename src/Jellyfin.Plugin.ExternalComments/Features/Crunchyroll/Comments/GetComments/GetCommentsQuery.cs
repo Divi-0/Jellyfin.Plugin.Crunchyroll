@@ -1,10 +1,13 @@
 using System;
+using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using Jellyfin.Plugin.ExternalComments.Common;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Contracts.Comments;
 using Jellyfin.Plugin.ExternalComments.Domain.Constants;
+using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.GetComments.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Login;
 using MediaBrowser.Controller.Library;
@@ -80,6 +83,17 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, Result<
     private async ValueTask<Result<CommentsResponse>> GetCommentsFromDatabase(string episodeId, int pageSize, int pageNumber)
     {
         var comments = await _session.GetCommentsAsync(episodeId, pageSize, pageNumber);
+        
+        foreach (var commentItem in comments)
+        {
+            if (string.IsNullOrWhiteSpace(commentItem.AvatarIconUri))
+            {
+                continue;
+            }
+            
+            commentItem.AvatarIconUri = $"/{Routes.Root}/{AvatarConstants.GetAvatarSubRoute}/{UrlEncoder.Default.Encode(commentItem.AvatarIconUri)}";
+        }
+        
         return new CommentsResponse
         {
             Comments = comments,

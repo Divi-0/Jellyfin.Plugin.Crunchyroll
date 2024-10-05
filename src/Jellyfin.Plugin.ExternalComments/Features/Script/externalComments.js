@@ -84,7 +84,7 @@ async function showReviews(id) {
 }
 
 async function showComments(id) {
-    const url = `${window.location.origin}/api/externalcomments/crunchyroll/comments/${id}&pageNumber=1&pageSize=50`
+    const url = `${window.location.origin}/api/externalcomments/crunchyroll/comments/${id}?pageNumber=1&pageSize=50`
     let json;
     try {
         const response = await fetch(url);
@@ -105,6 +105,11 @@ async function showComments(id) {
 
 function getReviewsHtml(reviews){
     let reviewsWrapper = document.createElement("div");
+
+    reviewsWrapper.innerHTML = `
+    <h5 style="font-size: 1.25rem; line-height: 1.625rem; font-weight: 600;">${reviews.length} Reviews</h5>
+    `
+    
     let reviewsElement = document.createElement("div");
     reviewsElement.id = "crunchyroll-reviews"
     reviewsElement.style.display = "flex";
@@ -145,11 +150,15 @@ function getCommentsHtml(comments){
     let commentsWrapper = document.createElement("div");
     commentsWrapper.style.marginBottom = ".5rem";
     
+    commentsWrapper.innerHTML = `
+    <h5 style="font-size: 1.25rem; line-height: 1.625rem; font-weight: 600;">${comments.length} Comments</h5>
+    `
+    
     let commentsElement = document.createElement("div");
     commentsElement.id = "crunchyroll-comments"
     commentsElement.style.display = "flex";
     commentsElement.style.flexDirection = "column";
-    commentsElement.style.rowGap = "2rem";
+    commentsElement.style.rowGap = "2.2rem";
     commentsElement.style.maxWidth = "54.375rem";
 
     commentsWrapper.appendChild(commentsElement);
