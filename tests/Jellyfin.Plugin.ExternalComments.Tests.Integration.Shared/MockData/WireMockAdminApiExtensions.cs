@@ -785,14 +785,17 @@ public static class WireMockAdminApiExtensions
         return episodesResponse;
     }
     
-    public static async Task<CrunchyrollSeriesContentResponse> MockCrunchyrollSeriesResponse(this IWireMockAdminApi wireMockAdminApi, 
-        Series series, string language)
+    public static async Task<CrunchyrollSeriesContentItem> MockCrunchyrollSeriesResponse(this IWireMockAdminApi wireMockAdminApi, 
+        Series series, string language, string mockedCrunchyrollUrl)
     {
         var faker = new Faker();
 
+        var crunchyrollUrl =
+            mockedCrunchyrollUrl.Last() == '/' ? mockedCrunchyrollUrl[..^1] : mockedCrunchyrollUrl;
+
         var titleId = series.ProviderIds[CrunchyrollExternalKeys.Id];
         var fakeTitle = faker.Commerce.ProductName();
-        var seriesMetadataResponse = new CrunchyrollSeriesContentResponse
+        var seriesMetadataResponse = new CrunchyrollSeriesContentItem
         {
             Id = titleId,
             Title = fakeTitle,
@@ -803,29 +806,29 @@ public static class WireMockAdminApiExtensions
             {
                 PosterTall = [[new CrunchyrollSeriesImage
                 {
-                    Source = faker.Internet.UrlWithPath(),
+                    Source = faker.Internet.UrlWithPath(domain: crunchyrollUrl, fileExt: "jpg"),
                     Type = "poster_tall",
-                    Height = "",
-                    Width = ""
+                    Height = 0,
+                    Width = 0
                 },new CrunchyrollSeriesImage
                 {
-                    Source = faker.Internet.UrlWithPath(),
+                    Source = faker.Internet.UrlWithPath(domain: crunchyrollUrl, fileExt: "jpg"),
                     Type = "poster_tall",
-                    Height = "",
-                    Width = ""
+                    Height = 0,
+                    Width = 0
                 }]],
                 PosterWide = [[new CrunchyrollSeriesImage
                 {
-                    Source = faker.Internet.UrlWithPath(),
+                    Source = faker.Internet.UrlWithPath(domain: crunchyrollUrl, fileExt: "jpg"),
                     Type = "poster_wide",
-                    Height = "",
-                    Width = ""
+                    Height = 0,
+                    Width = 0
                 },new CrunchyrollSeriesImage
                 {
-                    Source = faker.Internet.UrlWithPath(),
+                    Source = faker.Internet.UrlWithPath(domain: crunchyrollUrl, fileExt: "jpg"),
                     Type = "poster_wide",
-                    Height = "",
-                    Width = ""
+                    Height = 0,
+                    Width = 0
                 }]],
             }
         };
@@ -854,11 +857,33 @@ public static class WireMockAdminApiExtensions
             )
             .WithResponse(rsp => rsp
                 .WithStatusCode(HttpStatusCode.OK)
-                .WithBody(JsonSerializer.Serialize(seriesMetadataResponse))
+                .WithBody(JsonSerializer.Serialize(new CrunchyrollSeriesContentResponse{Data = [seriesMetadataResponse]}))
             ));
 
         await builder.BuildAndPostAsync();
 
         return seriesMetadataResponse;
+    }
+    
+    public static async Task<byte[]> MockCrunchyrollImagePosterResponse(this IWireMockAdminApi wireMockAdminApi, 
+        string url)
+    {
+        var faker = new Faker();
+        var content = faker.Random.Bytes(9999);
+        var builder = wireMockAdminApi.GetMappingBuilder();
+        
+        builder.Given(m => m
+            .WithRequest(req => req
+                .UsingGet()
+                .WithUrl(url)
+            )
+            .WithResponse(rsp => rsp
+                .WithStatusCode(HttpStatusCode.OK)
+                .WithBodyAsBytes(content)
+            ));
+
+        await builder.BuildAndPostAsync();
+
+        return content;
     }
 }

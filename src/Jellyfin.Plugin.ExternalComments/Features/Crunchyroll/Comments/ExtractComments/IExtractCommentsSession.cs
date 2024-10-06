@@ -7,4 +7,5 @@ namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.Extract
 public interface IExtractCommentsSession : IAddAvatarSession
 {
     public ValueTask InsertComments(EpisodeComments comments);
+    public ValueTask<bool> CommentsForEpisodeExists(string episodeId);
 }

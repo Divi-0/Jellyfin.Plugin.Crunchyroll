@@ -64,7 +64,7 @@ public class ScrapTitleMetadataCommandHandlerTests
                 .Returns(episodesResponse);
         }
 
-        var seriesMetadataResponse = new CrunchyrollSeriesContentResponse
+        var seriesMetadataResponse = new CrunchyrollSeriesContentItem
         {
             Id = titleId,
             Title = _faker.Random.Word(),
@@ -77,27 +77,27 @@ public class ScrapTitleMetadataCommandHandlerTests
                 {
                     Source = _faker.Internet.UrlWithPath(),
                     Type = "poster_tall",
-                    Height = "",
-                    Width = ""
+                    Height = 0,
+                    Width = 0
                 },new CrunchyrollSeriesImage
                 {
                     Source = _faker.Internet.UrlWithPath(),
                     Type = "poster_tall",
-                    Height = "",
-                    Width = ""
+                    Height = 0,
+                    Width = 0
                 }]],
                 PosterWide = [[new CrunchyrollSeriesImage
                 {
                     Source = _faker.Internet.UrlWithPath(),
                     Type = "poster_wide",
-                    Height = "",
-                    Width = ""
+                    Height = 0,
+                    Width = 0
                 },new CrunchyrollSeriesImage
                 {
                     Source = _faker.Internet.UrlWithPath(),
                     Type = "poster_wide",
-                    Height = "",
-                    Width = ""
+                    Height = 0,
+                    Width = 0
                 }]],
             }
         };
@@ -107,7 +107,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Returns(seriesMetadataResponse);
         
         _scrapTitleMetadataSession
-            .GetTitleMetadata(titleId)
+            .GetTitleMetadataAsync(titleId)
             .Returns(ValueTask.FromResult<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?>(null));
         
         //Act
@@ -263,7 +263,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         }
         
         _scrapTitleMetadataSession
-            .GetTitleMetadata(titleId)
+            .GetTitleMetadataAsync(titleId)
             .Returns(ValueTask.FromResult((Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?)null));
         
         var error = _fixture.Create<string>();
@@ -271,10 +271,10 @@ public class ScrapTitleMetadataCommandHandlerTests
             .GetEpisodesAsync(seasonsResponse.Data.First().Id, Arg.Any<CancellationToken>())
             .Returns(Result.Fail(error));
 
-        var seriesContentResponse = _fixture.Create<CrunchyrollSeriesContentResponse>();
+        var seriesContentItem = _fixture.Create<CrunchyrollSeriesContentItem>();
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(seriesContentResponse);
+            .Returns(seriesContentItem);
         
         //Act
         var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
@@ -302,7 +302,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Received(1)
             .AddOrUpdateTitleMetadata(Arg.Is<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => 
                 x.TitleId == titleId &&
-                x.SlugTitle == seriesContentResponse.SlugTitle &&
+                x.SlugTitle == seriesContentItem.SlugTitle &&
                 x.Seasons.All(season => seasonsResponse.Data.Any(y => y.Id == season.Id)) &&
                 x.Seasons.Count(season => season.Episodes.Count == 0) == 1));
     }
@@ -345,7 +345,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
-            .GetTitleMetadata(titleId)
+            .GetTitleMetadataAsync(titleId)
             .Returns(titleMetadata);
 
         var crunchyrollSeasonsItem = new List<CrunchyrollSeasonsItem>();
@@ -375,7 +375,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(_fixture.Create<CrunchyrollSeriesContentResponse>());
+            .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         //Act
         var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
@@ -401,7 +401,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _scrapTitleMetadataSession
             .Received(1)
-            .GetTitleMetadata(titleId);
+            .GetTitleMetadataAsync(titleId);
 
         await _crunchyrollSeriesClient
             .Received(1)
@@ -429,7 +429,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
-            .GetTitleMetadata(titleId)
+            .GetTitleMetadataAsync(titleId)
             .Returns(titleMetadata);
 
         var crunchyrollSeasonsItem = new List<CrunchyrollSeasonsItem>();
@@ -463,7 +463,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(_fixture.Create<CrunchyrollSeriesContentResponse>());
+            .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
         await _scrapTitleMetadataSession
@@ -497,7 +497,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _scrapTitleMetadataSession
             .Received(1)
-            .GetTitleMetadata(titleId);
+            .GetTitleMetadataAsync(titleId);
 
         actualMetadata.TitleId.Should().Be(titleMetadata.TitleId);
         actualMetadata.SlugTitle.Should().Be(titleMetadata.SlugTitle);
@@ -527,7 +527,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
-            .GetTitleMetadata(titleId)
+            .GetTitleMetadataAsync(titleId)
             .Returns(titleMetadata);
 
         var crunchyrollSeasonsItem = new List<CrunchyrollSeasonsItem>();
@@ -556,7 +556,7 @@ public class ScrapTitleMetadataCommandHandlerTests
                 .Returns(episodes);
         }
         
-        var seriesMetadataResponse = new CrunchyrollSeriesContentResponse
+        var seriesMetadataResponse = new CrunchyrollSeriesContentItem
         {
             Id = titleId,
             Title = _faker.Random.Word(),
@@ -569,27 +569,27 @@ public class ScrapTitleMetadataCommandHandlerTests
                 {
                     Source = _faker.Internet.UrlWithPath(),
                     Type = "poster_tall",
-                    Height = "",
-                    Width = ""
+                    Height = 0,
+                    Width = 0
                 },new CrunchyrollSeriesImage
                 {
                     Source = _faker.Internet.UrlWithPath(),
                     Type = "poster_tall",
-                    Height = "",
-                    Width = ""
+                    Height = 0,
+                    Width = 0
                 }]],
                 PosterWide = [[new CrunchyrollSeriesImage
                 {
                     Source = _faker.Internet.UrlWithPath(),
                     Type = "poster_wide",
-                    Height = "",
-                    Width = ""
+                    Height = 0,
+                    Width = 0
                 },new CrunchyrollSeriesImage
                 {
                     Source = _faker.Internet.UrlWithPath(),
                     Type = "poster_wide",
-                    Height = "",
-                    Width = ""
+                    Height = 0,
+                    Width = 0
                 }]],
             }
         };
@@ -630,7 +630,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _scrapTitleMetadataSession
             .Received(1)
-            .GetTitleMetadata(titleId);
+            .GetTitleMetadataAsync(titleId);
 
         actualMetadata.TitleId.Should().Be(titleMetadata.TitleId);
         actualMetadata.SlugTitle.Should().Be(titleMetadata.SlugTitle);
@@ -654,7 +654,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
-            .GetTitleMetadata(titleId)
+            .GetTitleMetadataAsync(titleId)
             .Returns(titleMetadata);
 
         var crunchyrollSeasonsItem = new List<CrunchyrollSeasonsItem>();
@@ -699,7 +699,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(_fixture.Create<CrunchyrollSeriesContentResponse>());
+            .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
         await _scrapTitleMetadataSession
@@ -733,7 +733,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _scrapTitleMetadataSession
             .Received(1)
-            .GetTitleMetadata(titleId);
+            .GetTitleMetadataAsync(titleId);
 
         actualMetadata.TitleId.Should().Be(titleMetadata.TitleId);
         actualMetadata.SlugTitle.Should().Be(titleMetadata.SlugTitle);
@@ -763,7 +763,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
-            .GetTitleMetadata(titleId)
+            .GetTitleMetadataAsync(titleId)
             .Returns(titleMetadata);
 
         var crunchyrollSeasonsItems = new List<CrunchyrollSeasonsItem>();
@@ -791,7 +791,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(_fixture.Create<CrunchyrollSeriesContentResponse>());
+            .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
         await _scrapTitleMetadataSession
@@ -825,7 +825,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _scrapTitleMetadataSession
             .Received(1)
-            .GetTitleMetadata(titleId);
+            .GetTitleMetadataAsync(titleId);
 
         actualMetadata.Seasons.Should().HaveCount(4);
 
@@ -848,7 +848,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
-            .GetTitleMetadata(titleId)
+            .GetTitleMetadataAsync(titleId)
             .Returns(titleMetadata);
         
         var crunchyrollSeasonsItems = new List<CrunchyrollSeasonsItem>();
@@ -879,7 +879,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(_fixture.Create<CrunchyrollSeriesContentResponse>());
+            .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
         await _scrapTitleMetadataSession.AddOrUpdateTitleMetadata(
@@ -913,7 +913,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _scrapTitleMetadataSession
             .Received(1)
-            .GetTitleMetadata(titleId);
+            .GetTitleMetadataAsync(titleId);
         
         actualMetadata.Seasons.Should().Contain(x => x.Id == newSeason.Id, "new season needs to be added");
         actualMetadata.Seasons.Should().Contain(titleMetadata.Seasons, "the removed season should still be in the list");
@@ -932,7 +932,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
         _scrapTitleMetadataSession
-            .GetTitleMetadata(titleId)
+            .GetTitleMetadataAsync(titleId)
             .Returns(titleMetadata);
         
         _crunchyrollSeasonsClient
@@ -941,7 +941,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(_fixture.Create<CrunchyrollSeriesContentResponse>());
+            .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
         await _scrapTitleMetadataSession.AddOrUpdateTitleMetadata(
@@ -968,7 +968,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _scrapTitleMetadataSession
             .Received(1)
-            .GetTitleMetadata(titleId);
+            .GetTitleMetadataAsync(titleId);
 
         await _crunchyrollSeriesClient
             .Received(1)

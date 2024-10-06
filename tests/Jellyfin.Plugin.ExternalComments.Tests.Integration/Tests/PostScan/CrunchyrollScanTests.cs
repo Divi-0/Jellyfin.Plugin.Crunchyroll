@@ -9,6 +9,7 @@ using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
 using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 using WireMock.Client;
 
 namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.Tests.PostScan;
@@ -16,15 +17,18 @@ namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.Tests.PostScan;
 [Collection(CollectionNames.Plugin)]
 public class CrunchyrollScanTests
 {
+    private readonly WireMockFixture _wireMockFixture;
     private readonly CrunchyrollDatabaseFixture _databaseFixture;
     
     private readonly CrunchyrollScan _crunchyrollScan;
     private readonly ILibraryManager _libraryManager;
     private readonly IWireMockAdminApi _wireMockAdminApi;
     private readonly IItemRepository _itemRepository;
+    private readonly PluginConfiguration _config;
 
     public CrunchyrollScanTests(WireMockFixture wireMockFixture, CrunchyrollDatabaseFixture databaseFixture)
     {
+        _wireMockFixture = wireMockFixture;
         _databaseFixture = databaseFixture;
         
         _crunchyrollScan =
@@ -34,9 +38,9 @@ public class CrunchyrollScanTests
         _itemRepository =
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<IItemRepository>();
         _wireMockAdminApi = wireMockFixture.AdminApiClient;
-        var config = ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
+        _config = ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
 
-        config.IsWaybackMachineEnabled = false;
+        _config.IsWaybackMachineEnabled = false;
     }
 
     [Fact]
@@ -83,11 +87,18 @@ public class CrunchyrollScanTests
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
 
-        var seriesResponses = new Dictionary<Series, CrunchyrollSeriesContentResponse>();
+        var seriesResponses = new Dictionary<Series, CrunchyrollSeriesContentItem>();
         foreach (var series in seriesItems)
         {
-            var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series, language);
+            var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series, language, 
+                $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
             seriesResponses.Add(series, seriesResponse);
+            
+            await _wireMockAdminApi.MockCrunchyrollImagePosterResponse(
+                seriesResponse.Images.PosterTall.First().Last().Source);            
+            
+            await _wireMockAdminApi.MockCrunchyrollImagePosterResponse(
+                seriesResponse.Images.PosterWide.First().Last().Source);
             
             var seasons = _itemRepository.MockGetChildren(series);
             var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(seasons, series, language);

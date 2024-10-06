@@ -64,6 +64,7 @@
             <IncludeAssets>compile</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Polly" Version="8.4.1" />
+        <PackageReference Include="System.IO.Abstractions" Version="21.0.29" />
     </ItemGroup>
 
     <ItemGroup>

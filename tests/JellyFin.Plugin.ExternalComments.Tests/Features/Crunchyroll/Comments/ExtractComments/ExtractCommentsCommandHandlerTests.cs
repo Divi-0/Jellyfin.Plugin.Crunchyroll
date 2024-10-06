@@ -10,6 +10,7 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.ExtractComm
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client.Dto;
 using Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker;
+using Microsoft.Extensions.Logging;
 
 namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll.Comments.ExtractComments;
 
@@ -19,7 +20,6 @@ public class ExtractCommentsCommandHandlerTests
 
     private readonly IHtmlCommentsExtractor _htmlCommentsExtractor;
     private readonly IExtractCommentsSession _commentsSession;
-    private readonly PluginConfiguration _configuration;
     private readonly IWaybackMachineClient _waybackMachineClient;
     private readonly IAvatarClient _avatarClient;
     
@@ -31,12 +31,13 @@ public class ExtractCommentsCommandHandlerTests
         
         _htmlCommentsExtractor = Substitute.For<IHtmlCommentsExtractor>();
         _commentsSession = Substitute.For<IExtractCommentsSession>();
-        _configuration = new PluginConfiguration();
+        var configuration = new PluginConfiguration();
         _waybackMachineClient = Substitute.For<IWaybackMachineClient>();
         _avatarClient = Substitute.For<IAvatarClient>();
+        var logger = Substitute.For<ILogger<ExtractCommentsCommandHandler>>();
 
-        _sut = new ExtractCommentsCommandHandler(_htmlCommentsExtractor, _commentsSession, _configuration, 
-            _waybackMachineClient, _avatarClient);
+        _sut = new ExtractCommentsCommandHandler(_htmlCommentsExtractor, _commentsSession, configuration, 
+            _waybackMachineClient, _avatarClient, logger);
     }
 
     [Fact]
@@ -45,6 +46,10 @@ public class ExtractCommentsCommandHandlerTests
         //Arrange
         var episodeId = CrunchyrollIdFaker.Generate();
         var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
+        
+        _commentsSession
+            .CommentsForEpisodeExists(episodeId)
+            .Returns(false);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
@@ -117,6 +122,10 @@ public class ExtractCommentsCommandHandlerTests
         //Arrange
         var episodeId = CrunchyrollIdFaker.Generate();
         var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
+        
+        _commentsSession
+            .CommentsForEpisodeExists(episodeId)
+            .Returns(false);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
@@ -159,6 +168,10 @@ public class ExtractCommentsCommandHandlerTests
         //Arrange
         var episodeId = CrunchyrollIdFaker.Generate();
         var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
+        
+        _commentsSession
+            .CommentsForEpisodeExists(episodeId)
+            .Returns(false);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
@@ -202,6 +215,10 @@ public class ExtractCommentsCommandHandlerTests
         //Arrange
         var episodeId = CrunchyrollIdFaker.Generate();
         var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
+        
+        _commentsSession
+            .CommentsForEpisodeExists(episodeId)
+            .Returns(false);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
@@ -251,6 +268,10 @@ public class ExtractCommentsCommandHandlerTests
         var episodeId = CrunchyrollIdFaker.Generate();
         var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
         
+        _commentsSession
+            .CommentsForEpisodeExists(episodeId)
+            .Returns(false);
+        
         _waybackMachineClient
             .SearchAsync(Arg.Any<string>(), Arg.Any<DateTime>(),
                 Arg.Any<CancellationToken>())
@@ -286,6 +307,10 @@ public class ExtractCommentsCommandHandlerTests
         var episodeId = CrunchyrollIdFaker.Generate();
         var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
         
+        _commentsSession
+            .CommentsForEpisodeExists(episodeId)
+            .Returns(false);
+        
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
             .SearchAsync(Arg.Any<string>(), Arg.Any<DateTime>(),
@@ -311,6 +336,44 @@ public class ExtractCommentsCommandHandlerTests
         
         await _htmlCommentsExtractor
             .Received(1)
+            .GetCommentsAsync(Arg.Any<string>(), 
+                Arg.Any<CancellationToken>());
+
+        await _commentsSession
+            .DidNotReceive()
+            .InsertComments(Arg.Any<EpisodeComments>());
+    }
+
+    [Fact]
+    public async Task ReturnsSuccessAndIgnoresExtraction_WhenCommentsAlreadyExist_GivenEpisodeIdAndSlugTitleAndExistingComments()
+    {
+        //Arrange
+        var episodeId = CrunchyrollIdFaker.Generate();
+        var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
+
+        _commentsSession
+            .CommentsForEpisodeExists(episodeId)
+            .Returns(true);
+
+        //Act
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        
+        await _commentsSession
+            .Received(1)
+            .CommentsForEpisodeExists(episodeId);
+
+        await _waybackMachineClient
+            .DidNotReceive()
+            .SearchAsync(Arg.Any<string>(),
+                new DateTime(2024, 07, 10),
+                Arg.Any<CancellationToken>());
+        
+        await _htmlCommentsExtractor
+            .DidNotReceive()
             .GetCommentsAsync(Arg.Any<string>(), 
                 Arg.Any<CancellationToken>());
 

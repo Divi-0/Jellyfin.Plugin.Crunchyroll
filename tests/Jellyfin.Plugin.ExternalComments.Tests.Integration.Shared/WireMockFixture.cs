@@ -42,4 +42,6 @@ public sealed class WireMockFixture : IAsyncLifetime
     }
     
     public IWireMockAdminApi AdminApiClient { get; private set; } = null!;
+    public int MappedPublicPort => _container.GetMappedPublicPort(80);
+    public string Hostname => _container.Hostname;
 }

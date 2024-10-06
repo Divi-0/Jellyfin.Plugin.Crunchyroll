@@ -1,5 +1,3 @@
-using System.Web;
-using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
@@ -11,8 +9,6 @@ using Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using WireMock.Client;
 
@@ -21,6 +17,7 @@ namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.WaybackMachine.Test
 [Collection(CollectionNames.Plugin)]
 public class CrunchyrollScanTests
 {
+    private readonly WireMockFixture _wireMockFixture;
     private readonly CrunchyrollDatabaseFixture _crunchyrollDatabaseFixture;
     
     private readonly CrunchyrollScan _crunchyrollScan;
@@ -31,6 +28,7 @@ public class CrunchyrollScanTests
 
     public CrunchyrollScanTests(WireMockFixture wireMockFixture, CrunchyrollDatabaseFixture crunchyrollDatabaseFixture)
     {
+        _wireMockFixture = wireMockFixture;
         _crunchyrollDatabaseFixture = crunchyrollDatabaseFixture;
         
         _crunchyrollScan =
@@ -73,7 +71,8 @@ public class CrunchyrollScanTests
         
         foreach (var series in itemList)
         {
-            await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series, language);
+            await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series, language, 
+                $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
             
             var seasons = _itemRepository.MockGetChildren(series, isSeasonIdSet: true);
             var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(seasons, series, language);

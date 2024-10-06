@@ -56,7 +56,7 @@ public class CrunchyrollSeriesClientTests
         
         //Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo(seasonsResponse);
+        result.Value.Should().BeEquivalentTo(seasonsResponse.Data[0]);
 
         await _crunchyrollSessionRepository
             .Received(1)
@@ -218,14 +218,7 @@ public class CrunchyrollSeriesClientTests
             .Respond(HttpStatusCode.BadRequest);
         
         //Act
-        var crunchyrollImage = new CrunchyrollSeriesImage
-        {
-            Source = url,
-            Height = "1",
-            Width = "1",
-            Type = "type"
-        };
-        var result = await _sut.GetPosterImagesAsync(crunchyrollImage, CancellationToken.None);
+        var result = await _sut.GetPosterImagesAsync(url, CancellationToken.None);
         
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -251,14 +244,7 @@ public class CrunchyrollSeriesClientTests
             .Throw(new Exception());
         
         //Act
-        var crunchyrollImage = new CrunchyrollSeriesImage
-        {
-            Source = url,
-            Height = "1",
-            Width = "1",
-            Type = "type"
-        };
-        var result = await _sut.GetPosterImagesAsync(crunchyrollImage, CancellationToken.None);
+        var result = await _sut.GetPosterImagesAsync(url, CancellationToken.None);
         
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -283,14 +269,7 @@ public class CrunchyrollSeriesClientTests
             .Respond(new StreamContent(new MemoryStream(content)));
         
         //Act
-        var crunchyrollImage = new CrunchyrollSeriesImage
-        {
-            Source = url,
-            Height = "1",
-            Width = "1",
-            Type = "type"
-        };
-        var result = await _sut.GetPosterImagesAsync(crunchyrollImage, CancellationToken.None);
+        var result = await _sut.GetPosterImagesAsync(url, CancellationToken.None);
         
         //Assert
         result.IsSuccess.Should().BeTrue();

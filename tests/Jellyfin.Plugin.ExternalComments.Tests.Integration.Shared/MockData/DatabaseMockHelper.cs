@@ -27,10 +27,10 @@ public static class DatabaseMockHelper
 
             var reviews = fixture.CreateMany<ReviewItem>().ToList();
 
-            var entity = new TitleReviews()
+            var entity = new TitleReviews
             {
                 TitleId = titleId,
-                Reviews = reviews,
+                Reviews = reviews
             };
 
             reviewsCollection.Insert(entity);
@@ -56,7 +56,7 @@ public static class DatabaseMockHelper
 
             var comments = fixture.CreateMany<CommentItem>().ToList();
 
-            var entity = new EpisodeComments()
+            var entity = new EpisodeComments
             {
                 EpisodeId = episodeId,
                 Comments = comments
@@ -146,7 +146,7 @@ public static class DatabaseMockHelper
         }
     }
     
-    public static void ShouldHaveMetadata(string dbFilePath, string titleId, CrunchyrollSeriesContentResponse seriesContentResponse)
+    public static void ShouldHaveMetadata(string dbFilePath, string titleId, CrunchyrollSeriesContentItem seriesContentResponse)
     {
         Semaphore.Wait();
 

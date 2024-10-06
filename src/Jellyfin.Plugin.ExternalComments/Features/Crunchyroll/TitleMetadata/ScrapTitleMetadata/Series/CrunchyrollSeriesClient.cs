@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -28,11 +29,9 @@ public class CrunchyrollSeriesClient : ICrunchyrollSeriesClient
         _config = config;
         _logger = logger;
         _crunchyrollSessionRepository = crunchyrollSessionRepository;
-        
-        _httpClient.BaseAddress = new Uri(_config.CrunchyrollUrl);
     }
     
-    public async Task<Result<CrunchyrollSeriesContentResponse>> GetSeriesMetadataAsync(string titleId, CancellationToken cancellationToken)
+    public async Task<Result<CrunchyrollSeriesContentItem>> GetSeriesMetadataAsync(string titleId, CancellationToken cancellationToken)
     {
         var locacle = new CultureInfo(_config.CrunchyrollLanguage).Name;
         var path =
@@ -47,7 +46,7 @@ public class CrunchyrollSeriesClient : ICrunchyrollSeriesClient
         
         var requestMessage = new HttpRequestMessage
         {
-            RequestUri = new Uri(path, UriKind.Relative),
+            RequestUri = new Uri($"{_config.CrunchyrollUrl}{path}", UriKind.Absolute),
             Method = HttpMethod.Get,
             Headers = { { HeaderNames.Authorization, $"Bearer {bearerToken}" } }
         };
@@ -88,27 +87,27 @@ public class CrunchyrollSeriesClient : ICrunchyrollSeriesClient
             return Result.Fail(SeriesErrorCodes.InvalidResponse);
         }
         
-        return seriesMetadataResponse;
+        return seriesMetadataResponse.Data[0];
     }
 
-    public async Task<Result<Stream>> GetPosterImagesAsync(CrunchyrollSeriesImage image, CancellationToken cancellationToken)
+    public async Task<Result<Stream>> GetPosterImagesAsync(string url, CancellationToken cancellationToken)
     {
         HttpResponseMessage response;
         try
         {
-            response = await _httpClient.GetAsync(image.Source, cancellationToken);
+            response = await _httpClient.GetAsync(new Uri(url, UriKind.Absolute), cancellationToken);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "request for image {url} was not successful", 
-                image.Source);
+                url);
             return Result.Fail(SeriesErrorCodes.RequestFailed);
         }
 
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("request for image {url} was not successful. StatusCode: {StatusCode}", 
-                image.Source, response.StatusCode);
+                url, response.StatusCode);
             return Result.Fail(SeriesErrorCodes.RequestFailed);
         }
         

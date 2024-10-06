@@ -13,12 +13,11 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Avatar.Client;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.ExternalComments.Features.WaybackMachine.Client;
 using Mediator;
+using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.Comments.ExtractComments;
 
-public record ExtractCommentsCommand(string EpisodeId, string EpisodeSlugTitle) : IRequest<Result>
-{
-}
+public record ExtractCommentsCommand(string EpisodeId, string EpisodeSlugTitle) : IRequest<Result>;
 
 public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsCommand, Result>
 {
@@ -27,21 +26,30 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
     private readonly PluginConfiguration _config;
     private readonly IWaybackMachineClient _waybackMachineClient;
     private readonly IAvatarClient _avatarClient;
+    private readonly ILogger<ExtractCommentsCommandHandler> _logger;
 
     private static readonly DateTime DateWhenCommentsWereDeleted = new DateTime(2024, 07, 10);
 
     public ExtractCommentsCommandHandler(IHtmlCommentsExtractor extractor, IExtractCommentsSession session,
-        PluginConfiguration config, IWaybackMachineClient waybackMachineClient, IAvatarClient avatarClient)
+        PluginConfiguration config, IWaybackMachineClient waybackMachineClient, IAvatarClient avatarClient,
+        ILogger<ExtractCommentsCommandHandler> logger)
     {
         _extractor = extractor;
         _session = session;
         _config = config;
         _waybackMachineClient = waybackMachineClient;
         _avatarClient = avatarClient;
+        _logger = logger;
     }
     
     public async ValueTask<Result> Handle(ExtractCommentsCommand request, CancellationToken cancellationToken)
     {
+        if (await _session.CommentsForEpisodeExists(request.EpisodeId))
+        {
+            _logger.LogDebug("Comments already exist for episode with id {EpisodeId}. Skipping...", request.EpisodeId);
+            return Result.Ok();
+        }
+        
         var crunchyrollUrl = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
                 new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,

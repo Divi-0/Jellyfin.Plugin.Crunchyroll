@@ -12,7 +12,6 @@ using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapT
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
 using Mediator;
-using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 
@@ -59,7 +58,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         
         var crunchyrollSeasons = seasonsResult.Value.Data;
         
-        var titleMetadata = await _unitOfWork.GetTitleMetadata(request.TitleId);
+        var titleMetadata = await _unitOfWork.GetTitleMetadataAsync(request.TitleId);
         
         var parallelOptions = new ParallelOptions
         {
@@ -140,7 +139,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         }
     }
 
-    private static void ApplyNewSeriesMetadataToTitleMetadata(Entities.TitleMetadata titleMetadata, CrunchyrollSeriesContentResponse seriesContentResponse)
+    private static void ApplyNewSeriesMetadataToTitleMetadata(Entities.TitleMetadata titleMetadata, CrunchyrollSeriesContentItem seriesContentResponse)
     {
         titleMetadata.Title = seriesContentResponse.Title;
         titleMetadata.SlugTitle = seriesContentResponse.SlugTitle;

@@ -8,6 +8,6 @@ namespace Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.TitleMetadata.Sc
 
 public interface ICrunchyrollSeriesClient
 {
-    public Task<Result<CrunchyrollSeriesContentResponse>> GetSeriesMetadataAsync(string titleId, CancellationToken cancellationToken);
-    public Task<Result<Stream>> GetPosterImagesAsync(CrunchyrollSeriesImage image, CancellationToken cancellationToken);
+    public Task<Result<CrunchyrollSeriesContentItem>> GetSeriesMetadataAsync(string titleId, CancellationToken cancellationToken);
+    public Task<Result<Stream>> GetPosterImagesAsync(string url, CancellationToken cancellationToken);
 }

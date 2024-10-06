@@ -231,7 +231,7 @@ public sealed class CrunchyrollUnitOfWork :
         }
     }
 
-    public ValueTask<TitleMetadata.Entities.TitleMetadata?> GetTitleMetadata(string titleId)
+    public ValueTask<TitleMetadata.Entities.TitleMetadata?> GetTitleMetadataAsync(string titleId)
     {
         _semaphore.Wait();
 
@@ -356,13 +356,36 @@ public sealed class CrunchyrollUnitOfWork :
             {
                 using var db = new LiteDatabase(_connectionString);
 
-                var reviewsCollection = db.GetCollection<EpisodeComments>(CommentsCollectionName);
+                var commentsCollection = db.GetCollection<EpisodeComments>(CommentsCollectionName);
 
-                reviewsCollection.Insert(comments);
-                reviewsCollection.EnsureIndex(x => x.EpisodeId, true);
+                commentsCollection.Insert(comments);
+                commentsCollection.EnsureIndex(x => x.EpisodeId, true);
             });
 
             return ValueTask.CompletedTask;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public ValueTask<bool> CommentsForEpisodeExists(string episodeId)
+    {
+        _semaphore.Wait();
+
+        try
+        {
+            var exists = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var commentsCollection = db.GetCollection<EpisodeComments>(CommentsCollectionName);
+
+                return commentsCollection.Exists(x => x.EpisodeId == episodeId);
+            });
+
+            return ValueTask.FromResult(exists);
         }
         finally
         {

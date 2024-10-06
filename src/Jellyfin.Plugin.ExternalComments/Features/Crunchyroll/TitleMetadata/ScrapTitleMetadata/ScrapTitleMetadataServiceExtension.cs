@@ -24,6 +24,7 @@ public static class ScrapTitleMetadataServiceExtension
             .AddPollyHttpClientDefaultPolicy();
 
         serviceCollection.AddSingleton<IScrapTitleMetadataSession, CrunchyrollUnitOfWork>();
+        serviceCollection.AddSingleton<IGetTitleMetadata, CrunchyrollUnitOfWork>();
         
         return serviceCollection;
     }
