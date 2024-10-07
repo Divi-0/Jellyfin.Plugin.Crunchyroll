@@ -49,7 +49,13 @@ public class GetCommentsTests
         var commentsResponse = await response.Content.ReadFromJsonAsync<CommentsResponse>();
 
         commentsResponse.Should().NotBeNull();
-        commentsResponse!.Comments.Should().BeEquivalentTo(comments);
+        commentsResponse!.Comments.Should().BeEquivalentTo(comments, 
+            o => o.Excluding(x => x.AvatarIconUri));
+
+        commentsResponse.Comments.Should().AllSatisfy(comment =>
+        {
+            comment.AvatarIconUri.Should().Contain("/api/crunchyrollPlugin/crunchyroll/avatar/");
+        });
     }
 
     [Fact]
