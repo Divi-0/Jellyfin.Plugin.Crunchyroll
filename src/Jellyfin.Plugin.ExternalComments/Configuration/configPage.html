@@ -65,6 +65,13 @@
                         If someday the reviews & comments are enabled again, you can use this feature instead.
                     </div>
                 </div>
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="LibraryPath">LibraryPath</label>
+                    <input id="LibraryPath" name="LibraryPath" type="text" is="emby-input" />
+                    <div class="fieldDescription">It is recommended to specify which folders to scan for. 
+                        Good if you have an Anime-Library and specify only the path to the library here.
+                        Keep it empty to scan in all folders</div>
+                </div>
                 <div>
                     <button is="emby-button" type="submit" class="raised button-submit block emby-button">
                         <span>Save</span>
@@ -92,6 +99,7 @@
                     document.querySelector('#ArchiveOrgUrl').value = config.ArchiveOrgUrl;
                     document.querySelector('#LocalDatabasePath').value = config.LocalDatabasePath;
                     document.querySelector('#IsWaybackMachineEnabled').checked = config.IsWaybackMachineEnabled;
+                    document.querySelector('#LibraryPath').value = config.LibraryPath;
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -109,6 +117,7 @@
                     config.CrunchyrollLanguage = document.querySelector('#CrunchyrollLanguage').value;
                     config.ArchiveOrgUrl = document.querySelector('#ArchiveOrgUrl').value;
                     config.LocalDatabasePath = document.querySelector('#LocalDatabasePath').value;
+                    config.LibraryPath = document.querySelector('#LibraryPath').value;
                     config.IsWaybackMachineEnabled = document.querySelector('#IsWaybackMachineEnabled').checked;
                     ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);

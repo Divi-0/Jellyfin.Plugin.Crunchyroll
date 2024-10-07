@@ -1,4 +1,3 @@
-using AutoFixture;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll;
 using Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
@@ -10,14 +9,20 @@ namespace Jellyfin.Plugin.ExternalComments.Tests.Integration.Shared.MockData;
 
 public static class LibraryManagerMock
 {
-    public static List<Series> MockCrunchyrollTitleIdScan(this ILibraryManager libraryManager, List<Series>? items = null)
+    public static List<Series> MockCrunchyrollTitleIdScan(this ILibraryManager libraryManager,
+        string libraryPath, List<Series>? items = null)
     {
         var itemList = items?.ToList() ?? Enumerable.Range(0, Random.Shared.Next(1, 10))
             .Select(_ => SeriesFaker.Generate())
             .ToList();
         
+        var topParentId = Guid.NewGuid();
         libraryManager
-            .GetItemList(Arg.Any<InternalItemsQuery>())
+            .GetItemIds(Arg.Is<InternalItemsQuery>(x => x.Path == libraryPath))
+            .Returns([topParentId]);
+
+        libraryManager
+            .GetItemList(Arg.Is<InternalItemsQuery>(x => x.TopParentIds.Contains(topParentId)))
             .Returns(itemList.ToList<BaseItem>());
 
         foreach (var item in itemList)

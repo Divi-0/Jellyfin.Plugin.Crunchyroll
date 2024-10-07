@@ -1,8 +1,10 @@
+using Jellyfin.Plugin.ExternalComments.Configuration;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.ExternalComments.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.ExternalComments.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Querying;
 using Microsoft.Extensions.Logging;
 
 namespace JellyFin.Plugin.ExternalComments.Tests.Features.Crunchyroll;
@@ -12,6 +14,7 @@ public class CrunchyrollScanTests
     private readonly CrunchyrollScan _sut;
     private readonly ILibraryManager _libraryManager;
     private readonly IPostScanTask[] _postScanTasks;
+    private readonly PluginConfiguration _config;
 
     public CrunchyrollScanTests()
     {
@@ -21,8 +24,11 @@ public class CrunchyrollScanTests
             .Select(_ => 
                 Substitute.For<IPostScanTask>())
             .ToArray();
+
+        _config = new PluginConfiguration();
+        _config.LibraryPath = "/mnt/Crunchyroll";
         
-        _sut = new CrunchyrollScan(logger, _libraryManager, _postScanTasks);
+        _sut = new CrunchyrollScan(logger, _libraryManager, _postScanTasks, _config);
     }
 
     [Fact]
@@ -33,8 +39,73 @@ public class CrunchyrollScanTests
             .Select(_ => SeriesFaker.Generate())
             .ToList<BaseItem>();
 
+        var topParentId = Guid.NewGuid();
         _libraryManager
-            .GetItemList(Arg.Any<InternalItemsQuery>())
+            .GetItemIds(Arg.Is<InternalItemsQuery>(x => x.Path == _config.LibraryPath))
+            .Returns([topParentId]);
+
+        _libraryManager
+            .GetItemList(Arg.Is<InternalItemsQuery>(x => x.TopParentIds.Contains(topParentId)))
+            .Returns(items);
+
+        //Act
+        await _sut.Run(new Progress<double>(), CancellationToken.None);
+
+        //Assert
+        foreach (var postScanTask in _postScanTasks)
+        {
+            foreach (var item in items)
+            {
+                await postScanTask
+                    .Received(1)
+                    .RunAsync(item, Arg.Any<CancellationToken>());
+            }
+        }
+    }
+
+    [Fact]
+    public async Task SearchesAllItemsInRootPath_WhenTopParentByPathNotFound_GivenNotExistingLibraryPathInConfig()
+    {
+        //Arrange
+        var items = Enumerable.Range(0, Random.Shared.Next(1, 10))
+            .Select(_ => SeriesFaker.Generate())
+            .ToList<BaseItem>();
+        
+        _libraryManager
+            .GetItemIds(Arg.Is<InternalItemsQuery>(x => x.Path == _config.LibraryPath))
+            .Returns([]);
+
+        _libraryManager
+            .GetItemList(Arg.Is<InternalItemsQuery>(x => x.TopParentIds.Length == 0))
+            .Returns(items);
+
+        //Act
+        await _sut.Run(new Progress<double>(), CancellationToken.None);
+
+        //Assert
+        foreach (var postScanTask in _postScanTasks)
+        {
+            foreach (var item in items)
+            {
+                await postScanTask
+                    .Received(1)
+                    .RunAsync(item, Arg.Any<CancellationToken>());
+            }
+        }
+    }
+
+    [Fact]
+    public async Task SearchesAllItemsInRootPath_WhenLibraryPathIsEmpty_GivenEmptyLibraryPathInConfig()
+    {
+        //Arrange
+        var items = Enumerable.Range(0, Random.Shared.Next(1, 10))
+            .Select(_ => SeriesFaker.Generate())
+            .ToList<BaseItem>();
+
+        _config.LibraryPath = string.Empty;
+        
+        _libraryManager
+            .GetItemList(Arg.Is<InternalItemsQuery>(x => x.TopParentIds.Length == 0))
             .Returns(items);
 
         //Act

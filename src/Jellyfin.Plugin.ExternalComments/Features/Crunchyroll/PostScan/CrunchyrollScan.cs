@@ -21,9 +21,10 @@ public class CrunchyrollScan : ILibraryPostScanTask
     private readonly ILogger<CrunchyrollScan> _logger;
     private readonly ILibraryManager _libraryManager;
     private readonly IEnumerable<IPostScanTask>? _postScanTasks;
+    private readonly PluginConfiguration _config;
 
     public CrunchyrollScan(ILogger<CrunchyrollScan> logger, ILibraryManager libraryManager, 
-        IEnumerable<IPostScanTask> postScanTasks)
+        IEnumerable<IPostScanTask> postScanTasks, PluginConfiguration? config = null)
     {
         _logger = logger;
         _libraryManager = libraryManager;
@@ -32,12 +33,26 @@ public class CrunchyrollScan : ILibraryPostScanTask
         _postScanTasks = scanTasks.Length != 0 ? 
             scanTasks : 
             ExternalCommentsPlugin.Instance!.ServiceProvider.GetServices<IPostScanTask>();
+        _config = config ?? ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
     }
 
     public async Task Run(IProgress<double> progress, CancellationToken cancellationToken)
     {
-        var allItems = _libraryManager.GetItemList(new InternalItemsQuery())
-            .Where(x => x is Series or Movie).ToList();
+        Guid? topParentId = null;
+        if (!string.IsNullOrWhiteSpace(_config.LibraryPath))
+        {
+            var result = _libraryManager.GetItemIds(new InternalItemsQuery()
+            {
+                Path = _config.LibraryPath
+            });
+
+            topParentId = result.Count != 0 ? result[0] : null;
+        }
+        
+        var allItems = _libraryManager.GetItemList(new InternalItemsQuery()
+            {                                                                                                                                                                                                                      
+                TopParentIds = topParentId.HasValue ? [topParentId.Value] : []
+            }).Where(x => x is Series or Movie).ToList();
 
         var percent = 0.0;
 

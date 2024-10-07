@@ -39,6 +39,7 @@ public class CrunchyrollScanTests
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<IItemRepository>();
         _wireMockAdminApi = wireMockFixture.AdminApiClient;
         _config = ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
+        _config.LibraryPath = "/mnt/abc";
     }
 
     [Fact]
@@ -64,7 +65,7 @@ public class CrunchyrollScanTests
         
         await _wireMockAdminApi.MockAvatarUriRequest($"{_config.ArchiveOrgUrl}/web/20240205003102im_/https://static.crunchyroll.com/assets/avatar/*");
         
-        var itemList = _libraryManager.MockCrunchyrollTitleIdScan([SeriesFaker.GenerateWithTitleId()]);
+        var itemList = _libraryManager.MockCrunchyrollTitleIdScan(_config.LibraryPath, [SeriesFaker.GenerateWithTitleId()]);
         
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();

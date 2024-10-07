@@ -41,13 +41,14 @@ public class CrunchyrollScanTests
         _config = ExternalCommentsPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
 
         _config.IsWaybackMachineEnabled = false;
+        _config.LibraryPath = "/mnt/whatever";
     }
 
     [Fact]
     public async Task SetsTitleIds_GivenCrunchyrollResponses()
     {
         //Arrange
-        var itemList = _libraryManager.MockCrunchyrollTitleIdScan();
+        var itemList = _libraryManager.MockCrunchyrollTitleIdScan(_config.LibraryPath);
         const string language = "de-DE";
         
         await _wireMockAdminApi.MockRootPageAsync();
@@ -82,7 +83,7 @@ public class CrunchyrollScanTests
             .Select(_ => SeriesFaker.GenerateWithTitleId())
             .ToList();
         
-        _libraryManager.MockCrunchyrollTitleIdScan(seriesItems);
+        _libraryManager.MockCrunchyrollTitleIdScan(_config.LibraryPath, seriesItems);
         
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
