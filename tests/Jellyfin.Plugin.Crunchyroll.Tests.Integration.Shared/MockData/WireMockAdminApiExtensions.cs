@@ -15,6 +15,8 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleM
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client.Dto;
 using MediaBrowser.Controller.Entities.TV;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Net.Http.Headers;
 using WireMock.Admin.Mappings;
 using WireMock.Client;
@@ -719,15 +721,15 @@ public static class WireMockAdminApiExtensions
     }
     
     public static async Task<CrunchyrollEpisodesResponse> MockCrunchyrollEpisodesResponse(this IWireMockAdminApi wireMockAdminApi, 
-        List<Episode> episodes, string seasonId, string language)
+        List<Episode> episodes, string seasonId, string language, string crunchyrollUrl)
     {
-        var fixture = new Fixture();
+        var faker = new Faker();
 
         var episodesResponse = new CrunchyrollEpisodesResponse
         {
             Data = episodes.Select(episode =>
             {
-                var title = new Faker().Random.Words();
+                var title = faker.Random.Words();
                 var item = new CrunchyrollEpisodeItem
                 {
                     Id = CrunchyrollIdFaker.Generate(),
@@ -735,7 +737,16 @@ public static class WireMockAdminApiExtensions
                     SlugTitle = CrunchyrollSlugFaker.Generate(title),
                     Description = new Faker().Random.Words(),
                     Episode = episode.IndexNumber!.Value.ToString(),
-                    Images = fixture.Create<CrunchyrollEpisodeImages>()
+                    Images = new CrunchyrollEpisodeImages
+                    {
+                        Thumbnail = [[new CrunchyrollEpisodeThumbnailSizes
+                        {
+                            Source = faker.Internet.UrlWithPath(Uri.UriSchemeHttp, domain: crunchyrollUrl, fileExt: "jpg"),
+                            Type = "thumbnail",
+                            Height = 0,
+                            Width = 0
+                        }]]
+                    }
                 };
                 return item;
             }).ToList()
@@ -785,6 +796,23 @@ public static class WireMockAdminApiExtensions
         return episodesResponse;
     }
     
+    public static async Task MockCrunchyrollEpisodeThumbnailResponse(this IWireMockAdminApi wireMockAdminApi, 
+        CrunchyrollEpisodeItem episode)
+    {
+        var faker = new Faker();
+        var content = faker.Random.Bytes(9999);
+        var builder = wireMockAdminApi.GetMappingBuilder();
+        builder.Given(m => m
+            .WithRequest(req => req
+                .UsingGet()
+                .WithUrl(episode.Images.Thumbnail.First().Last().Source))
+            .WithResponse(rsp => rsp
+                .WithStatusCode(HttpStatusCode.OK)
+                .WithBodyAsBytes(content)));
+
+        await builder.BuildAndPostAsync();
+    }
+    
     public static async Task<CrunchyrollSeriesContentItem> MockCrunchyrollSeriesResponse(this IWireMockAdminApi wireMockAdminApi, 
         Series series, string language, string mockedCrunchyrollUrl)
     {
@@ -806,26 +834,26 @@ public static class WireMockAdminApiExtensions
             {
                 PosterTall = [[new CrunchyrollSeriesImage
                 {
-                    Source = faker.Internet.UrlWithPath(domain: crunchyrollUrl, fileExt: "jpg"),
+                    Source = faker.Internet.UrlWithPath(Uri.UriSchemeHttp, domain: crunchyrollUrl, fileExt: "jpg"),
                     Type = "poster_tall",
                     Height = 0,
                     Width = 0
                 },new CrunchyrollSeriesImage
                 {
-                    Source = faker.Internet.UrlWithPath(domain: crunchyrollUrl, fileExt: "jpg"),
+                    Source = faker.Internet.UrlWithPath(Uri.UriSchemeHttp, domain: crunchyrollUrl, fileExt: "jpg"),
                     Type = "poster_tall",
                     Height = 0,
                     Width = 0
                 }]],
                 PosterWide = [[new CrunchyrollSeriesImage
                 {
-                    Source = faker.Internet.UrlWithPath(domain: crunchyrollUrl, fileExt: "jpg"),
+                    Source = faker.Internet.UrlWithPath(Uri.UriSchemeHttp, domain: crunchyrollUrl, fileExt: "jpg"),
                     Type = "poster_wide",
                     Height = 0,
                     Width = 0
                 },new CrunchyrollSeriesImage
                 {
-                    Source = faker.Internet.UrlWithPath(domain: crunchyrollUrl, fileExt: "jpg"),
+                    Source = faker.Internet.UrlWithPath(Uri.UriSchemeHttp, domain: crunchyrollUrl, fileExt: "jpg"),
                     Type = "poster_wide",
                     Height = 0,
                     Width = 0

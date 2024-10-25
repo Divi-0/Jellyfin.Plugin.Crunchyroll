@@ -1,5 +1,6 @@
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinDataTask;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -13,7 +14,7 @@ using RichardSzalay.MockHttp;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
 
-public class PluginWebApplicationFactory : WebApplicationFactory<Program>
+public class PluginWebApplicationFactory : WebApplicationFactory<Program>, IDisposable
 {
     public static PluginWebApplicationFactory Instance { get; private set; } = null!;
     public static MockHttpMessageHandler CrunchyrollHttpMessageHandlerMock { get; private set; } = null!;
@@ -25,7 +26,38 @@ public class PluginWebApplicationFactory : WebApplicationFactory<Program>
         var mockHttpMessageHandler = new MockHttpMessageHandler();
         CrunchyrollHttpMessageHandlerMock = mockHttpMessageHandler;
     }
-    
+
+    protected override void Dispose(bool disposing)
+    {
+        var thumbnailDirPath = Path.Combine(
+            Path.GetDirectoryName(typeof(OverwriteEpisodeJellyfinDataTask).Assembly.Location)!, 
+            "episode-thumbnails");        
+        
+        var seriesImagesDirPath = Path.Combine(
+            Path.GetDirectoryName(typeof(SetSeriesImagesTask).Assembly.Location)!, 
+            "series-images");
+        
+        try
+        {
+            Directory.Delete(thumbnailDirPath, true);
+        }
+        catch
+        {
+            // ignored
+        }        
+        
+        try
+        {
+            Directory.Delete(seriesImagesDirPath, true);
+        }
+        catch
+        {
+            // ignored
+        }
+
+        base.Dispose(disposing);
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>

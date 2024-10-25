@@ -1,3 +1,4 @@
+using System.Linq;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
 
@@ -14,6 +15,7 @@ public static class CrunchyrollEpisodeItemExtensions
             SlugTitle = item.SlugTitle,
             Description = item.Description,
             EpisodeNumber = item.Episode,
+            ThumbnailUrl = item.Images.Thumbnail.First().Last().Source
         };
     }
 }

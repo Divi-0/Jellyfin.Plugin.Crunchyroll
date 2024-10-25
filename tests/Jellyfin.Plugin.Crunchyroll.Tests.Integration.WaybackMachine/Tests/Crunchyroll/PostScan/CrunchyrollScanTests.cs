@@ -83,7 +83,8 @@ public class CrunchyrollScanTests
             {
                 var season = seasons.First(x => x.IndexNumber!.Value == seasonResponse.SeasonNumber);
                 var episodes = _itemRepository.MockGetChildren(season, isEpisodeIdSet: true);
-                await _wireMockAdminApi.MockCrunchyrollEpisodesResponse(episodes, seasonResponse.Id, language);
+                await _wireMockAdminApi.MockCrunchyrollEpisodesResponse(episodes, seasonResponse.Id, language,
+                    $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
 
                 foreach (var episode in episodes)
                 {

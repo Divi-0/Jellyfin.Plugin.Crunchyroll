@@ -109,6 +109,12 @@ public class ScrapTitleMetadataCommandHandlerTests
         _scrapTitleMetadataSession
             .GetTitleMetadataAsync(titleId)
             .Returns(ValueTask.FromResult<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?>(null));
+
+        Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualTitleMetadata = null!;
+        await _scrapTitleMetadataSession
+            .AddOrUpdateTitleMetadata(
+                Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x =>
+                    actualTitleMetadata = x));
         
         //Act
         var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
@@ -136,18 +142,24 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Received(1)
             .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
 
-        await _scrapTitleMetadataSession
-            .Received(1)
-            .AddOrUpdateTitleMetadata(Arg.Is<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => 
-                x.TitleId == titleId &&
-                x.SlugTitle == seriesMetadataResponse.SlugTitle &&
-                x.Description == seriesMetadataResponse.Description &&
-                x.Title == seriesMetadataResponse.Title &&
-                x.Studio == seriesMetadataResponse.ContentProvider &&
-                x.PosterTallUri == seriesMetadataResponse.Images.PosterTall.First().Last().Source &&
-                x.PosterWideUri == seriesMetadataResponse.Images.PosterWide.First().Last().Source &&
-                x.Seasons.All(season => seasonsResponse.Data.Any(y => y.Id == season.Id)) &&
-                x.Seasons.All(season => season.Episodes.Any())));
+        actualTitleMetadata.Should().NotBeNull();
+        actualTitleMetadata.TitleId.Should().Be(titleId);
+        actualTitleMetadata.Title.Should().Be(seriesMetadataResponse.Title);
+        actualTitleMetadata.Description.Should().Be(seriesMetadataResponse.Description);
+        actualTitleMetadata.SlugTitle.Should().Be(seriesMetadataResponse.SlugTitle);
+        actualTitleMetadata.Studio.Should().Be(seriesMetadataResponse.ContentProvider);
+        actualTitleMetadata.PosterTallUri.Should().Be(seriesMetadataResponse.Images.PosterTall.First().Last().Source);
+        actualTitleMetadata.PosterWideUri.Should().Be(seriesMetadataResponse.Images.PosterWide.First().Last().Source);
+        actualTitleMetadata.Seasons.Should().AllSatisfy(season =>
+        {
+            seasonsResponse.Data.Should().Contain(y => y.Id == season.Id);
+            season.Episodes.Should().NotBeEmpty();
+
+            season.Episodes.Should().AllSatisfy(episode =>
+            {
+                episode.ThumbnailUrl.Should().NotBeNullOrEmpty();
+            });
+        });
     }
 
     [Fact]

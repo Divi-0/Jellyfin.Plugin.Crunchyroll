@@ -8,16 +8,20 @@ using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.GetComments;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinDataTask;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetSeasonId;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using LiteDB;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 
@@ -31,8 +35,10 @@ public sealed class CrunchyrollUnitOfWork :
     IGetSeasonSession,
     IGetEpisodeSession,
     IExtractCommentsSession,
-    IGetCommentsSession
+    IGetCommentsSession,
+    IOverwriteEpisodeJellyfinDataTaskSession
 {
+    private readonly ILogger<CrunchyrollUnitOfWork> _logger;
     private readonly string _connectionString;
     private readonly SemaphoreSlim _semaphore;
     
@@ -44,8 +50,9 @@ public sealed class CrunchyrollUnitOfWork :
 
     private readonly ResiliencePipeline _resiliencePipeline;
 
-    public CrunchyrollUnitOfWork(PluginConfiguration config)
+    public CrunchyrollUnitOfWork(PluginConfiguration config, ILogger<CrunchyrollUnitOfWork> logger)
     {
+        _logger = logger;
         _connectionString = config.LocalDatabasePath;
         _semaphore = new SemaphoreSlim(1, 1);
 
@@ -278,7 +285,7 @@ public sealed class CrunchyrollUnitOfWork :
                     .Id;
             });
 
-            return ValueTask.FromResult<string?>(seasonId);
+            return ValueTask.FromResult(seasonId);
         }
         finally
         {
@@ -414,6 +421,42 @@ public sealed class CrunchyrollUnitOfWork :
             });
 
             return ValueTask.FromResult<IReadOnlyList<CommentItem>>(comments);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public ValueTask<Result<Episode>> GetEpisodeAsync(string episodeId)
+    {
+        _semaphore.Wait();
+
+        try
+        {
+            var episode = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var titleMetaDataCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
+
+                var episode = titleMetaDataCollection
+                    .FindAll()
+                    .SelectMany(x => x.Seasons)
+                    .SelectMany(x => x.Episodes)
+                    .FirstOrDefault(x => x.Id == episodeId);
+
+                return episode;
+            });
+
+            return episode is null 
+                ? ValueTask.FromResult<Result<Episode>>(Result.Fail(Domain.Constants.ErrorCodes.ItemNotFound)) 
+                : ValueTask.FromResult<Result<Episode>>(episode);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to get episode with episodeId {EpisodeId}", episodeId);
+            return ValueTask.FromResult<Result<Episode>>(Result.Fail(Domain.Constants.ErrorCodes.Internal));
         }
         finally
         {

@@ -1,5 +1,6 @@
 ﻿using System.IO.Abstractions;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinDataTask;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
@@ -22,6 +23,8 @@ internal static class PostScanServiceExtension
         serviceCollection.AddSingleton<IPostSeasonIdSetTask, SetEpisodeIdTask>();
         
         serviceCollection.AddSingleton<IPostEpisodeIdSetTask, ExtractCommentsTask>();
+
+        serviceCollection.AddOverwriteEpisodeJellyfinDataTask();
 
         return serviceCollection;
     }

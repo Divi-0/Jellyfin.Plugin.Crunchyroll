@@ -7,4 +7,5 @@ public record Episode
     public required string SlugTitle { get; init; }
     public required string Description { get; init; }
     public required string EpisodeNumber { get; init; }
+    public required string ThumbnailUrl { get; init; }
 }

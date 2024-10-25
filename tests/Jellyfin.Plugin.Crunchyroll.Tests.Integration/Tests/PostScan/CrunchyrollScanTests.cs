@@ -5,12 +5,11 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleM
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
-using Jellyfin.Plugin.Crunchyroll;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
+using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.DependencyInjection;
-using NSubstitute;
 using WireMock.Client;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Tests.PostScan;
@@ -109,7 +108,13 @@ public class CrunchyrollScanTests
             {
                 var season = seasons.First(x => x.IndexNumber!.Value == seasonResponse.SeasonNumber);
                 var episodes = _itemRepository.MockGetChildren(season);
-                await _wireMockAdminApi.MockCrunchyrollEpisodesResponse(episodes, seasonResponse.Id, language);
+                var crunchyrollEpisodesResponse = await _wireMockAdminApi.MockCrunchyrollEpisodesResponse(episodes, 
+                    seasonResponse.Id, language, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+
+                foreach (var crunchyrollEpisode in crunchyrollEpisodesResponse.Data)
+                {
+                    await _wireMockAdminApi.MockCrunchyrollEpisodeThumbnailResponse(crunchyrollEpisode);
+                }
             }
         }
         
@@ -135,6 +140,18 @@ public class CrunchyrollScanTests
                     episode.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
                     episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId].Should().NotBeEmpty();
                     episode.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle].Should().NotBeEmpty();
+
+                    var imageInfoPrimary = episode.GetImageInfo(ImageType.Primary, 0);
+                    imageInfoPrimary.Should().NotBeNull();
+                    File.Exists(imageInfoPrimary.Path)
+                        .Should()
+                        .BeTrue("it should have saved the crunchyroll thumbnail, as primary");
+
+                    var imageInfoThumb = episode.GetImageInfo(ImageType.Thumb, 0);
+                    imageInfoThumb.Should().NotBeNull();
+                    File.Exists(imageInfoThumb.Path)
+                        .Should()
+                        .BeTrue("it should have saved the crunchyroll thumbnail, as thumb");
                 }
             }
         });

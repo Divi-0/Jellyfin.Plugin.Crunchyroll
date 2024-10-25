@@ -39,7 +39,7 @@ public class CrunchyrollExternalSlugTitle : IExternalId
     
     public ExternalIdMediaType? Type => ExternalIdMediaType.Series;
     
-    public string? UrlFormatString => null;
+    public string? UrlFormatString => string.Empty;
     
     public bool Supports(IHasProviderIds item)
     {
@@ -55,7 +55,7 @@ public class CrunchyrollExternalSeasonId : IExternalId
     
     public ExternalIdMediaType? Type => ExternalIdMediaType.Series;
     
-    public string? UrlFormatString => null;
+    public string? UrlFormatString => string.Empty;
     
     public bool Supports(IHasProviderIds item)
     {
@@ -71,7 +71,7 @@ public class CrunchyrollExternalEpisodeId : IExternalId
     
     public ExternalIdMediaType? Type => ExternalIdMediaType.Episode;
     
-    public string? UrlFormatString => null;
+    public string? UrlFormatString => string.Empty;
     
     public bool Supports(IHasProviderIds item)
     {
@@ -87,7 +87,7 @@ public class CrunchyrollExternalEpisodeSlugTitle : IExternalId
     
     public ExternalIdMediaType? Type => ExternalIdMediaType.Episode;
     
-    public string? UrlFormatString => null;
+    public string? UrlFormatString => string.Empty;
     
     public bool Supports(IHasProviderIds item)
     {
