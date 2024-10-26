@@ -13,7 +13,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.GetComments;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinDataTask;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;

@@ -1,6 +1,7 @@
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinDataTask;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeriesJellyfinData;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -34,7 +35,7 @@ public class PluginWebApplicationFactory : WebApplicationFactory<Program>, IDisp
             "episode-thumbnails");        
         
         var seriesImagesDirPath = Path.Combine(
-            Path.GetDirectoryName(typeof(SetSeriesImagesTask).Assembly.Location)!, 
+            Path.GetDirectoryName(typeof(OverwriteSeriesJellyfinDataTask).Assembly.Location)!, 
             "series-images");
         
         try

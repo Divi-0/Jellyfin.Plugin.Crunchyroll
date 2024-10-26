@@ -1,9 +1,9 @@
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinDataTask;
+namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
 
-public static class OverwriteEpisodeJellyfinDataTaskServiceExtension
+internal static class OverwriteEpisodeJellyfinDataTaskServiceExtension
 {
     internal static IServiceCollection AddOverwriteEpisodeJellyfinDataTask(this IServiceCollection serviceCollection)
     {

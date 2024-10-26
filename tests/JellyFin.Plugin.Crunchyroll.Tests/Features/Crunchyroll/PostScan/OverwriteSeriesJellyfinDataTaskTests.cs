@@ -5,9 +5,11 @@ using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeriesJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
@@ -15,21 +17,21 @@ using NSubstitute.ExceptionExtensions;
 
 namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
 
-public class SetSeriesImagesTaskTests
+public class OverwriteSeriesJellyfinDataTaskTests
 {
-    private readonly SetSeriesImagesTask _sut;
+    private readonly OverwriteSeriesJellyfinDataTask _sut;
 
     private readonly ILibraryManager _libraryManager;
     private readonly IGetTitleMetadata _getTitleMetadata;
     private readonly MockFileSystem _fileSystem;
     private readonly ICrunchyrollSeriesClient _crunchyrollSeriesClient;
-    private readonly ILogger<SetSeriesImagesTask> _logger;
+    private readonly ILogger<OverwriteSeriesJellyfinDataTask> _logger;
     
     private readonly Faker _faker;
 
     private readonly string _directory;
 
-    public SetSeriesImagesTaskTests()
+    public OverwriteSeriesJellyfinDataTaskTests()
     {
         _faker = new Faker();
         
@@ -37,11 +39,11 @@ public class SetSeriesImagesTaskTests
         _getTitleMetadata = Substitute.For<IGetTitleMetadata>();
         _crunchyrollSeriesClient = Substitute.For<ICrunchyrollSeriesClient>();
         _fileSystem = new MockFileSystem();
-        _logger = Substitute.For<ILogger<SetSeriesImagesTask>>();
+        _logger = Substitute.For<ILogger<OverwriteSeriesJellyfinDataTask>>();
         
-        _directory = Path.Combine(Path.GetDirectoryName(typeof(SetSeriesImagesTask).Assembly.Location)!, "series-images");
+        _directory = Path.Combine(Path.GetDirectoryName(typeof(OverwriteSeriesJellyfinDataTask).Assembly.Location)!, "series-images");
 
-        _sut = new SetSeriesImagesTask(_libraryManager, _getTitleMetadata, _fileSystem.File, _crunchyrollSeriesClient,
+        _sut = new OverwriteSeriesJellyfinDataTask(_libraryManager, _getTitleMetadata, _fileSystem.File, _crunchyrollSeriesClient,
             _logger, _fileSystem.Directory);
     }
 
@@ -55,12 +57,16 @@ public class SetSeriesImagesTaskTests
         {
             TitleId = string.Empty,
             SlugTitle = string.Empty,
-            Description = string.Empty,
-            Title = string.Empty,
-            Studio = string.Empty,
+            Description = _faker.Lorem.Sentences(),
+            Title = _faker.Random.Words(),
+            Studio = _faker.Random.Words(),
             PosterTallUri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
             PosterWideUri = _faker.Internet.UrlWithPath(fileExt: "jpg")
         };
+
+        _libraryManager
+            .GetItemById(series.ParentId)
+            .Returns((BaseItem?)null);
         
         _getTitleMetadata
             .GetTitleMetadataAsync(Arg.Any<string>())
@@ -80,6 +86,10 @@ public class SetSeriesImagesTaskTests
         await _sut.RunAsync(series, CancellationToken.None);
         
         //Assert
+        series.Name.Should().Be(titleMetadata.Title);
+        series.Overview.Should().Be(titleMetadata.Description);
+        series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        
         await _getTitleMetadata
             .Received(1)
             .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.Id]);
@@ -102,7 +112,7 @@ public class SetSeriesImagesTaskTests
         
         await _libraryManager
             .Received(1)
-            .UpdateImagesAsync(series, forceUpdate: true);
+            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
         
         series.ImageInfos.Should().Contain(x => 
             x.Path == posterTallFilePath &&
@@ -118,6 +128,10 @@ public class SetSeriesImagesTaskTests
     {
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
+        
+        _libraryManager
+            .GetItemById(series.ParentId)
+            .Returns((BaseItem?)null);
         
         _getTitleMetadata
             .GetTitleMetadataAsync(Arg.Any<string>())
@@ -139,7 +153,7 @@ public class SetSeriesImagesTaskTests
         
         await _libraryManager
             .DidNotReceive()
-            .UpdateImagesAsync(series, forceUpdate: true);
+            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
     }
     
     [Fact]
@@ -147,6 +161,10 @@ public class SetSeriesImagesTaskTests
     {
         //Arrange
         var series = SeriesFaker.Generate();
+        
+        _libraryManager
+            .GetItemById(series.ParentId)
+            .Returns((BaseItem?)null);
         
         //Act
         await _sut.RunAsync(series, CancellationToken.None);
@@ -164,7 +182,7 @@ public class SetSeriesImagesTaskTests
         
         await _libraryManager
             .DidNotReceive()
-            .UpdateImagesAsync(series, forceUpdate: true);
+            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -172,14 +190,18 @@ public class SetSeriesImagesTaskTests
     {
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
+        
+        _libraryManager
+            .GetItemById(series.ParentId)
+            .Returns((BaseItem?)null);
 
         var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
         {
             TitleId = string.Empty,
             SlugTitle = string.Empty,
-            Description = string.Empty,
-            Title = string.Empty,
-            Studio = string.Empty,
+            Description = _faker.Lorem.Sentences(),
+            Title = _faker.Random.Words(),
+            Studio = _faker.Random.Words(),
             PosterTallUri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
             PosterWideUri = _faker.Internet.UrlWithPath(fileExt: "jpg")
         };
@@ -201,6 +223,10 @@ public class SetSeriesImagesTaskTests
         await _sut.RunAsync(series, CancellationToken.None);
         
         //Assert
+        series.Name.Should().Be(titleMetadata.Title);
+        series.Overview.Should().Be(titleMetadata.Description);
+        series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        
         await _getTitleMetadata
             .Received(1)
             .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.Id]);
@@ -221,7 +247,7 @@ public class SetSeriesImagesTaskTests
         
         await _libraryManager
             .Received(1)
-            .UpdateImagesAsync(series, forceUpdate: true);
+            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
         
         series.ImageInfos.Should().NotContain(x => 
             x.Path == posterTallFilePath &&
@@ -233,18 +259,22 @@ public class SetSeriesImagesTaskTests
     }
 
     [Fact]
-    public async Task DoesNotUpdateJellyfinItem_WhenBothGetPosterImageFails_GivenSeriesWithTitleId()
+    public async Task OnlyUpdatesMetadata_WhenBothGetPosterImageFails_GivenSeriesWithTitleId()
     {
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
+        
+        _libraryManager
+            .GetItemById(series.ParentId)
+            .Returns((BaseItem?)null);
 
         var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
         {
             TitleId = string.Empty,
             SlugTitle = string.Empty,
-            Description = string.Empty,
-            Title = string.Empty,
-            Studio = string.Empty,
+            Description = _faker.Lorem.Sentences(),
+            Title = _faker.Random.Words(),
+            Studio = _faker.Random.Words(),
             PosterTallUri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
             PosterWideUri = _faker.Internet.UrlWithPath(fileExt: "jpg")
         };
@@ -265,6 +295,10 @@ public class SetSeriesImagesTaskTests
         await _sut.RunAsync(series, CancellationToken.None);
         
         //Assert
+        series.Name.Should().Be(titleMetadata.Title);
+        series.Overview.Should().Be(titleMetadata.Description);
+        series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        
         await _getTitleMetadata
             .Received(1)
             .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.Id]);
@@ -284,8 +318,8 @@ public class SetSeriesImagesTaskTests
         _fileSystem.AllFiles.Should().NotContain(posterWideFilePath);
         
         await _libraryManager
-            .DidNotReceive()
-            .UpdateImagesAsync(series, forceUpdate: true);
+            .Received(1)
+            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
         
         series.ImageInfos.Should().NotContain(x => 
             x.Path == posterTallFilePath &&
@@ -303,14 +337,18 @@ public class SetSeriesImagesTaskTests
     {
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
-
+        
+        _libraryManager
+            .GetItemById(series.ParentId)
+            .Returns((BaseItem?)null);
+        
         var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
         {
             TitleId = string.Empty,
             SlugTitle = string.Empty,
-            Description = string.Empty,
-            Title = string.Empty,
-            Studio = string.Empty,
+            Description = _faker.Lorem.Sentences(),
+            Title = _faker.Random.Words(),
+            Studio = _faker.Random.Words(),
             PosterTallUri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
             PosterWideUri = _faker.Internet.UrlWithPath(fileExt: "jpg")
         };
@@ -334,13 +372,17 @@ public class SetSeriesImagesTaskTests
             .Create(Arg.Any<string>())
             .Throws(new Exception());
         
-        var sut = new SetSeriesImagesTask(_libraryManager, _getTitleMetadata, file, _crunchyrollSeriesClient,
+        var sut = new OverwriteSeriesJellyfinDataTask(_libraryManager, _getTitleMetadata, file, _crunchyrollSeriesClient,
             _logger, _fileSystem.Directory);
         
         //Act
         await sut.RunAsync(series, CancellationToken.None);
         
         //Assert
+        series.Name.Should().Be(titleMetadata.Title);
+        series.Overview.Should().Be(titleMetadata.Description);
+        series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        
         await _getTitleMetadata
             .Received(1)
             .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.Id]);
@@ -359,10 +401,6 @@ public class SetSeriesImagesTaskTests
         _fileSystem.AllFiles.Should().NotContain(posterTallFilePath);
         _fileSystem.AllFiles.Should().NotContain(posterTallFilePath);
         
-        await _libraryManager
-            .DidNotReceive()
-            .UpdateImagesAsync(series, forceUpdate: true);
-        
         series.ImageInfos.Should().NotContain(x => 
             x.Path == posterTallFilePath &&
             x.Type == ImageType.Primary);
@@ -370,5 +408,9 @@ public class SetSeriesImagesTaskTests
         series.ImageInfos.Should().NotContain(x => 
             x.Path == posterWideFilePath &&
             x.Type == ImageType.Backdrop);
+        
+        await _libraryManager
+            .Received(1)
+            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
     }
 }

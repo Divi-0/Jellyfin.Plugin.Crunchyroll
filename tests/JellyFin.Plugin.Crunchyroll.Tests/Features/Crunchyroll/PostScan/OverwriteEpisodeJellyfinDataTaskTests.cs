@@ -4,7 +4,7 @@ using System.Net;
 using Bogus;
 using FluentAssertions;
 using FluentResults;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinDataTask;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;

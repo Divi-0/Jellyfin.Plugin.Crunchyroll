@@ -12,19 +12,19 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
+namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeriesJellyfinData;
 
-public class SetSeriesImagesTask : IPostTitleIdSetTask
+public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
 {
     private readonly ILibraryManager _libraryManager;
     private readonly IGetTitleMetadata _getTitleMetadata;
     private readonly IFile _file;
     private readonly ICrunchyrollSeriesClient _crunchyrollSeriesClient;
-    private readonly ILogger<SetSeriesImagesTask> _logger;
+    private readonly ILogger<OverwriteSeriesJellyfinDataTask> _logger;
     private readonly IDirectory _directory;
 
-    public SetSeriesImagesTask(ILibraryManager libraryManager, IGetTitleMetadata getTitleMetadata,
-        IFile file, ICrunchyrollSeriesClient crunchyrollSeriesClient, ILogger<SetSeriesImagesTask> logger,
+    public OverwriteSeriesJellyfinDataTask(ILibraryManager libraryManager, IGetTitleMetadata getTitleMetadata,
+        IFile file, ICrunchyrollSeriesClient crunchyrollSeriesClient, ILogger<OverwriteSeriesJellyfinDataTask> logger,
         IDirectory directory)
     {
         _libraryManager = libraryManager;
@@ -53,13 +53,15 @@ public class SetSeriesImagesTask : IPostTitleIdSetTask
             return;
         }
 
-        var posterTallResult = await GetAndAddImage(seriesItem, titleMetadata.PosterTallUri, ImageType.Primary, cancellationToken);
-        var posterWideResult = await GetAndAddImage(seriesItem, titleMetadata.PosterWideUri, ImageType.Backdrop, cancellationToken);
+        _ = await GetAndAddImage(seriesItem, titleMetadata.PosterTallUri, ImageType.Primary, cancellationToken);
+        _ = await GetAndAddImage(seriesItem, titleMetadata.PosterWideUri, ImageType.Backdrop, cancellationToken);
+        
+        seriesItem.Name = titleMetadata.Title;
+        seriesItem.Overview = titleMetadata.Description;
+        seriesItem.SetStudios([titleMetadata.Studio]);
 
-        if (posterTallResult.IsSuccess || posterWideResult.IsSuccess)
-        {
-            await _libraryManager.UpdateImagesAsync(seriesItem, forceUpdate: true);
-        }
+        await _libraryManager
+            .UpdateItemAsync(seriesItem, seriesItem.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
     }
 
     private async Task<Result> GetAndAddImage(BaseItem series, string uri, ImageType imageType, CancellationToken cancellationToken)
@@ -72,7 +74,7 @@ public class SetSeriesImagesTask : IPostTitleIdSetTask
         }
 
         var directory = Path.Combine(
-            Path.GetDirectoryName(typeof(SetSeriesImagesTask).Assembly.Location)!,
+            Path.GetDirectoryName(typeof(OverwriteSeriesJellyfinDataTask).Assembly.Location)!,
             "series-images");
         
         var filePath = Path.Combine(directory, Path.GetFileName(uri));

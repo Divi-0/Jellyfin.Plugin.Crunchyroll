@@ -129,6 +129,16 @@ public class CrunchyrollScanTests
                 series.ProviderIds[CrunchyrollExternalKeys.Id],
                 seriesResponses[series]);
             
+            series.Name.Should().Be(seriesResponses[series].Title);
+            series.Overview.Should().Be(seriesResponses[series].Description);
+            series.Studios.Should().BeEquivalentTo([seriesResponses[series].ContentProvider]);
+            
+            var seriesimageInfoPrimary = series.GetImageInfo(ImageType.Primary, 0);
+            seriesimageInfoPrimary.Should().NotBeNull();
+            File.Exists(seriesimageInfoPrimary.Path)
+                .Should()
+                .BeTrue("it should have saved the crunchyroll title poster image");
+            
             foreach (var season in series.Children)
             {
                 season.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeasonId);
