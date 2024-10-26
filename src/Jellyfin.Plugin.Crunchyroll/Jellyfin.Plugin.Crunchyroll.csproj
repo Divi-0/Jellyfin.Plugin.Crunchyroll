@@ -5,6 +5,8 @@
         <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <Nullable>enable</Nullable>
+        <Configurations>Debug;Release;Debug-Copy</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
     <ItemGroup>
@@ -77,7 +79,7 @@
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="xcopy /y &quot;$(TargetDir)*.*&quot; &quot;%localAppData%\jellyfin\plugins\CrunchyrollPlugin&quot;" />
+      <Exec Command="if $(ConfigurationName) == Debug-Copy (&#xA;    xcopy /y &quot;$(TargetDir)*.*&quot; &quot;%localAppData%\jellyfin\plugins\CrunchyrollPlugin&quot;&#xA;)" />
     </Target>
 
     <Target Name="CopyXMLFromPackagesForBuild" AfterTargets="Build">
