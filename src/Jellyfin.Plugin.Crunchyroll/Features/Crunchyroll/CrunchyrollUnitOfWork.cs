@@ -14,6 +14,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.GetComments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeasonJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
@@ -36,7 +37,8 @@ public sealed class CrunchyrollUnitOfWork :
     IGetEpisodeSession,
     IExtractCommentsSession,
     IGetCommentsSession,
-    IOverwriteEpisodeJellyfinDataTaskSession
+    IOverwriteEpisodeJellyfinDataTaskSession,
+    IOverwriteSeasonJellyfinDataSession
 {
     private readonly ILogger<CrunchyrollUnitOfWork> _logger;
     private readonly string _connectionString;
@@ -457,6 +459,41 @@ public sealed class CrunchyrollUnitOfWork :
         {
             _logger.LogError(e, "Failed to get episode with episodeId {EpisodeId}", episodeId);
             return ValueTask.FromResult<Result<Episode>>(Result.Fail(Domain.Constants.ErrorCodes.Internal));
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public ValueTask<Result<Season>> GetSeasonAsync(string seasonId)
+    {
+        _semaphore.Wait();
+
+        try
+        {
+            var season = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var titleMetaDataCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
+
+                var episode = titleMetaDataCollection
+                    .FindAll()
+                    .SelectMany(x => x.Seasons)
+                    .FirstOrDefault(x => x.Id == seasonId);
+
+                return episode;
+            });
+
+            return season is null 
+                ? ValueTask.FromResult<Result<Season>>(Result.Fail(Domain.Constants.ErrorCodes.ItemNotFound)) 
+                : ValueTask.FromResult<Result<Season>>(season);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to get season with seasonId {SeasonId}", seasonId);
+            return ValueTask.FromResult<Result<Season>>(Result.Fail(Domain.Constants.ErrorCodes.Internal));
         }
         finally
         {

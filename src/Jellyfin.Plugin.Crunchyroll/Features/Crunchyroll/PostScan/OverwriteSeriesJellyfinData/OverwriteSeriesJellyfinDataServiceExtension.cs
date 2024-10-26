@@ -5,7 +5,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSer
 
 internal static class OverwriteSeriesJellyfinDataServiceExtension
 {
-    internal static IServiceCollection AddOverwriteSeriesJellyfinDataTask(this IServiceCollection serviceCollection)
+    internal static IServiceCollection AddOverwriteSeriesJellyfinData(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddScoped<IPostTitleIdSetTask, OverwriteSeriesJellyfinDataTask>();
         

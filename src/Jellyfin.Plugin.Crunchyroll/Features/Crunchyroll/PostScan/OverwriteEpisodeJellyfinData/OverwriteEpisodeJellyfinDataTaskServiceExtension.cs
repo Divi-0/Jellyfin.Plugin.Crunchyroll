@@ -5,7 +5,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpi
 
 internal static class OverwriteEpisodeJellyfinDataTaskServiceExtension
 {
-    internal static IServiceCollection AddOverwriteEpisodeJellyfinDataTask(this IServiceCollection serviceCollection)
+    internal static IServiceCollection AddOverwriteEpisodeJellyfinData(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddSingleton<IPostEpisodeIdSetTask, OverwriteEpisodeJellyfinDataTask>();
         serviceCollection.AddSingleton<IOverwriteEpisodeJellyfinDataTaskSession, CrunchyrollUnitOfWork>();
