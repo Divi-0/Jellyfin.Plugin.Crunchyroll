@@ -14,6 +14,14 @@ public static class MockHttpResponse
 
         return mockedRequest;
     }
+    public static MockedRequest MockWaybackMachineUrlHtmlReviewsResponseInvalidDate(this MockHttpMessageHandler mockHttpMessageHandler, string url)
+    {
+        var mockedRequest = mockHttpMessageHandler
+            .When(url)
+            .Respond("text/html", Properties.Resources.WaybackHtmlCrunchyrollReviews.Replace("26 März 2024", "Abc"));
+
+        return mockedRequest;
+    }
     
     public static MockedRequest MockWaybackMachineUrlHtmlReviewsResponseFails(this MockHttpMessageHandler mockHttpMessageHandler, string url,
         HttpStatusCode statusCode)

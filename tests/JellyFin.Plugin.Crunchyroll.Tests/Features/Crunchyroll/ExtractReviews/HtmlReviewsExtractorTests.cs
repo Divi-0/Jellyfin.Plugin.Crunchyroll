@@ -1,6 +1,7 @@
 using System.Net;
 using AutoFixture;
 using FluentAssertions;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
 using JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ExtractReviews.MockHelper;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,7 @@ public class HtmlReviewsExtractorTests
     
     private readonly HtmlReviewsExtractor _sut;
     private readonly MockHttpMessageHandler _mockHttpMessageHandler;
+    private readonly PluginConfiguration _config;
     
     public HtmlReviewsExtractorTests()
     {
@@ -21,7 +23,8 @@ public class HtmlReviewsExtractorTests
         
         _mockHttpMessageHandler = new MockHttpMessageHandler();
         var logger = Substitute.For<ILogger<HtmlReviewsExtractor>>();
-        _sut = new HtmlReviewsExtractor(_mockHttpMessageHandler.ToHttpClient(), logger);
+        _config = new PluginConfiguration();
+        _sut = new HtmlReviewsExtractor(_mockHttpMessageHandler.ToHttpClient(), logger, _config);
     }
 
     [Fact]
@@ -92,6 +95,29 @@ public class HtmlReviewsExtractorTests
         //Assert
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().Contain(x => x.Message == ExtractReviewsErrorCodes.HtmlExtractorInvalidCrunchyrollReviewsPage);
+
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
+    }
+
+    [Fact]
+    public async Task ReturnsEmptyCreatedAt_WhenDateCanNotBeParsed_GivenUrl()
+    {
+        //Arrange
+        var url = _fixture.Create<Uri>().AbsoluteUri;
+
+        var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlReviewsResponseInvalidDate(url);
+        
+        //Act
+        var result = await _sut.GetReviewsAsync(url, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNullOrEmpty();
+        result.Value.Should().Contain(x => 
+            x.CreatedAt.Day == 1 && 
+            x.CreatedAt.Month == 1 && 
+            x.CreatedAt.Year == 0001, 
+            "a date cannot be parsed");
 
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -7,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using HtmlAgilityPack;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
 using Microsoft.Extensions.Logging;
 
@@ -16,11 +18,14 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReview
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<HtmlReviewsExtractor> _logger;
+        private readonly PluginConfiguration _config;
 
-        public HtmlReviewsExtractor(HttpClient httpClient, ILogger<HtmlReviewsExtractor> logger)
+        public HtmlReviewsExtractor(HttpClient httpClient, ILogger<HtmlReviewsExtractor> logger, 
+            PluginConfiguration config)
         {
             _httpClient = httpClient;
             _logger = logger;
+            _config = config;
         }
     
         public async Task<Result<IReadOnlyList<ReviewItem>>> GetReviewsAsync(string url, CancellationToken cancellationToken = default)
@@ -79,6 +84,8 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReview
             
                 var votingNumbers = DigitsRegex().Matches(votingContent);
 
+                var createdAt = TryParseDate(createdAtString);
+                
                 var item = new ReviewItem()
                 {
                     Author = new ReviewItemAuthor()
@@ -95,13 +102,19 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReview
                         Dislikes = Convert.ToInt32(votingNumbers[1].Value) - Convert.ToInt32(votingNumbers[0].Value),
                         Total = Convert.ToInt32(votingNumbers[1].Value)
                     },
-                    CreatedAt = DateTime.Parse(createdAtString)
+                    CreatedAt = createdAt
                 };
             
                 reviewItems.Add(item);
             }
         
             return reviewItems;
+        }
+
+        private DateTime TryParseDate(string dateString)
+        {
+            var hasParsed = DateTime.TryParse(dateString, new CultureInfo(_config.CrunchyrollLanguage), out var date);
+            return hasParsed ? date : default;
         }
 
         [GeneratedRegex(@"\d+")]
