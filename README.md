@@ -16,8 +16,8 @@ if $(ConfigurationName) == Debug-Copy (
 
 ## Installation
 1. In the Jellyfin Dashboard select the `Plugins -> Repositories` Tab and add the manifest `https://raw.githubusercontent.com/Divi-0/Jellyfin.Plugin.Crunchyroll/refs/heads/main/manifest.json`
-2. Go to the `Catalog` and install `"CrunchyrollPlugin"`
+2. Go to the `Catalog` and install `"Crunchyroll"`
 3. The Requests to the Crunchyroll API need to bypass a bot detection. Install FlareSolverr via https://github.com/FlareSolverr/FlareSolverr?tab=readme-ov-file#installation
-4. Go to the configuration page of the "CrunchyrollPlugin" plugin ``Plugins -> My Plugins -> CrunchyrollPlugin``
+4. Go to the configuration page of the "CrunchyrollPlugin" plugin ``Plugins -> My Plugins -> Crunchyroll``
 5. Enter the FlareSolverr URL (Example: `http://localhost:1234`)
 6. Optional but recommended: Enter the path with your anime collection you want to scan (Example: `/mnt/Anime`)

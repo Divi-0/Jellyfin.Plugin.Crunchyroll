@@ -20,7 +20,7 @@ public class CrunchyrollPlugin : MediaBrowser.Common.Plugins.BasePlugin<PluginCo
     private readonly ILibraryManager _libraryManager;
     private readonly Action<IServiceCollection>? _serviceCollectionOptions;
 
-    public override string Name => "CrunchyrollPlugin";
+    public override string Name => "Crunchyroll";
     public override Guid Id => Guid.Parse("c6f8461a-9a6f-4c65-8bb9-825866cabc91");
     public IServiceProvider ServiceProvider { get; private set; } = null!;
     public static CrunchyrollPlugin? Instance { get; private set; }
