@@ -76,3 +76,4 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git commit manifest.json -m "Added version ${{ inputs.version}} to manifest.json"
+          git push
