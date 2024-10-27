@@ -78,10 +78,6 @@
       <EmbeddedResource Include="Configuration\configPage.html" />
     </ItemGroup>
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="if $(ConfigurationName) == Debug-Copy (&#xA;    xcopy /y &quot;$(TargetDir)*.*&quot; &quot;%localAppData%\jellyfin\plugins\CrunchyrollPlugin&quot;&#xA;)" />
-    </Target>
-
     <Target Name="CopyXMLFromPackagesForBuild" AfterTargets="Build">
         <ItemGroup>
             <PackageReferenceFiles Condition="%(PackageReference.IncludeAssets) != 'compile'" Include="$(NugetPackageRoot)$([MSBuild]::Escape('%(PackageReference.Identity)').ToLower())/%(PackageReference.Version)/lib/$(TargetFramework)/*.dll" />
