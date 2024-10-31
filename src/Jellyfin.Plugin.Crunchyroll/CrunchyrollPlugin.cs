@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine;
@@ -59,7 +59,7 @@ public class CrunchyrollPlugin : MediaBrowser.Common.Plugins.BasePlugin<PluginCo
 
     private void InjectClientSideScriptIntoIndexFile(IApplicationPaths applicationPaths)
     {
-        const string scriptHtmlElement = "<script src=\"/api/Crunchyroll/Script\"></script>";
+        const string scriptHtmlElement = $"<script src=\"/{Routes.Root}/Script\"></script>";
         
         var indexFilePath = Path.Combine(applicationPaths.WebPath, "index.html");
         string indexFileContent;
