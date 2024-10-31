@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Web;
 using AutoFixture;
 using FluentAssertions;
 using FluentResults;
@@ -101,11 +102,11 @@ public class ExtractReviewsCommandTests
 
         //Assert
         result.IsSuccess.Should().BeTrue();
-
+        
         await _waybackMachineClient
             .Received(1)
             .SearchAsync(
-                Arg.Any<string>(),
+                Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/{new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName}/"))),
                 Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
                 Arg.Any<CancellationToken>());
         
@@ -116,6 +117,45 @@ public class ExtractReviewsCommandTests
         await _addReviewsSession
             .Received(1)
             .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>());
+    }
+    
+    [Fact]
+    public async Task CrunchyrollUrlIsWithoutLanguagePath_WhenTwoLetterIsoLanguageNameEn_GivenTitleIdAndSlugTitle()
+    {
+        //Arrange
+        var titleId = _fixture.Create<string>();
+        var slugTitle = _fixture.Create<string>();
+
+        _config.CrunchyrollLanguage = "en-US";
+        
+        _getReviewsSession
+            .GetReviewsForTitleIdAsync(titleId)
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+
+        _waybackMachineClient.SearchAsync(
+                Arg.Any<string>(),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
+                Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Fail<IReadOnlyList<SearchResponse>>("error")));
+        
+        //Act
+        var command = new ExtractReviewsCommand()
+        {
+            TitleId = titleId,
+            SlugTitle = slugTitle
+        };
+
+        _ = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        //just check if the crunchyroll url has not "en" in path
+        
+        await _waybackMachineClient
+            .Received(1)
+            .SearchAsync(
+                Arg.Is<string>(x => !x.Contains(HttpUtility.UrlEncode("/en/"))),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
+                Arg.Any<CancellationToken>());
     }
 
     [Fact]

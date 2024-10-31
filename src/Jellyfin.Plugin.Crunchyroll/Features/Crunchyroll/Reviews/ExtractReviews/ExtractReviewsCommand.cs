@@ -64,9 +64,10 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
             return Result.Fail(ExtractReviewsErrorCodes.TitleAlreadyHasReviews);
         }
         
+        var twoLetterIsoLanguageName = new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName;
         var crunchyrollUrl = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
-            new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
+                twoLetterIsoLanguageName == "en" ? string.Empty : twoLetterIsoLanguageName,
             "series",
             request.TitleId,
             request.SlugTitle)

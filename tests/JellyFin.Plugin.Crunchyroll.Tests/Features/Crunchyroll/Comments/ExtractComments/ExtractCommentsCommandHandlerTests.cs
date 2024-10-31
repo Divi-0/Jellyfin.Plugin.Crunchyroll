@@ -22,6 +22,7 @@ public class ExtractCommentsCommandHandlerTests
     private readonly IExtractCommentsSession _commentsSession;
     private readonly IWaybackMachineClient _waybackMachineClient;
     private readonly IAvatarClient _avatarClient;
+    private readonly PluginConfiguration _config;
     
     private readonly Fixture _fixture;
     
@@ -31,12 +32,12 @@ public class ExtractCommentsCommandHandlerTests
         
         _htmlCommentsExtractor = Substitute.For<IHtmlCommentsExtractor>();
         _commentsSession = Substitute.For<IExtractCommentsSession>();
-        var configuration = new PluginConfiguration();
+        _config = new PluginConfiguration();
         _waybackMachineClient = Substitute.For<IWaybackMachineClient>();
         _avatarClient = Substitute.For<IAvatarClient>();
         var logger = Substitute.For<ILogger<ExtractCommentsCommandHandler>>();
 
-        _sut = new ExtractCommentsCommandHandler(_htmlCommentsExtractor, _commentsSession, configuration, 
+        _sut = new ExtractCommentsCommandHandler(_htmlCommentsExtractor, _commentsSession, _config, 
             _waybackMachineClient, _avatarClient, logger);
     }
 
@@ -88,13 +89,13 @@ public class ExtractCommentsCommandHandlerTests
 
         await _waybackMachineClient
             .Received(1)
-            .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/watch/{episodeId}/{episodeSlugTitle}"))),
+            .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"de/watch/{episodeId}/{episodeSlugTitle}"))),
                 new DateTime(2024, 07, 10),
                 Arg.Any<CancellationToken>());
         
         await _htmlCommentsExtractor
             .Received(1)
-            .GetCommentsAsync(Arg.Is<string>(x => x.Contains($"/watch/{episodeId}/{episodeSlugTitle}")), 
+            .GetCommentsAsync(Arg.Is<string>(x => x.Contains($"de/watch/{episodeId}/{episodeSlugTitle}")), 
                 Arg.Any<CancellationToken>());
 
         await _commentsSession
@@ -114,6 +115,38 @@ public class ExtractCommentsCommandHandlerTests
                 .Received()
                 .AddAvatarImageAsync(comment.AvatarIconUri!, Arg.Any<MemoryStream>());
         }
+    }
+    
+    [Fact]
+    public async Task CrunchyrollUrlIsWithoutLanguagePath_WhenTwoLetterIsoLanguageNameEn_GivenTitleIdAndSlugTitle()
+    {
+        //Arrange
+        var episodeId = CrunchyrollIdFaker.Generate();
+        var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
+
+        _config.CrunchyrollLanguage = "en-US";
+        
+        _commentsSession
+            .CommentsForEpisodeExists(episodeId)
+            .Returns(false);
+        
+        _waybackMachineClient
+            .SearchAsync(Arg.Any<string>(), Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Fail<IReadOnlyList<SearchResponse>>("error"));
+
+        //Act
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        //just check if the crunchyroll url has not "en" in path
+
+        await _waybackMachineClient
+            .Received(1)
+            .SearchAsync(Arg.Is<string>(x => !x.Contains(HttpUtility.UrlEncode("/en/"))),
+                new DateTime(2024, 07, 10),
+                Arg.Any<CancellationToken>());
     }
     
     [Fact]
