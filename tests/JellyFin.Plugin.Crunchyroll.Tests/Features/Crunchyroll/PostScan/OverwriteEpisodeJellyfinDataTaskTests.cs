@@ -5,7 +5,6 @@ using Bogus;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
-using Jellyfin.Plugin.Crunchyroll.Tests.Shared;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -14,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute.ExceptionExtensions;
 using RichardSzalay.MockHttp;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
 
 public class OverwriteEpisodeJellyfinDataTaskTests
 {

@@ -4,7 +4,6 @@ using Bogus;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeriesJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
@@ -15,7 +14,7 @@ using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 using NSubstitute.ExceptionExtensions;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
 
 public class OverwriteSeriesJellyfinDataTaskTests
 {

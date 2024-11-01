@@ -1,9 +1,8 @@
 using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetSeasonId;
-using Xunit.Abstractions;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.TitleMetadata.GetSeasonId;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.TitleMetadata.GetSeasonId;
 
 public class SeasonIdQueryByNumberTests
 {

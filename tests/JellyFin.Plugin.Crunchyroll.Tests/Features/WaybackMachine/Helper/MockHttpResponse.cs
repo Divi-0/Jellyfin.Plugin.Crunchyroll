@@ -4,7 +4,7 @@ using AutoFixture;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client.Dto;
 using RichardSzalay.MockHttp;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.WaybackMachine.Helper;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.WaybackMachine.Helper;
 
 public static class MockHttpResponse
 {

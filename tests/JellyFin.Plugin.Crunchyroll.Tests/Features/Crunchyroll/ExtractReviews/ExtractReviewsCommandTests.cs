@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Web;
 using AutoFixture;
 using FluentAssertions;
@@ -13,7 +12,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client.Dto;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Fixture;
 using Microsoft.Extensions.Logging;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ExtractReviews;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ExtractReviews;
 
 public class ExtractReviewsCommandTests
 {

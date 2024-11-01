@@ -12,7 +12,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews.Client
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared;
 using MediaBrowser.Controller.Library;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.GetReviews;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.GetReviews;
 
 public class GetReviewsQueryTests
 {

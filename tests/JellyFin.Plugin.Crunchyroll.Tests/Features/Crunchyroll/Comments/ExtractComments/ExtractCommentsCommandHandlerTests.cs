@@ -12,7 +12,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client.Dto;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Microsoft.Extensions.Logging;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Comments.ExtractComments;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Comments.ExtractComments;
 
 public class ExtractCommentsCommandHandlerTests
 {

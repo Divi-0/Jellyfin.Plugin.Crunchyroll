@@ -11,7 +11,7 @@ using MediaBrowser.Controller.Persistence;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
 
 public class SetEpisodeIdTaskTests
 {

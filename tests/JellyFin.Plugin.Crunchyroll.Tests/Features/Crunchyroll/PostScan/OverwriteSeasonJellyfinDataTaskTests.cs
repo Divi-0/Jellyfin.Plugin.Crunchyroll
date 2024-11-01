@@ -8,7 +8,7 @@ using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging;
 using NSubstitute.ExceptionExtensions;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
 
 public class OverwriteSeasonJellyfinDataTaskTests
 {

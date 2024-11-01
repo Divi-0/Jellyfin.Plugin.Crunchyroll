@@ -7,7 +7,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleM
 using Microsoft.Net.Http.Headers;
 using RichardSzalay.MockHttp;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ScrapTitleMetadata.MockHelper;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ScrapTitleMetadata.MockHelper;
 
 public static class MockHttpResponse
 {

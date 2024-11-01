@@ -2,11 +2,11 @@ using Bogus;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
-using JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ExtractReviews.MockHelper;
+using Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ExtractReviews.MockHelper;
 using Microsoft.Extensions.Logging;
 using RichardSzalay.MockHttp;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Comments.ExtractComments;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Comments.ExtractComments;
 
 public class HtmlCommentsExtractorTests
 {

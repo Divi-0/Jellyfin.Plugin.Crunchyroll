@@ -2,10 +2,8 @@ using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Features.Script;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using NSubstitute;
-using Xunit;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Script;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Script;
 
 public class GetScriptControllerTests
 {

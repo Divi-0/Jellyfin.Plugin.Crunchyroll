@@ -4,11 +4,11 @@ using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
-using JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ExtractReviews.MockHelper;
+using Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ExtractReviews.MockHelper;
 using Microsoft.Extensions.Logging;
 using RichardSzalay.MockHttp;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ExtractReviews;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ExtractReviews;
 
 public class AvatarClientTests
 {

@@ -5,11 +5,11 @@ using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
-using JellyFin.Plugin.Crunchyroll.Tests.Features.WaybackMachine.Helper;
+using Jellyfin.Plugin.Crunchyroll.Tests.Features.WaybackMachine.Helper;
 using Microsoft.Extensions.Logging;
 using RichardSzalay.MockHttp;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.WaybackMachine;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.WaybackMachine;
 
 public class WaybackMachineClientTests
 {

@@ -5,7 +5,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews.Client
 using Microsoft.Net.Http.Headers;
 using RichardSzalay.MockHttp;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.GetReviews.MockHelper;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.GetReviews.MockHelper;
 
 public static class MockHttpResponse
 {

@@ -2,7 +2,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests;
+namespace Jellyfin.Plugin.Crunchyroll.Tests;
 
 public static class MockHelper
 {

@@ -3,7 +3,7 @@ using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.GetAvatar;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Avatar.GetAvatar;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Avatar.GetAvatar;
 
 public class AvatarQueryTests
 {

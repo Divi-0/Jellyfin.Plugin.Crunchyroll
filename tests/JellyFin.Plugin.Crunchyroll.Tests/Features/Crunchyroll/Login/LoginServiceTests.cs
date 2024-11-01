@@ -5,7 +5,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login.Client;
 using Microsoft.Extensions.Logging;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Login;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Login;
 
 public class LoginServiceTests
 {

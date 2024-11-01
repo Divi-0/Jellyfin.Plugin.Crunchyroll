@@ -6,12 +6,12 @@ using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews.Client;
-using JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.GetReviews.MockHelper;
+using Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.GetReviews.MockHelper;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Fixture;
 using Microsoft.Extensions.Logging;
 using RichardSzalay.MockHttp;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.GetReviews;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.GetReviews;
 
 public class CrunchyrollGetReviewsClientTests
 {

@@ -5,7 +5,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId.Client;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
 {
     public class TitleIdQueryTests
     {

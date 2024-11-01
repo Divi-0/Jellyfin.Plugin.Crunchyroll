@@ -4,7 +4,7 @@ using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.GetComments.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.GetComments.Mappings;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Comments.GetComments.Mappings;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Comments.GetComments.Mappings;
 
 public class CrunchyrollCommentsReponseMappingTests
 {

@@ -10,7 +10,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Library;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Comments.GetComments;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Comments.GetComments;
 
 public class GetCommentsQueryTests
 {

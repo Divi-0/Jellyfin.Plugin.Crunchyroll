@@ -7,10 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Properties {
-    using System;
-    
-    
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Properties {
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>

@@ -3,7 +3,7 @@ using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
 using Microsoft.Extensions.Logging;
 
-namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
 
 public class EpisodeIdQueryTests
 {
