@@ -38,6 +38,12 @@ public class CrunchyrollScan : ILibraryPostScanTask
 
     public async Task Run(IProgress<double> progress, CancellationToken cancellationToken)
     {
+        if (!IsConfigValid())
+        {
+            _logger.LogWarning("Invalid crunchyroll plugin configuration. Skipping...");
+            return;
+        }
+        
         Guid? topParentId = null;
         if (!string.IsNullOrWhiteSpace(_config.LibraryPath))
         {
@@ -77,5 +83,23 @@ public class CrunchyrollScan : ILibraryPostScanTask
         }
 
         progress.Report(100);
+    }
+
+    private bool IsConfigValid()
+    {
+        if (string.IsNullOrWhiteSpace(_config.CrunchyrollUrl) ||
+            string.IsNullOrWhiteSpace(_config.CrunchyrollLanguage) ||
+            string.IsNullOrWhiteSpace(_config.FlareSolverrUrl) ||
+            _config.FlareSolverrTimeout == 0)
+        {
+            return false;
+        }
+
+        if (_config.IsWaybackMachineEnabled && string.IsNullOrWhiteSpace(_config.ArchiveOrgUrl))
+        {
+            return false;
+        }
+        
+        return true;
     }
 }
