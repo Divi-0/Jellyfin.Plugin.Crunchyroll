@@ -5,10 +5,10 @@ It collects metadata from Crunchyroll and sets Description, Images, ... to the e
 It also brings back reviews and comments, in a read-only mode. (Scraped from WaybackMachine)
 
 ## Features
-A list of all features can be found in the wiki [Features](./wiki/Features)
+A list of all features can be found in the wiki [Features](../../wiki/Features)
 
 ## Installation
-A guide can be found in the [Wiki](./wiki/Installation)
+A guide can be found in the [Wiki](../../wiki/Installation)
 
 ## Build
 
