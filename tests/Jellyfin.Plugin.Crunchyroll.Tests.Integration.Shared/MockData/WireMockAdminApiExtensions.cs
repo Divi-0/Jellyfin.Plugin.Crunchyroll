@@ -170,7 +170,7 @@ public static class WireMockAdminApiExtensions
         var searchDataItems = Enumerable.Range(0, Random.Shared.Next(1, 10))
             .Select(_ =>
             {
-                var randomTitle = new Faker().Random.Word();
+                var randomTitle = $"{new Faker().Random.Words()}-{Random.Shared.Next(9999)}";
                 return new CrunchyrollSearchDataItem
                 {
                     Id = CrunchyrollIdFaker.Generate(),
@@ -598,7 +598,7 @@ public static class WireMockAdminApiExtensions
             Data = seasons
                 .Select(season =>
                 {
-                    var title = new Faker().Random.Words();
+                    var title = $"{new Faker().Random.Words()}-{Random.Shared.Next(9999)}";
                     return new CrunchyrollSeasonsItem()
                     {
                         Id = CrunchyrollIdFaker.Generate(),
@@ -729,13 +729,13 @@ public static class WireMockAdminApiExtensions
         {
             Data = episodes.Select(episode =>
             {
-                var title = faker.Random.Words();
+                var title = $"{new Faker().Random.Words()}-{Random.Shared.Next(9999)}";
                 var item = new CrunchyrollEpisodeItem
                 {
                     Id = CrunchyrollIdFaker.Generate(),
                     Title = title,
                     SlugTitle = CrunchyrollSlugFaker.Generate(title),
-                    Description = new Faker().Random.Words(),
+                    Description = new Faker().Lorem.Sentences(),
                     Episode = episode.IndexNumber!.Value.ToString(),
                     Images = new CrunchyrollEpisodeImages
                     {
@@ -822,7 +822,7 @@ public static class WireMockAdminApiExtensions
             mockedCrunchyrollUrl.Last() == '/' ? mockedCrunchyrollUrl[..^1] : mockedCrunchyrollUrl;
 
         var titleId = series.ProviderIds[CrunchyrollExternalKeys.Id];
-        var fakeTitle = faker.Commerce.ProductName();
+        var fakeTitle = $"{new Faker().Random.Words()}-{Random.Shared.Next(9999)}";
         var seriesMetadataResponse = new CrunchyrollSeriesContentItem
         {
             Id = titleId,
