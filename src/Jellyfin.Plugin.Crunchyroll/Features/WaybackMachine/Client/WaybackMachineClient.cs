@@ -34,7 +34,7 @@ public class WaybackMachineClient : IWaybackMachineClient
 
     public async Task<Result<IReadOnlyList<SearchResponse>>> SearchAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default)
     {
-        var path = $"cdx/search/cdx?url={url}&output=json&limit=-3&to={timestamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
+        var path = $"cdx/search/cdx?url={url}&output=json&limit=-5&to={timestamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         
         HttpResponseMessage response;
         try

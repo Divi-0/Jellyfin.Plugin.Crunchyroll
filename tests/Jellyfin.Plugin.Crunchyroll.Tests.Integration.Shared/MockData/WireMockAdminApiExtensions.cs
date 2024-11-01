@@ -484,7 +484,7 @@ public static class WireMockAdminApiExtensions
                                 new MatcherModel()
                                 {
                                     Name = "WildcardMatcher",
-                                    Pattern = "-3"
+                                    Pattern = "-5"
                                 }
                             }
                         },

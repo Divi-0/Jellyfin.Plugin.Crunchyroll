@@ -37,7 +37,7 @@ public static class MockHttpResponse
             ]);
         }
         
-        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-3&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
+        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-5&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Respond("application/json", response);
@@ -51,7 +51,7 @@ public static class MockHttpResponse
         var fixture = new Fixture();
         
         
-        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-3&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
+        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-5&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Throw(exception);
@@ -62,7 +62,7 @@ public static class MockHttpResponse
     public static MockedRequest MockGetAvailableRequestFails(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
         DateTime timeStamp, HttpStatusCode httpStatusCode)
     {
-        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-3&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
+        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-5&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Respond(httpStatusCode);
@@ -73,7 +73,7 @@ public static class MockHttpResponse
     public static MockedRequest MockGetAvailableRequestNullResponse(this MockHttpMessageHandler mockHttpMessageHandler, string url, 
         DateTime timeStamp)
     {
-        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-3&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
+        var fullUrl = $"http://web.archive.org/cdx/search/cdx?url={url}&output=json&limit=-5&to={timeStamp.ToString("yyyyMMdd000000")}&fastLatest=true&fl=timestamp,mimetype,statuscode";
         var mockedRequest = mockHttpMessageHandler
             .When(fullUrl)
             .Respond("application/json", JsonSerializer.Serialize<SearchResponse>(null!));
