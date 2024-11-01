@@ -95,8 +95,8 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
             reviewsResult = await _htmlReviewsExtractor.GetReviewsAsync(snapshotUrl, cancellationToken);
 
             if (reviewsResult.IsFailed &&
-                reviewsResult.Errors.First().Message ==
-                ExtractReviewsErrorCodes.HtmlExtractorInvalidCrunchyrollReviewsPage)
+                (reviewsResult.Errors.First().Message == ExtractReviewsErrorCodes.HtmlExtractorInvalidCrunchyrollReviewsPage 
+                 || reviewsResult.Errors.First().Message == ExtractReviewsErrorCodes.HtmlUrlRequestFailed))
             {
                 continue;
             }

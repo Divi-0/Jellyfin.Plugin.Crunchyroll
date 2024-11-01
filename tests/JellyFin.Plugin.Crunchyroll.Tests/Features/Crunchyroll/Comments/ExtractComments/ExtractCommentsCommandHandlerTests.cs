@@ -414,4 +414,96 @@ public class ExtractCommentsCommandHandlerTests
             .DidNotReceive()
             .InsertComments(Arg.Any<EpisodeComments>());
     }
+    
+    [Fact]
+    public async Task RetriesNextTimestamp_WhenHtmlRequestFails_GivenEpisodeIdAndSlugTitle()
+    {
+        //Arrange
+        var episodeId = CrunchyrollIdFaker.Generate();
+        var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
+        
+        _commentsSession
+            .CommentsForEpisodeExists(episodeId)
+            .Returns(false);
+
+        var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
+        _waybackMachineClient
+            .SearchAsync(Arg.Any<string>(), Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>())
+            .Returns(searchResponses);
+        
+        _htmlCommentsExtractor
+            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Fail<IReadOnlyList<CommentItem>>(ExtractCommentsErrorCodes.HtmlUrlRequestFailed));
+
+        //Act
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+
+        await _waybackMachineClient
+            .Received(1)
+            .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"de/watch/{episodeId}/{episodeSlugTitle}"))),
+                new DateTime(2024, 07, 10),
+                Arg.Any<CancellationToken>());
+
+        foreach (var searchResponse in searchResponses)
+        {
+            //Should call all searchResponses, because every request fails
+            await _htmlCommentsExtractor
+                .Received(1)
+                .GetCommentsAsync(Arg.Is<string>(x => 
+                        x.Contains($"de/watch/{episodeId}/{episodeSlugTitle}") && 
+                        x.Contains(searchResponse.Timestamp.ToString("yyyyMMddHHmmss"))), 
+                    Arg.Any<CancellationToken>());
+        }
+    }
+    
+    [Fact]
+    public async Task RetriesNextTimestamp_WhenHtmlIsInvalid_GivenEpisodeIdAndSlugTitle()
+    {
+        //Arrange
+        var episodeId = CrunchyrollIdFaker.Generate();
+        var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
+        
+        _commentsSession
+            .CommentsForEpisodeExists(episodeId)
+            .Returns(false);
+
+        var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
+        _waybackMachineClient
+            .SearchAsync(Arg.Any<string>(), Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>())
+            .Returns(searchResponses);
+        
+        _htmlCommentsExtractor
+            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Fail<IReadOnlyList<CommentItem>>(ExtractCommentsErrorCodes.HtmlExtractorInvalidCrunchyrollCommentsPage));
+
+        //Act
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+
+        await _waybackMachineClient
+            .Received(1)
+            .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"de/watch/{episodeId}/{episodeSlugTitle}"))),
+                new DateTime(2024, 07, 10),
+                Arg.Any<CancellationToken>());
+
+        foreach (var searchResponse in searchResponses)
+        {
+            //Should call all searchResponses, because every request fails
+            await _htmlCommentsExtractor
+                .Received(1)
+                .GetCommentsAsync(Arg.Is<string>(x => 
+                        x.Contains($"de/watch/{episodeId}/{episodeSlugTitle}") && 
+                        x.Contains(searchResponse.Timestamp.ToString("yyyyMMddHHmmss"))), 
+                    Arg.Any<CancellationToken>());
+        }
+    }
 }

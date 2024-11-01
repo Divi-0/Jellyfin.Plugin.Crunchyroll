@@ -81,8 +81,8 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
             commentsResult = await _extractor.GetCommentsAsync(snapshotUrl, cancellationToken);
 
             if (commentsResult.IsFailed &&
-                commentsResult.Errors.First().Message ==
-                ExtractCommentsErrorCodes.HtmlExtractorInvalidCrunchyrollCommentsPage)
+                (commentsResult.Errors.First().Message == ExtractCommentsErrorCodes.HtmlExtractorInvalidCrunchyrollCommentsPage 
+                 || commentsResult.Errors.First().Message == ExtractCommentsErrorCodes.HtmlUrlRequestFailed))
             {
                 continue;
             }

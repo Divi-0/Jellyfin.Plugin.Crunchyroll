@@ -445,4 +445,95 @@ public class ExtractReviewsCommandTests
                 .GetReviewsAsync(expectedUrl, Arg.Any<CancellationToken>());
         }
     }
+
+    [Fact]
+    public async Task RetriesNextTimestamp_WhenHtmlRequestFailed_GivenTitleIdAndSlugTitle()
+    {
+        //Arrange
+        var titleId = _fixture.Create<string>();
+        var slugTitle = _fixture.Create<string>();
+        
+        _getReviewsSession
+            .GetReviewsForTitleIdAsync(titleId)
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+
+        var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
+        
+        _waybackMachineClient.SearchAsync(
+                Arg.Any<string>(),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
+                Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Ok<IReadOnlyList<SearchResponse>>(searchResponses)));
+
+        var htmlUrls = new List<string>();
+        
+        for (var i = searchResponses.Count - 1; i > 0; i--)
+        {
+            var failedUrl = Path.Combine(
+                    _config.ArchiveOrgUrl, 
+                    "web", 
+                    searchResponses[i].Timestamp.ToString("yyyyMMddHHmmss"),
+                    _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1],
+                    new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
+                    "series",
+                    titleId,
+                    slugTitle)
+                .Replace('\\', '/');
+            
+            htmlUrls.Add(failedUrl);
+        
+            _htmlReviewsExtractor
+                .GetReviewsAsync(failedUrl, Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(Result.Fail<IReadOnlyList<ReviewItem>>(ExtractReviewsErrorCodes.HtmlUrlRequestFailed)));
+        }
+        
+        var reviews = _fixture.CreateMany<ReviewItem>().ToList();
+        var url = Path.Combine(
+                _config.ArchiveOrgUrl, 
+                "web", 
+                searchResponses.First().Timestamp.ToString("yyyyMMddHHmmss"),
+                _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1],
+                new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
+                "series",
+                titleId,
+                slugTitle)
+            .Replace('\\', '/');
+        
+        htmlUrls.Add(url);
+        
+        _htmlReviewsExtractor
+            .GetReviewsAsync(url, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(reviews)));
+        
+        _addReviewsSession
+            .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>())
+            .Returns(ValueTask.CompletedTask);
+        
+        foreach (var review in reviews)
+        {
+            var stream = new MemoryStream(_fixture.Create<byte[]>());
+            _avatarClient
+                .GetAvatarStreamAsync(review.Author.AvatarUri, Arg.Any<CancellationToken>())
+                .Returns(Result.Ok<Stream>(stream));
+        }
+        
+        //Act
+        var command = new ExtractReviewsCommand()
+        {
+            TitleId = titleId,
+            SlugTitle = slugTitle
+        };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+
+        htmlUrls.Should().AllSatisfy(expectedUrl =>
+        {
+            _htmlReviewsExtractor
+                .Received(1)
+                .GetReviewsAsync(expectedUrl, Arg.Any<CancellationToken>());
+        });
+    }
 }
