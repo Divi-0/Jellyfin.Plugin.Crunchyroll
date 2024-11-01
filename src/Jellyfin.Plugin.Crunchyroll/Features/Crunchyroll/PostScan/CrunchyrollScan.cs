@@ -41,6 +41,7 @@ public class CrunchyrollScan : ILibraryPostScanTask
         if (!IsConfigValid())
         {
             _logger.LogWarning("Invalid crunchyroll plugin configuration. Skipping...");
+            progress.Report(100);
             return;
         }
         
