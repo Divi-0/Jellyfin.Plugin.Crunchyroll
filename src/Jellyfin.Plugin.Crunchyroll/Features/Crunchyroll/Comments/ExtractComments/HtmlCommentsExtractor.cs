@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -7,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using HtmlAgilityPack;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 using Microsoft.Extensions.Logging;
 
@@ -16,11 +18,13 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<HtmlCommentsExtractor> _logger;
+    private readonly PluginConfiguration _config;
 
-    public HtmlCommentsExtractor(HttpClient httpClient, ILogger<HtmlCommentsExtractor> logger)
+    public HtmlCommentsExtractor(HttpClient httpClient, ILogger<HtmlCommentsExtractor> logger, PluginConfiguration config)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _config = config;
     }
 
     public async Task<Result<IReadOnlyList<CommentItem>>> GetCommentsAsync(string url,
@@ -107,7 +111,7 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
         return comments;
     }
 
-    private static int ConvertLikesToInt(string likes)
+    private int ConvertLikesToInt(string likes)
     {
         if (int.TryParse(likes, out var result))
         {
@@ -128,10 +132,11 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
         {
             throw new NotImplementedException($"value '{unit}' is not implemented");
         }
-        
-        return Convert.ToInt32(Math.Round(Convert.ToDecimal(number) * 1000));
+
+        var decimalValue = Convert.ToDecimal(number, new CultureInfo(_config.CrunchyrollLanguage));
+        return Convert.ToInt32(Math.Round(decimalValue * 1000));
     }
 
-    [GeneratedRegex("([0-9]*)(.)")]
+    [GeneratedRegex("([0-9]*(?:\\.[0-9]*)?)(.)")]
     private static partial Regex NumberAndUnitRegex();
 }

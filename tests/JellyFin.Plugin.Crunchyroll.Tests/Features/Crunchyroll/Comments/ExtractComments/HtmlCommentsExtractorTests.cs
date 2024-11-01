@@ -1,5 +1,6 @@
 using Bogus;
 using FluentAssertions;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
 using JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ExtractReviews.MockHelper;
 using Microsoft.Extensions.Logging;
@@ -11,12 +12,15 @@ public class HtmlCommentsExtractorTests
 {
     private readonly HtmlCommentsExtractor _sut;
     private readonly MockHttpMessageHandler _mockHttpMessageHandler;
+    private readonly PluginConfiguration _config;
+    
     public HtmlCommentsExtractorTests()
     {
         _mockHttpMessageHandler = new MockHttpMessageHandler();
         var logger = Substitute.For<ILogger<HtmlCommentsExtractor>>();
+        _config = new PluginConfiguration();
         
-        _sut = new HtmlCommentsExtractor(_mockHttpMessageHandler.ToHttpClient(), logger);
+        _sut = new HtmlCommentsExtractor(_mockHttpMessageHandler.ToHttpClient(), logger, _config);
     }
 
     [Fact]
@@ -94,14 +98,20 @@ public class HtmlCommentsExtractorTests
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
     }
 
-    [Fact]
-    public async Task LikesWithKAreTranslatedToThousand_WhenSuccessful_GivenValidUrl()
+    [Theory]
+    [InlineData("71k", 71000, "en-US")]
+    [InlineData("5k+", 5000, "en-US")]
+    [InlineData("13.4k", 13400, "en-US")]
+    public async Task LikesWithKAreTranslatedToThousand_WhenSuccessful_GivenValidUrl(string likesAsString, 
+        int likesAsNumber, string language)
     {
         //Arrange
+        _config.CrunchyrollLanguage = language;
+        
         var url = new Faker().Internet.Url();
 
         var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlCommentsResponse(url, 
-            "325</button>", "71k+</button>");
+            "325</button>", $"{likesAsString}</button>");
         
         //Act
         var result = await _sut.GetCommentsAsync(url, CancellationToken.None);
@@ -111,7 +121,7 @@ public class HtmlCommentsExtractorTests
         
         var comments = result.Value;
 
-        comments.First(x => x.Author == "abc543").Likes.Should().Be(71000);
+        comments.First(x => x.Author == "abc543").Likes.Should().Be(likesAsNumber);
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
     }
