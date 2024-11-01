@@ -50,7 +50,6 @@ public class CrunchyrollScanTests
     {
         //Arrange
         var itemList = _libraryManager.MockCrunchyrollTitleIdScan(_config.LibraryPath);
-        const string language = "de-DE";
         
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
@@ -58,7 +57,7 @@ public class CrunchyrollScanTests
         foreach (var item in itemList)
         { 
             _itemRepository.MockGetChildrenEmpty(item);
-            await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, language);
+            await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, _config.CrunchyrollLanguage);
         }
         
         //Act
@@ -79,7 +78,7 @@ public class CrunchyrollScanTests
     public async Task SetsSeasonIdsAndEpisodeIdsAndScrapsTitleMetadata_WhenTitlePostScanTasksAreCalled_GivenSeriesWithTitleIdAndChildren()
     {
         //Arrange
-        const string language = "de-DE";
+        var language = _config.CrunchyrollLanguage;
         var seriesItems = Enumerable.Range(0, Random.Shared.Next(1, 10))
             .Select(_ => SeriesFaker.GenerateWithTitleId())
             .ToList();

@@ -69,7 +69,6 @@ public class ExtractReviewsCommandTests
             "web", 
             searchResponses.Last().Timestamp.ToString("yyyyMMddHHmmss"),
             _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1],
-            new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
             "series",
             titleId,
             slugTitle)
@@ -106,7 +105,7 @@ public class ExtractReviewsCommandTests
         await _waybackMachineClient
             .Received(1)
             .SearchAsync(
-                Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/{new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName}/"))),
+                Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/{titleId}/{slugTitle}"))),
                 Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
                 Arg.Any<CancellationToken>());
         
@@ -183,7 +182,6 @@ public class ExtractReviewsCommandTests
             "web", 
             searchResponses.Last().Timestamp.ToString("yyyyMMddHHmmss"),
             _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1],
-            new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
             "series",
             titleId,
             slugTitle)
@@ -294,7 +292,6 @@ public class ExtractReviewsCommandTests
                 "web", 
                 searchResponse.Last().Timestamp.ToString("yyyyMMddHHmmss"),
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1],
-                new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
                 "series",
                 titleId,
                 slugTitle)
@@ -383,7 +380,6 @@ public class ExtractReviewsCommandTests
                     "web", 
                     searchResponses[i].Timestamp.ToString("yyyyMMddHHmmss"),
                     _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1],
-                    new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
                     "series",
                     titleId,
                     slugTitle)
@@ -402,7 +398,6 @@ public class ExtractReviewsCommandTests
                 "web", 
                 searchResponses.First().Timestamp.ToString("yyyyMMddHHmmss"),
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1],
-                new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
                 "series",
                 titleId,
                 slugTitle)
@@ -474,7 +469,6 @@ public class ExtractReviewsCommandTests
                     "web", 
                     searchResponses[i].Timestamp.ToString("yyyyMMddHHmmss"),
                     _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1],
-                    new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
                     "series",
                     titleId,
                     slugTitle)
@@ -493,7 +487,6 @@ public class ExtractReviewsCommandTests
                 "web", 
                 searchResponses.First().Timestamp.ToString("yyyyMMddHHmmss"),
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1],
-                new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName,
                 "series",
                 titleId,
                 slugTitle)

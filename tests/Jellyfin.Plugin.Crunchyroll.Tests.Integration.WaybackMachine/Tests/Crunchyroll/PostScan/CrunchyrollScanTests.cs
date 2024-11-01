@@ -47,7 +47,7 @@ public class CrunchyrollScanTests
     public async Task ExtractsReviewsAndCommentsAndAvatarUris_WhenWaybackMachineIsEnabled_GivenCrunchyrollResponses()
     {
         //Arrange
-        const string language = "de-DE";
+        var language = _config.CrunchyrollLanguage;
         
         //uri from ResourcesHtml
         var imageUris = new []
@@ -63,8 +63,6 @@ public class CrunchyrollScanTests
         {
             await _wireMockAdminApi.MockAvatarUriRequest(uri);
         }
-        
-        await _wireMockAdminApi.MockAvatarUriRequest($"{_config.ArchiveOrgUrl}/web/20240205003102im_/https://static.crunchyroll.com/assets/avatar/*");
         
         var itemList = _libraryManager.MockCrunchyrollTitleIdScan(_config.LibraryPath, [SeriesFaker.GenerateWithTitleId()]);
         
@@ -129,7 +127,6 @@ public class CrunchyrollScanTests
     {
         var crunchyrollUrl = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
-                "de",
                 "series",
                 series.ProviderIds[CrunchyrollExternalKeys.Id],
                 series.ProviderIds[CrunchyrollExternalKeys.SlugTitle])
@@ -141,7 +138,6 @@ public class CrunchyrollScanTests
     {
         var crunchyrollUrl = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
-                "de",
                 "watch",
                 episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId],
                 episode.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle])

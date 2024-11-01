@@ -89,13 +89,13 @@ public class ExtractCommentsCommandHandlerTests
 
         await _waybackMachineClient
             .Received(1)
-            .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"de/watch/{episodeId}/{episodeSlugTitle}"))),
+            .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/watch/{episodeId}/{episodeSlugTitle}"))),
                 new DateTime(2024, 07, 10),
                 Arg.Any<CancellationToken>());
         
         await _htmlCommentsExtractor
             .Received(1)
-            .GetCommentsAsync(Arg.Is<string>(x => x.Contains($"de/watch/{episodeId}/{episodeSlugTitle}")), 
+            .GetCommentsAsync(Arg.Is<string>(x => x.Contains($"/watch/{episodeId}/{episodeSlugTitle}")), 
                 Arg.Any<CancellationToken>());
 
         await _commentsSession
@@ -445,7 +445,7 @@ public class ExtractCommentsCommandHandlerTests
 
         await _waybackMachineClient
             .Received(1)
-            .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"de/watch/{episodeId}/{episodeSlugTitle}"))),
+            .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/watch/{episodeId}/{episodeSlugTitle}"))),
                 new DateTime(2024, 07, 10),
                 Arg.Any<CancellationToken>());
 
@@ -455,7 +455,7 @@ public class ExtractCommentsCommandHandlerTests
             await _htmlCommentsExtractor
                 .Received(1)
                 .GetCommentsAsync(Arg.Is<string>(x => 
-                        x.Contains($"de/watch/{episodeId}/{episodeSlugTitle}") && 
+                        x.Contains($"/watch/{episodeId}/{episodeSlugTitle}") && 
                         x.Contains(searchResponse.Timestamp.ToString("yyyyMMddHHmmss"))), 
                     Arg.Any<CancellationToken>());
         }
@@ -491,7 +491,7 @@ public class ExtractCommentsCommandHandlerTests
 
         await _waybackMachineClient
             .Received(1)
-            .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"de/watch/{episodeId}/{episodeSlugTitle}"))),
+            .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/watch/{episodeId}/{episodeSlugTitle}"))),
                 new DateTime(2024, 07, 10),
                 Arg.Any<CancellationToken>());
 
@@ -501,7 +501,7 @@ public class ExtractCommentsCommandHandlerTests
             await _htmlCommentsExtractor
                 .Received(1)
                 .GetCommentsAsync(Arg.Is<string>(x => 
-                        x.Contains($"de/watch/{episodeId}/{episodeSlugTitle}") && 
+                        x.Contains($"/watch/{episodeId}/{episodeSlugTitle}") && 
                         x.Contains(searchResponse.Timestamp.ToString("yyyyMMddHHmmss"))), 
                     Arg.Any<CancellationToken>());
         }
