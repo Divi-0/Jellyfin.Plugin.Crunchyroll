@@ -1,8 +1,5 @@
 ﻿using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
-using MediaBrowser.Controller.Dto;
-using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
-using NSubstitute;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker
 {
@@ -12,7 +9,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker
         {
             var series = new Bogus.Faker<Series>()
                 .RuleFor(x => x.Id, Guid.NewGuid())
-                .RuleFor(x => x.Name, f => f.Random.Word())
+                .RuleFor(x => x.Name, f => $"{f.Random.Words()}-{f.Random.Number(9999)}")
                 .Generate();
 
             return series;

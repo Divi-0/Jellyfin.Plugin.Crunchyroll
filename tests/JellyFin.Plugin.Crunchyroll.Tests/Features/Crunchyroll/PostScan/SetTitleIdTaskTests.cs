@@ -43,16 +43,15 @@ namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             var item = SeriesFaker.Generate();
 
             _mediator
-                .Send(Arg.Any<TitleIdQuery>(), Arg.Any<CancellationToken>())
+                .Send(Arg.Is<TitleIdQuery>(x => x.Title == item.Name), Arg.Any<CancellationToken>())
                 .Returns(Result.Ok<SearchResponse?>(new SearchResponse
                 {
                     Id = crunchrollId,
                     SlugTitle = crunchrollSlugTitle
                 }));
-
-            BaseItem updatedBaseItem = null!;
+            
             _libraryManager
-                .UpdateItemAsync(Arg.Do<BaseItem>(x => updatedBaseItem = x), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
+                .UpdateItemAsync(Arg.Is<BaseItem>(x => x.Id == item.Id), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
                 .Returns(Task.CompletedTask);
 
             _libraryManager
@@ -72,14 +71,13 @@ namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             await _libraryManager
                 .Received(1)
                 .UpdateItemAsync(
-                    Arg.Is<BaseItem>(x => x == item), 
+                    Arg.Is<BaseItem>(x => x.Id == item.Id), 
                     Arg.Any<BaseItem>(), 
                     ItemUpdateType.MetadataEdit, 
                     Arg.Any<CancellationToken>());
-
-            updatedBaseItem.Should().NotBeNull();
-            updatedBaseItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out var actualCrunchyrollId).Should().BeTrue();
-            updatedBaseItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SlugTitle, out var actualCrunchyrollSlugTitle).Should().BeTrue();
+            
+            item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out var actualCrunchyrollId).Should().BeTrue();
+            item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SlugTitle, out var actualCrunchyrollSlugTitle).Should().BeTrue();
             actualCrunchyrollId.Should().Be(crunchrollId);
             actualCrunchyrollSlugTitle.Should().Be(crunchrollSlugTitle);
         }
@@ -101,7 +99,7 @@ namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
                 }));
 
             _libraryManager
-                .UpdateItemAsync(Arg.Any<BaseItem>(), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
+                .UpdateItemAsync(Arg.Is<BaseItem>(x => x.Id == item.Id), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
                 .Returns(Task.CompletedTask);
 
             _libraryManager
@@ -244,10 +242,9 @@ namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             _mediator
                 .Send(Arg.Any<TitleIdQuery>(), Arg.Any<CancellationToken>())
                 .Returns(Result.Ok<SearchResponse?>(null));
-
-            BaseItem updatedBaseItem = null!;
+            
             _libraryManager
-                .UpdateItemAsync(Arg.Do<BaseItem>(x => updatedBaseItem = x), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
+                .UpdateItemAsync(Arg.Is<BaseItem>(x => x.Id == series.Id), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
                 .Returns(Task.CompletedTask);
 
             _libraryManager
@@ -267,14 +264,13 @@ namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             await _libraryManager
                 .Received(1)
                 .UpdateItemAsync(
-                    Arg.Is<BaseItem>(x => x == series), 
+                    Arg.Is<BaseItem>(x => x.Id == series.Id), 
                     Arg.Any<BaseItem>(), 
                     ItemUpdateType.MetadataEdit, 
                     Arg.Any<CancellationToken>());
-
-            updatedBaseItem.Should().NotBeNull();
-            updatedBaseItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out var actualCrunchyrollId).Should().BeTrue();
-            updatedBaseItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SlugTitle, out var actualCrunchyrollSlugTitle).Should().BeTrue();
+            
+            series.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out var actualCrunchyrollId).Should().BeTrue();
+            series.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SlugTitle, out var actualCrunchyrollSlugTitle).Should().BeTrue();
             actualCrunchyrollId.Should().Be(string.Empty);
             actualCrunchyrollSlugTitle.Should().Be(string.Empty);
         }

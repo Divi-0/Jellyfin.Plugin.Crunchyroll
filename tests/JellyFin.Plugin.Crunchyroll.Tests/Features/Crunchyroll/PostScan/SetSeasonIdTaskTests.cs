@@ -240,7 +240,7 @@ namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
         {
             //Arrange
             var series = SeriesFaker.GenerateWithTitleId();
-            var seasons = Enumerable.Range(0, Random.Shared.Next(1, 10))
+            var seasons = Enumerable.Range(0, Random.Shared.Next(1, 99))
                 .Select(_ => SeasonFaker.Generate(series))
                 .ToList<BaseItem>();
 
@@ -280,7 +280,7 @@ namespace JellyFin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             await _libraryManager
                 .DidNotReceive()
                 .UpdateItemAsync(
-                    Arg.Is<BaseItem>(x => x == seasons[0]),
+                    Arg.Is<BaseItem>(x => x.Id == seasons[0].Id),
                     Arg.Is<BaseItem>(x => x == series), 
                     ItemUpdateType.MetadataEdit, 
                     Arg.Any<CancellationToken>());

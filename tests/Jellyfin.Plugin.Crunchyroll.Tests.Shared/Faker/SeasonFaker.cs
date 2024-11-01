@@ -14,7 +14,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker
                 .RuleFor(x => x.IndexNumber, f => f.Random.Number(99))
                 .RuleFor(x => x.ParentId, parentId)
                 .RuleFor(x => x.SeriesId, parentId)
-                .RuleFor(x => x.Name, f => f.Random.Word())
+                .RuleFor(x => x.Name, f => $"{f.Random.Words()}-{f.Random.Number(9999)}")
                 .Generate();
         }
         

@@ -35,7 +35,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
     {
         _faker = new Faker();
         
-        _libraryManager = Substitute.For<ILibraryManager>();
+        _libraryManager = MockHelper.LibraryManager;
         _getTitleMetadata = Substitute.For<IGetTitleMetadata>();
         _crunchyrollSeriesClient = Substitute.For<ICrunchyrollSeriesClient>();
         _fileSystem = new MockFileSystem();
