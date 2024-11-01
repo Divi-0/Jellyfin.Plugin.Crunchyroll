@@ -2,7 +2,13 @@
 
 This plugin is a third party plugin and was not created by the official Jellyfin team.
 It collects metadata from Crunchyroll and sets Description, Images, ... to the existing Jellyfin Items.
-It also brings back reviews and comments, in read-only mode. (Scraped from wayback-machine)
+It also brings back reviews and comments, in a read-only mode. (Scraped from WaybackMachine)
+
+## Features
+A list of all features can be found in the wiki [Features](./wiki/Features)
+
+## Installation
+A guide can be found in the [Wiki](./wiki/Installation)
 
 ## Build
 
@@ -10,14 +16,6 @@ Install the dotnet 8 sdk and run `dotnet build`
 (To copy the binaries automatically to the local plugins folder add the following code as post-build-event (windows only)
 ```
 if $(ConfigurationName) == Debug-Copy (
- xcopy /y "$(TargetDir)/*.*" "%localAppData%/jellyfin/plugins/Crunchyroll"
+ xcopy /y "$(TargetDir)*.*" "%localAppData%/jellyfin/plugins/Crunchyroll"
 )
 ```
-
-## Installation
-1. In the Jellyfin Dashboard select the `Plugins -> Repositories` Tab and add the manifest `https://raw.githubusercontent.com/Divi-0/Jellyfin.Plugin.Crunchyroll/refs/heads/main/manifest.json`
-2. Go to the `Catalog` and install `"Crunchyroll"`
-3. The Requests to the Crunchyroll API need to bypass a bot detection. Install FlareSolverr via https://github.com/FlareSolverr/FlareSolverr?tab=readme-ov-file#installation
-4. Go to the configuration page of the "Crunchyroll" plugin ``Plugins -> My Plugins -> Crunchyroll``
-5. Enter the FlareSolverr URL (Example: `http://localhost:1234`)
-6. Optional but recommended: Enter the path with your anime collection you want to scan (Example: `/mnt/Anime`)
