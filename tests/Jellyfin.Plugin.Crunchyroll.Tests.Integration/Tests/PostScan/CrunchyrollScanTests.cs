@@ -46,36 +46,7 @@ public class CrunchyrollScanTests
     }
 
     [Fact]
-    public async Task SetsTitleIds_GivenCrunchyrollResponses()
-    {
-        //Arrange
-        var itemList = _libraryManager.MockCrunchyrollTitleIdScan(_config.LibraryPath);
-        
-        await _wireMockAdminApi.MockRootPageAsync();
-        await _wireMockAdminApi.MockAnonymousAuthAsync();
-        
-        foreach (var item in itemList)
-        { 
-            _itemRepository.MockGetChildrenEmpty(item);
-            await _wireMockAdminApi.MockCrunchyrollSearchResponse(item.Name, _config.CrunchyrollLanguage);
-        }
-        
-        //Act
-        var progress = new Progress<double>();
-        await _crunchyrollScan.Run(progress, CancellationToken.None);
-        
-        //Assert
-        itemList.Should().AllSatisfy(x =>
-        {
-            x.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.Id);
-            x.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SlugTitle);
-            x.ProviderIds[CrunchyrollExternalKeys.Id].Should().NotBeEmpty();
-            x.ProviderIds[CrunchyrollExternalKeys.SlugTitle].Should().NotBeEmpty();
-        });
-    }
-
-    [Fact]
-    public async Task SetsSeasonIdsAndEpisodeIdsAndScrapsTitleMetadata_WhenTitlePostScanTasksAreCalled_GivenSeriesWithTitleIdAndChildren()
+    public async Task SetsCrunchyrollIdsAndScrapsTitleMetadata_WhenTitlePostScanTasksAreCalled_GivenSeriesWithTitleIdAndChildren()
     {
         //Arrange
         var language = _config.CrunchyrollLanguage;
@@ -127,6 +98,11 @@ public class CrunchyrollScanTests
         //Assert
         seriesItems.Should().AllSatisfy(series =>
         {
+            series.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.Id);
+            series.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SlugTitle);
+            series.ProviderIds[CrunchyrollExternalKeys.Id].Should().NotBeEmpty();
+            series.ProviderIds[CrunchyrollExternalKeys.SlugTitle].Should().NotBeEmpty();
+            
             DatabaseMockHelper.ShouldHaveMetadata(_databaseFixture.DbFilePath, 
                 series.ProviderIds[CrunchyrollExternalKeys.Id],
                 seriesResponses[series.Id]);

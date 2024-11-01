@@ -20,7 +20,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker
             var series = Generate();
 
             series.ProviderIds.Add(CrunchyrollExternalKeys.Id, CrunchyrollIdFaker.Generate());
-            series.ProviderIds.Add(CrunchyrollExternalKeys.SlugTitle, CrunchyrollSlugFaker.Generate());
+            series.ProviderIds.Add(CrunchyrollExternalKeys.SlugTitle, CrunchyrollSlugFaker.Generate(series.Name));
 
             return series;
         }
