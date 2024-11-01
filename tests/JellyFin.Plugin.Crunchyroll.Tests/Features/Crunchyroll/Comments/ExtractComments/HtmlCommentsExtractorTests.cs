@@ -68,6 +68,7 @@ public class HtmlCommentsExtractorTests
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
     }
 
+    //Because text is not inside the html DOM
     [Fact]
     public async Task CommentsWithSpoilersAreIgnored_WhenSuccessful_GivenValidUrl()
     {
@@ -89,6 +90,28 @@ public class HtmlCommentsExtractorTests
         {
             comment.Author.Should().NotBe("dinomarusic");
         });
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task LikesWithKAreTranslatedToThousand_WhenSuccessful_GivenValidUrl()
+    {
+        //Arrange
+        var url = new Faker().Internet.Url();
+
+        var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlCommentsResponse(url, 
+            "325</button>", "71k+</button>");
+        
+        //Act
+        var result = await _sut.GetCommentsAsync(url, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        
+        var comments = result.Value;
+
+        comments.First(x => x.Author == "abc543").Likes.Should().Be(71000);
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
     }

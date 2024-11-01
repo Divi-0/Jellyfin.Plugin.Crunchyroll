@@ -81,8 +81,8 @@ namespace JellyFin.Plugin.Crunchyroll.Tests.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;&lt;html lang=&quot;de&quot; dir=&quot;ltr&quot; data-react-helmet=&quot;lang&quot;&gt;&lt;head&gt;&lt;script src=&quot;//archive.org/includes/athena.js&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
-        ///&lt;script type=&quot;text/javascript&quot;&gt;window.addEventListener(&apos;DOMContentLoaded&apos;,function(){var v=archive_analytics.values;v.service=&apos;wb&apos;;v.server_name=&apos;wwwb-app202.us.archive.org&apos;;v.server_ms=1178;archive_analytics.send_pageview({});});&lt;/script&gt;
-        ///&lt;script type=&quot;text/javascript&quot; src=&quot;https://web-static.archive.org/_static/js/bundle-playback.js?v=HxkREWBo&quot; charset=&quot; [rest of string was truncated]&quot;;.
+        ///    &lt;script type=&quot;text/javascript&quot;&gt;window.addEventListener(&apos;DOMContentLoaded&apos;,function(){var v=archive_analytics.values;v.service=&apos;wb&apos;;v.server_name=&apos;wwwb-app202.us.archive.org&apos;;v.server_ms=1178;archive_analytics.send_pageview({});});&lt;/script&gt;
+        ///    &lt;script type=&quot;text/javascript&quot; src=&quot;https://web-static.archive.org/_static/js/bundle-playback.js?v=HxkREWBo&quot; c [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string WaybackHtmlCrunchyrollComments {
             get {

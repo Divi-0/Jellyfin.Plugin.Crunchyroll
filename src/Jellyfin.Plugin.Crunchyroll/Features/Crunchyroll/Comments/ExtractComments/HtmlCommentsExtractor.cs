@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
 
-public class HtmlCommentsExtractor : IHtmlCommentsExtractor
+public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<HtmlCommentsExtractor> _logger;
@@ -96,7 +97,7 @@ public class HtmlCommentsExtractor : IHtmlCommentsExtractor
                 Author = username,
                 Message = body,
                 AvatarIconUri = imageUrl,
-                Likes = Convert.ToInt32(likes),
+                Likes = ConvertLikesToInt(likes),
                 RepliesCount = 0
             };
 
@@ -105,4 +106,32 @@ public class HtmlCommentsExtractor : IHtmlCommentsExtractor
 
         return comments;
     }
+
+    private static int ConvertLikesToInt(string likes)
+    {
+        if (int.TryParse(likes, out var result))
+        {
+            return result;
+        }
+        
+        var match = NumberAndUnitRegex().Match(likes);
+        
+        if (!match.Success)
+        {
+            throw new NotImplementedException("likes value is not implemented");
+        }
+        
+        var number = match.Groups[1].Value;
+        var unit = match.Groups[2].Value;
+
+        if (!unit.Equals("k", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new NotImplementedException($"value '{unit}' is not implemented");
+        }
+        
+        return Convert.ToInt32(Math.Round(Convert.ToDecimal(number) * 1000));
+    }
+
+    [GeneratedRegex("([0-9]*)(.)")]
+    private static partial Regex NumberAndUnitRegex();
 }

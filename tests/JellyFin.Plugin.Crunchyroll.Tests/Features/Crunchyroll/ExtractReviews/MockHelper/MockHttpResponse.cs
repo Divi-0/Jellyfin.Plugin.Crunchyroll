@@ -85,12 +85,20 @@ public static class MockHttpResponse
         return mockedRequest;
     }
     
-    public static MockedRequest MockWaybackMachineUrlHtmlCommentsResponse(this MockHttpMessageHandler mockHttpMessageHandler, string url)
+    public static MockedRequest MockWaybackMachineUrlHtmlCommentsResponse(this MockHttpMessageHandler mockHttpMessageHandler, string url,
+        string? replaceOldString = null, string? replaceNewString = null)
     {
+        var content = Properties.Resources.WaybackHtmlCrunchyrollComments;
+
+        if (replaceOldString is not null && replaceNewString is not null)
+        {
+            content = content.Replace(replaceOldString, replaceNewString);
+        }
+        
         var mockedRequest = mockHttpMessageHandler
             .When(url)
-            .Respond("text/html", Properties.Resources.WaybackHtmlCrunchyrollComments);
-
+            .Respond("text/html", content);
+        
         return mockedRequest;
     }
 }
