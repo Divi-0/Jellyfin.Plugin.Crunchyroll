@@ -9,14 +9,14 @@ using System.Web;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.Client;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
 
-public record ExtractReviewsCommand() : IRequest<Result>
+public record ExtractReviewsCommand : IRequest<Result>
 {
     public required string TitleId { get; init; }
     public required string SlugTitle { get; init; }
@@ -30,13 +30,13 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
     private readonly IAddReviewsSession _addReviewsSession;
     private readonly IGetReviewsSession _getReviewsSession;
     private readonly ILogger<ExtractReviewsCommandHandler> _logger;
-    private readonly IAvatarClient _avatarClient;
+    private readonly IAddAvatarService _addAvatarService;
 
     private static readonly DateTime DateWhenReviewsWereDeleted = new DateTime(2024, 07, 10);
     
     public ExtractReviewsCommandHandler(IWaybackMachineClient waybackMachineClient, PluginConfiguration config, 
         IHtmlReviewsExtractor htmlReviewsExtractor, IAddReviewsSession addReviewsSession, IGetReviewsSession getReviewsSession,
-        ILogger<ExtractReviewsCommandHandler> logger, IAvatarClient avatarClient)
+        ILogger<ExtractReviewsCommandHandler> logger, IAddAvatarService addAvatarService)
     {
         _waybackMachineClient = waybackMachineClient;
         _config = config;
@@ -44,7 +44,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         _addReviewsSession = addReviewsSession;
         _getReviewsSession = getReviewsSession;
         _logger = logger;
-        _avatarClient = avatarClient;
+        _addAvatarService = addAvatarService;
     }
     
     public async ValueTask<Result> Handle(ExtractReviewsCommand request, CancellationToken cancellationToken)
@@ -119,16 +119,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         
         await Parallel.ForEachAsync(reviewsResult.Value.Select(x => x.Author.AvatarUri), parallelOptions, async (avatarUri, token) =>
         {
-            var avatarResult = await _avatarClient.GetAvatarStreamAsync(avatarUri, token);
-
-            if (avatarResult.IsFailed)
-            {
-                return;
-            }
-
-            var imageStream = avatarResult.Value;
-            
-            await _addReviewsSession.AddAvatarImageAsync(avatarUri, imageStream);
+            _ = await _addAvatarService.AddAvatarIfNotExists(avatarUri, token);
         });
 
         return Result.Ok();

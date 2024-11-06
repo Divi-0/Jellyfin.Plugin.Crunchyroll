@@ -9,6 +9,7 @@ using System.Web;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
@@ -25,20 +26,20 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
     private readonly IExtractCommentsSession _session;
     private readonly PluginConfiguration _config;
     private readonly IWaybackMachineClient _waybackMachineClient;
-    private readonly IAvatarClient _avatarClient;
+    private readonly IAddAvatarService _addAvatarService;
     private readonly ILogger<ExtractCommentsCommandHandler> _logger;
 
     private static readonly DateTime DateWhenCommentsWereDeleted = new DateTime(2024, 07, 10);
 
     public ExtractCommentsCommandHandler(IHtmlCommentsExtractor extractor, IExtractCommentsSession session,
-        PluginConfiguration config, IWaybackMachineClient waybackMachineClient, IAvatarClient avatarClient,
+        PluginConfiguration config, IWaybackMachineClient waybackMachineClient, IAddAvatarService addAvatarService,
         ILogger<ExtractCommentsCommandHandler> logger)
     {
         _extractor = extractor;
         _session = session;
         _config = config;
         _waybackMachineClient = waybackMachineClient;
-        _avatarClient = avatarClient;
+        _addAvatarService = addAvatarService;
         _logger = logger;
     }
     
@@ -120,22 +121,8 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
             {
                 return;
             }
-
-            if (await _session.AvatarExistsAsync(avatarUri))
-            {
-                return;
-            }
             
-            var avatarResult = await _avatarClient.GetAvatarStreamAsync(avatarUri, token);
-
-            if (avatarResult.IsFailed)
-            {
-                return;
-            }
-
-            var imageStream = avatarResult.Value;
-            
-            await _session.AddAvatarImageAsync(avatarUri, imageStream);
+            _ = await _addAvatarService.AddAvatarIfNotExists(avatarUri, token);
         });
     }
 }

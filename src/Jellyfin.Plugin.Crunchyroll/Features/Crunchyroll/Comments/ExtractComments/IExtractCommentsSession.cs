@@ -4,7 +4,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
 
-public interface IExtractCommentsSession : IAddAvatarSession
+public interface IExtractCommentsSession
 {
     public ValueTask InsertComments(EpisodeComments comments);
     public ValueTask<bool> CommentsForEpisodeExists(string episodeId);

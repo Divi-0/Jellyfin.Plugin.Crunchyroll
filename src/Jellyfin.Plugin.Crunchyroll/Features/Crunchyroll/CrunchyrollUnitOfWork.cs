@@ -24,6 +24,7 @@ using LiteDB;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
+using ErrorCodes = Jellyfin.Plugin.Crunchyroll.Domain.Constants.ErrorCodes;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 
@@ -37,7 +38,8 @@ public sealed class CrunchyrollUnitOfWork :
     IExtractCommentsSession,
     IGetCommentsSession,
     IOverwriteEpisodeJellyfinDataTaskSession,
-    IOverwriteSeasonJellyfinDataSession
+    IOverwriteSeasonJellyfinDataSession,
+    IAddAvatarSession
 {
     private readonly ILogger<CrunchyrollUnitOfWork> _logger;
     private readonly string _connectionString;
@@ -138,7 +140,7 @@ public sealed class CrunchyrollUnitOfWork :
         }
     }
 
-    public ValueTask AddAvatarImageAsync(string url, Stream imageStream)
+    public ValueTask<Result> AddAvatarImageAsync(string url, Stream imageStream)
     {
         _semaphore.Wait();
 
@@ -148,11 +150,16 @@ public sealed class CrunchyrollUnitOfWork :
             {
                 using var db = new LiteDatabase(_connectionString);
                 var fileStorage = db.GetStorage<string>(AvatarImageFileStorageName, AvatarImageChunkName);
-            
+
                 fileStorage.Upload(url, url, imageStream);
             });
-            
-            return ValueTask.CompletedTask;
+
+            return ValueTask.FromResult(Result.Ok());
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to add avatar image");
+            return ValueTask.FromResult(Result.Fail(ErrorCodes.Internal));
         }
         finally
         {

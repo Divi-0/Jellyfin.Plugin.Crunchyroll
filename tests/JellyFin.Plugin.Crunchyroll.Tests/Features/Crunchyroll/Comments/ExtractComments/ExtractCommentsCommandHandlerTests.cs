@@ -4,6 +4,7 @@ using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
@@ -21,7 +22,7 @@ public class ExtractCommentsCommandHandlerTests
     private readonly IHtmlCommentsExtractor _htmlCommentsExtractor;
     private readonly IExtractCommentsSession _commentsSession;
     private readonly IWaybackMachineClient _waybackMachineClient;
-    private readonly IAvatarClient _avatarClient;
+    private readonly IAddAvatarService _addAvatarService;
     private readonly PluginConfiguration _config;
     
     private readonly Fixture _fixture;
@@ -34,11 +35,11 @@ public class ExtractCommentsCommandHandlerTests
         _commentsSession = Substitute.For<IExtractCommentsSession>();
         _config = new PluginConfiguration();
         _waybackMachineClient = Substitute.For<IWaybackMachineClient>();
-        _avatarClient = Substitute.For<IAvatarClient>();
+        _addAvatarService = Substitute.For<IAddAvatarService>();
         var logger = Substitute.For<ILogger<ExtractCommentsCommandHandler>>();
 
         _sut = new ExtractCommentsCommandHandler(_htmlCommentsExtractor, _commentsSession, _config, 
-            _waybackMachineClient, _avatarClient, logger);
+            _waybackMachineClient, _addAvatarService, logger);
     }
 
     [Fact]
@@ -70,14 +71,9 @@ public class ExtractCommentsCommandHandlerTests
 
         foreach (var comment in comments)
         {
-            var stream = new MemoryStream([]);
-            _avatarClient
-                .GetAvatarStreamAsync(comment.AvatarIconUri!, Arg.Any<CancellationToken>())
-                .Returns(new MemoryStream());
-
-            _commentsSession
-                .AddAvatarImageAsync(comment.AvatarIconUri!, stream)
-                .Returns(ValueTask.CompletedTask);
+            _addAvatarService
+                .AddAvatarIfNotExists(comment.AvatarIconUri!, Arg.Any<CancellationToken>())
+                .Returns(Result.Ok());
         }
 
         //Act
@@ -107,13 +103,9 @@ public class ExtractCommentsCommandHandlerTests
         
         foreach (var comment in comments)
         {
-            await _avatarClient
+            await _addAvatarService
                 .Received()
-                .GetAvatarStreamAsync(comment.AvatarIconUri!, Arg.Any<CancellationToken>());
-
-            await _commentsSession
-                .Received()
-                .AddAvatarImageAsync(comment.AvatarIconUri!, Arg.Any<MemoryStream>());
+                .AddAvatarIfNotExists(comment.AvatarIconUri!, Arg.Any<CancellationToken>());
         }
     }
     
@@ -137,7 +129,7 @@ public class ExtractCommentsCommandHandlerTests
 
         //Act
         var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
-        var result = await _sut.Handle(command, CancellationToken.None);
+        _ = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
         //just check if the crunchyroll url has not "en" in path
@@ -147,52 +139,6 @@ public class ExtractCommentsCommandHandlerTests
             .SearchAsync(Arg.Is<string>(x => !x.Contains(HttpUtility.UrlEncode("/en/"))),
                 new DateTime(2024, 07, 10),
                 Arg.Any<CancellationToken>());
-    }
-    
-    [Fact]
-    public async Task IgnoresAvatarUri_WhenAlreadyExists_GivenEpisodeIdAndSlugTitle()
-    {
-        //Arrange
-        var episodeId = CrunchyrollIdFaker.Generate();
-        var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
-        
-        _commentsSession
-            .CommentsForEpisodeExists(episodeId)
-            .Returns(false);
-
-        var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
-        _waybackMachineClient
-            .SearchAsync(Arg.Any<string>(), Arg.Any<DateTime>(),
-                Arg.Any<CancellationToken>())
-            .Returns(searchResponses);
-        
-        var comments = Enumerable.Range(0, 10).Select(_ => CommentItemFaker.Generate()).ToList();
-        _htmlCommentsExtractor
-            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(comments);
-        
-
-        foreach (var comment in comments)
-        {
-            _commentsSession
-                .AvatarExistsAsync(comment.AvatarIconUri!)
-                .Returns(true);
-        }
-
-        //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
-        var result = await _sut.Handle(command, CancellationToken.None);
-
-        //Assert
-        result.IsSuccess.Should().BeTrue();
-        
-        await _avatarClient
-            .DidNotReceive()
-            .GetAvatarStreamAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-
-        await _commentsSession
-            .DidNotReceive()
-            .AddAvatarImageAsync(Arg.Any<string>(), Arg.Any<MemoryStream>());
     }
     
     [Fact]
@@ -228,18 +174,10 @@ public class ExtractCommentsCommandHandlerTests
 
         //Assert
         result.IsSuccess.Should().BeTrue();
-
-        await _commentsSession
-            .DidNotReceive()
-            .AvatarExistsAsync(Arg.Any<string>());
         
-        await _avatarClient
+        await _addAvatarService
             .DidNotReceive()
-            .GetAvatarStreamAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-
-        await _commentsSession
-            .DidNotReceive()
-            .AddAvatarImageAsync(Arg.Any<string>(), Arg.Any<MemoryStream>());
+            .AddAvatarIfNotExists(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
     
     [Fact]
@@ -266,8 +204,8 @@ public class ExtractCommentsCommandHandlerTests
         
         foreach (var comment in comments)
         {
-            _avatarClient
-                .GetAvatarStreamAsync(comment.AvatarIconUri!, Arg.Any<CancellationToken>())
+            _addAvatarService
+                .AddAvatarIfNotExists(comment.AvatarIconUri!, Arg.Any<CancellationToken>())
                 .Returns(Result.Fail("error"));
         }
 
@@ -280,17 +218,9 @@ public class ExtractCommentsCommandHandlerTests
 
         foreach (var comment in comments)
         {
-            await _commentsSession
+            await _addAvatarService
                 .Received(1)
-                .AvatarExistsAsync(comment.AvatarIconUri!);
-        
-            await _avatarClient
-                .Received(1)
-                .GetAvatarStreamAsync(comment.AvatarIconUri!, Arg.Any<CancellationToken>());
-
-            await _commentsSession
-                .DidNotReceive()
-                .AddAvatarImageAsync(Arg.Any<string>(), Arg.Any<MemoryStream>());
+                .AddAvatarIfNotExists(comment.AvatarIconUri!, Arg.Any<CancellationToken>());
         }
     }
 

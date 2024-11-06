@@ -4,7 +4,7 @@ using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.Client;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
@@ -24,8 +24,7 @@ public class ExtractReviewsCommandTests
     private readonly IHtmlReviewsExtractor _htmlReviewsExtractor;
     private readonly IAddReviewsSession _addReviewsSession;
     private readonly IGetReviewsSession _getReviewsSession;
-    private readonly ILogger<ExtractReviewsCommandHandler> _logger;
-    private readonly IAvatarClient _avatarClient;
+    private readonly IAddAvatarService _addAvatarService;
     
     public ExtractReviewsCommandTests()
     {
@@ -37,10 +36,10 @@ public class ExtractReviewsCommandTests
         _htmlReviewsExtractor = Substitute.For<IHtmlReviewsExtractor>();
         _addReviewsSession = Substitute.For<IAddReviewsSession>();
         _getReviewsSession = Substitute.For<IGetReviewsSession>();
-        _logger = Substitute.For<ILogger<ExtractReviewsCommandHandler>>();
-        _avatarClient = Substitute.For<IAvatarClient>();
+        var logger = Substitute.For<ILogger<ExtractReviewsCommandHandler>>();
+        _addAvatarService = Substitute.For<IAddAvatarService>();
         _sut = new ExtractReviewsCommandHandler(_waybackMachineClient, _config, _htmlReviewsExtractor, 
-            _addReviewsSession, _getReviewsSession, _logger, _avatarClient);
+            _addReviewsSession, _getReviewsSession, logger, _addAvatarService);
     }
 
     [Fact]
@@ -83,10 +82,9 @@ public class ExtractReviewsCommandTests
         
         foreach (var review in reviews)
         {
-            var stream = new MemoryStream(_fixture.Create<byte[]>());
-            _avatarClient
-                .GetAvatarStreamAsync(review.Author.AvatarUri, Arg.Any<CancellationToken>())
-                .Returns(Result.Ok<Stream>(stream));
+            _addAvatarService
+                .AddAvatarIfNotExists(review.Author.AvatarUri, Arg.Any<CancellationToken>())
+                .Returns(Result.Ok());
         }
         
         //Act
@@ -193,15 +191,12 @@ public class ExtractReviewsCommandTests
         _addReviewsSession
             .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>())
             .Returns(ValueTask.CompletedTask);
-
-        var streams = new List<Stream>();
+        
         foreach (var review in reviews)
         {
-            var stream = new MemoryStream(_fixture.Create<byte[]>());
-            streams.Add(stream);
-            _avatarClient
-                .GetAvatarStreamAsync(review.Author.AvatarUri, Arg.Any<CancellationToken>())
-                .Returns(Result.Ok<Stream>(stream));
+            _addAvatarService
+                .AddAvatarIfNotExists(review.Author.AvatarUri, Arg.Any<CancellationToken>())
+                .Returns(Result.Ok());
         }
         
         //Act
@@ -218,13 +213,9 @@ public class ExtractReviewsCommandTests
 
         reviews.Should().AllSatisfy(x =>
         {
-            _avatarClient
+            _addAvatarService
                 .Received(1)
-                .GetAvatarStreamAsync(x.Author.AvatarUri, Arg.Any<CancellationToken>());
-            
-            _addReviewsSession
-                .Received(1)
-                .AddAvatarImageAsync(x.Author.AvatarUri, Arg.Is<Stream>(actualStream => streams.Any(expectedStream => expectedStream == actualStream)));
+                .AddAvatarIfNotExists(x.Author.AvatarUri, Arg.Any<CancellationToken>());
         });
     }
 
@@ -414,10 +405,9 @@ public class ExtractReviewsCommandTests
         
         foreach (var review in reviews)
         {
-            var stream = new MemoryStream(_fixture.Create<byte[]>());
-            _avatarClient
-                .GetAvatarStreamAsync(review.Author.AvatarUri, Arg.Any<CancellationToken>())
-                .Returns(Result.Ok<Stream>(stream));
+            _addAvatarService
+                .AddAvatarIfNotExists(review.Author.AvatarUri, Arg.Any<CancellationToken>())
+                .Returns(Result.Ok());
         }
         
         //Act
@@ -503,10 +493,9 @@ public class ExtractReviewsCommandTests
         
         foreach (var review in reviews)
         {
-            var stream = new MemoryStream(_fixture.Create<byte[]>());
-            _avatarClient
-                .GetAvatarStreamAsync(review.Author.AvatarUri, Arg.Any<CancellationToken>())
-                .Returns(Result.Ok<Stream>(stream));
+            _addAvatarService
+                .AddAvatarIfNotExists(review.Author.AvatarUri, Arg.Any<CancellationToken>())
+                .Returns(Result.Ok());
         }
         
         //Act
