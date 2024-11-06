@@ -5,10 +5,10 @@
     <title>Crunchyroll</title>
 </head>
 <body>
-<div id="TemplateConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+<div id="CrunchyrollPluginConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
     <div data-role="content">
         <div class="content-primary">
-            <form id="TemplateConfigForm">
+            <form id="CrunchyrollPluginConfigForm">
                 <div class="inputContainer">
                     <label class="inputLabel inputLabelUnfocused" for="FlareSolverrUrl">FlareSolverrUrl</label>
                     <input id="FlareSolverrUrl" name="FlareSolverrUrl" type="text" is="emby-input" />
@@ -81,14 +81,14 @@
         </div>
     </div>
     <script type="text/javascript">
-        var TemplateConfig = {
+        var CrunchyrollPluginConfig = {
             pluginUniqueId: 'c6f8461a-9a6f-4c65-8bb9-825866cabc91'
         };
 
-        document.querySelector('#TemplateConfigPage')
+        document.querySelector('#CrunchyrollPluginConfigPage')
             .addEventListener('pageshow', function() {
                 Dashboard.showLoadingMsg();
-                ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
+                ApiClient.getPluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId).then(function (config) {
                     document.querySelector('#FlareSolverrUrl').value = config.FlareSolverrUrl;
                     document.querySelector('#FlareSolverrTimeout').value = config.FlareSolverrTimeout;
                     document.querySelector('#FlareSolverrProxyUrl').value = config.FlareSolverrProxyUrl;
@@ -104,10 +104,10 @@
                 });
             });
 
-        document.querySelector('#TemplateConfigForm')
+        document.querySelector('#CrunchyrollPluginConfigPage')
             .addEventListener('submit', function(e) {
                 Dashboard.showLoadingMsg();
-                ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
+                ApiClient.getPluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId).then(function (config) {
                     config.FlareSolverrUrl = document.querySelector('#FlareSolverrUrl').value;
                     config.FlareSolverrTimeout = document.querySelector('#FlareSolverrTimeout').value;
                     config.FlareSolverrProxyUrl = document.querySelector('#FlareSolverrProxyUrl').value;
@@ -119,7 +119,7 @@
                     config.LocalDatabasePath = document.querySelector('#LocalDatabasePath').value;
                     config.LibraryPath = document.querySelector('#LibraryPath').value;
                     config.IsWaybackMachineEnabled = document.querySelector('#IsWaybackMachineEnabled').checked;
-                    ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result) {
+                    ApiClient.updatePluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
                 });

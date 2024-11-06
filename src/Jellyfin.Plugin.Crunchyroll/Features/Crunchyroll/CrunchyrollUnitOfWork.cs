@@ -8,7 +8,6 @@ using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
-using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
@@ -70,7 +69,12 @@ public sealed class CrunchyrollUnitOfWork :
             {
                 ShouldHandle = new PredicateBuilder().Handle<IOException>(),
                 MaxRetryAttempts = 3,
-                Delay = TimeSpan.FromSeconds(1)
+                Delay = TimeSpan.FromSeconds(1),
+                OnRetry = arg =>
+                {
+                    _logger.LogDebug("Retrying to access db");
+                    return ValueTask.CompletedTask;
+                }
             })
             .Build();
 
