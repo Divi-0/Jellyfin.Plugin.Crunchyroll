@@ -11,6 +11,7 @@ using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
+using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Helper;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
@@ -109,20 +110,27 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
             return reviewsResult.ToResult();
         }
         
-        await _addReviewsSession.AddReviewsForTitleIdAsync(request.TitleId, reviewsResult.Value);
+        await StoreAvatarImagesAndRemoveWebArchivePrefixFromImageUrl(reviewsResult.Value, cancellationToken);
         
+        await _addReviewsSession.AddReviewsForTitleIdAsync(request.TitleId, reviewsResult.Value);
+
+        return Result.Ok();
+    }
+
+    private async Task StoreAvatarImagesAndRemoveWebArchivePrefixFromImageUrl(IReadOnlyList<ReviewItem> reviews, 
+        CancellationToken cancellationToken)
+    {
         var parallelOptions = new ParallelOptions
         {
             MaxDegreeOfParallelism = Environment.ProcessorCount / 2,
             CancellationToken = cancellationToken
         };
-        
-        await Parallel.ForEachAsync(reviewsResult.Value.Select(x => x.Author.AvatarUri), parallelOptions, async (avatarUri, token) =>
-        {
-            _ = await _addAvatarService.AddAvatarIfNotExists(avatarUri, token);
-        });
 
-        return Result.Ok();
+        await Parallel.ForEachAsync(reviews.Select(x => x.Author), parallelOptions, async (author, token) =>
+        {
+            _ = await _addAvatarService.AddAvatarIfNotExists(author.AvatarUri, token);
+            author.AvatarUri = WaybackMachineImageHelper.GetArchivedImageUri(author.AvatarUri);
+        });
     }
 
     private async ValueTask<Result<bool>> HasTitleAnyReviews(string titleId)

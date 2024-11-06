@@ -190,4 +190,44 @@ public class AddAvatarServiceTests
             .Received(1)
             .AddAvatarImageAsync(uri, Arg.Any<Stream>());
     }
+    
+    [Fact]
+    public async Task ReturnsSuccess_WhenStreamFound_GivenWebArchiveUri()
+    {
+        //Arrange
+        var webArchiveOrgUri = new UriBuilder(Uri.UriSchemeHttp, "web.archive.org");
+        var archivedImageUrl = _faker.Internet.UrlWithPath(fileExt: "png");
+        var uri = $"{webArchiveOrgUri}im_/{archivedImageUrl}";
+        var stream = new MemoryStream();
+        
+        _session
+            .AvatarExistsAsync(archivedImageUrl)
+            .Returns(Result.Ok(false));
+        
+        _client
+            .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<Stream>(stream));
+        
+        _session
+            .AddAvatarImageAsync(archivedImageUrl, Arg.Any<Stream>())
+            .Returns(Result.Ok());
+        
+        //Act
+        var result = await _sut.AddAvatarIfNotExists(uri, CancellationToken.None);
+        
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        
+        await _session
+            .Received(1)
+            .AvatarExistsAsync(archivedImageUrl);
+        
+        await _client
+            .Received(1)
+            .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
+            
+        await _session
+            .Received(1)
+            .AddAvatarImageAsync(archivedImageUrl, Arg.Is<Stream>(actualStream => actualStream == stream));
+    }
 }

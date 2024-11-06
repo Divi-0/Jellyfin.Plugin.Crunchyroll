@@ -1,5 +1,6 @@
 using System.Web;
 using AutoFixture;
+using Bogus;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
@@ -49,6 +50,8 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
+        var webArchiveOrgUri = new UriBuilder(Uri.UriSchemeHttp, "web.archive.org").ToString();
+        
         _getReviewsSession
             .GetReviewsForTitleIdAsync(titleId)
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
@@ -62,6 +65,15 @@ public class ExtractReviewsCommandTests
             .Returns(Task.FromResult(Result.Ok<IReadOnlyList<SearchResponse>>(searchResponses)));
 
         var reviews = _fixture.CreateMany<ReviewItem>().ToList();
+
+        foreach (var review in reviews)
+        {
+            var archivedImageUrl = new Faker().Internet.UrlWithPath(fileExt: "png");
+            var uri = $"{webArchiveOrgUri}im_/{archivedImageUrl}";
+            
+            review.Author.AvatarUri = uri;
+        }
+        
         var url = Path.Combine(
             _config.ArchiveOrgUrl, 
             "web", 
@@ -75,9 +87,10 @@ public class ExtractReviewsCommandTests
         _htmlReviewsExtractor
             .GetReviewsAsync(url, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(reviews)));
-        
+
+        IReadOnlyList<ReviewItem>? actualReviewItems = null;
         _addReviewsSession
-            .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>())
+            .AddReviewsForTitleIdAsync(titleId, Arg.Do<IReadOnlyList<ReviewItem>>(x => actualReviewItems = x))
             .Returns(ValueTask.CompletedTask);
         
         foreach (var review in reviews)
@@ -113,6 +126,12 @@ public class ExtractReviewsCommandTests
         await _addReviewsSession
             .Received(1)
             .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>());
+
+        actualReviewItems.Should().NotBeNull();
+        actualReviewItems!.Should().AllSatisfy(x =>
+        {
+            x.Author.AvatarUri.Should().NotContain(webArchiveOrgUri);
+        });
     }
     
     [Fact]

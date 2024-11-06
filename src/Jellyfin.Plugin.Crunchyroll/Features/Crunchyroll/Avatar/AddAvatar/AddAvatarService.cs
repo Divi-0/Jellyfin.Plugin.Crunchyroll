@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.Client;
+using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Helper;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 
@@ -18,7 +19,9 @@ public class AddAvatarService : IAddAvatarService
     
     public async ValueTask<Result> AddAvatarIfNotExists(string uri, CancellationToken cancellationToken)
     {
-        var existsResult = await _session.AvatarExistsAsync(uri);
+        var archivedUrl = WaybackMachineImageHelper.GetArchivedImageUri(uri);
+        
+        var existsResult = await _session.AvatarExistsAsync(archivedUrl);
         
         if (existsResult.IsFailed)
         {
@@ -40,7 +43,7 @@ public class AddAvatarService : IAddAvatarService
 
         var imageStream = avatarResult.Value;
             
-        var addAvatarResult = await _session.AddAvatarImageAsync(uri, imageStream);
+        var addAvatarResult = await _session.AddAvatarImageAsync(archivedUrl, imageStream);
         
         return addAvatarResult.IsSuccess 
             ? Result.Ok() 
