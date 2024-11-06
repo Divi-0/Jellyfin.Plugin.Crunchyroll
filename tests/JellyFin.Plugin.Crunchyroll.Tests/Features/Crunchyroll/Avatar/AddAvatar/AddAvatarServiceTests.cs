@@ -31,6 +31,10 @@ public class AddAvatarServiceTests
         var uri = _faker.Internet.UrlWithPath(fileExt: "png");
         var stream = new MemoryStream();
         
+        _session
+            .AvatarExistsAsync(uri)
+            .Returns(Result.Ok(false));
+        
         _client
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>())
             .Returns(Result.Ok<Stream>(stream));
@@ -45,6 +49,10 @@ public class AddAvatarServiceTests
         //Assert
         result.IsSuccess.Should().BeTrue();
         
+        await _session
+            .Received(1)
+            .AvatarExistsAsync(uri);
+        
         await _client
             .Received(1)
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
@@ -55,11 +63,72 @@ public class AddAvatarServiceTests
     }
 
     [Fact]
+    public async Task ReturnsSuccess_WhenAvatarAlreadyExists_GivenValidUri()
+    {
+        //Arrange
+        var uri = _faker.Internet.UrlWithPath(fileExt: "png");
+        
+        _session
+            .AvatarExistsAsync(uri)
+            .Returns(Result.Ok(true));
+        
+        //Act
+        var result = await _sut.AddAvatarIfNotExists(uri, CancellationToken.None);
+        
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        
+        await _session
+            .Received(1)
+            .AvatarExistsAsync(uri);
+        
+        await _client
+            .DidNotReceive()
+            .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
+            
+        await _session
+            .DidNotReceive()
+            .AddAvatarImageAsync(uri, Arg.Any<Stream>());
+    }
+
+    [Fact]
+    public async Task ReturnsFailed_WhenAvatarExistsFails_GivenValidUri()
+    {
+        //Arrange
+        var uri = _faker.Internet.UrlWithPath(fileExt: "png");
+        
+        _session
+            .AvatarExistsAsync(uri)
+            .Returns(Result.Fail("error"));
+        
+        //Act
+        var result = await _sut.AddAvatarIfNotExists(uri, CancellationToken.None);
+        
+        //Assert
+        result.IsFailed.Should().BeTrue();
+        
+        await _session
+            .Received(1)
+            .AvatarExistsAsync(uri);
+        
+        await _client
+            .DidNotReceive()
+            .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
+            
+        await _session
+            .DidNotReceive()
+            .AddAvatarImageAsync(uri, Arg.Any<Stream>());
+    }
+
+    [Fact]
     public async Task ReturnsFailed_WhenGetStreamFails_GivenValidUri()
     {
         //Arrange
         var uri = _faker.Internet.UrlWithPath(fileExt: "png");
-        var stream = new MemoryStream();
+        
+        _session
+            .AvatarExistsAsync(uri)
+            .Returns(Result.Ok(false));
         
         _client
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>())
@@ -70,6 +139,10 @@ public class AddAvatarServiceTests
         
         //Assert
         result.IsFailed.Should().BeTrue();
+        
+        await _session
+            .Received(1)
+            .AvatarExistsAsync(uri);
         
         await _client
             .Received(1)
@@ -87,6 +160,10 @@ public class AddAvatarServiceTests
         var uri = _faker.Internet.UrlWithPath(fileExt: "png");
         var stream = new MemoryStream();
         
+        _session
+            .AvatarExistsAsync(uri)
+            .Returns(Result.Ok(false));
+        
         _client
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>())
             .Returns(Result.Ok<Stream>(stream));
@@ -100,6 +177,10 @@ public class AddAvatarServiceTests
         
         //Assert
         result.IsFailed.Should().BeTrue();
+        
+        await _session
+            .Received(1)
+            .AvatarExistsAsync(uri);
         
         await _client
             .Received(1)

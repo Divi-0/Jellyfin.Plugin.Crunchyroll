@@ -25,6 +25,7 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 using ErrorCodes = Jellyfin.Plugin.Crunchyroll.Domain.Constants.ErrorCodes;
+using Exception = System.Exception;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 
@@ -167,7 +168,7 @@ public sealed class CrunchyrollUnitOfWork :
         }
     }
 
-    public ValueTask<bool> AvatarExistsAsync(string url)
+    public ValueTask<Result<bool>> AvatarExistsAsync(string url)
     {
         _semaphore.Wait();
 
@@ -180,8 +181,13 @@ public sealed class CrunchyrollUnitOfWork :
 
                 return fileStorage.Exists(url);
             });
-            
-            return ValueTask.FromResult(exists);
+
+            return ValueTask.FromResult(Result.Ok(exists));
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to check if avatar exists");
+            return ValueTask.FromResult(Result.Fail<bool>(ErrorCodes.Internal));
         }
         finally
         {

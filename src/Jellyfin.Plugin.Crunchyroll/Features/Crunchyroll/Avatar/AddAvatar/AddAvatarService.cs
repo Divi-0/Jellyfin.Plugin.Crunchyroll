@@ -18,6 +18,19 @@ public class AddAvatarService : IAddAvatarService
     
     public async ValueTask<Result> AddAvatarIfNotExists(string uri, CancellationToken cancellationToken)
     {
+        var existsResult = await _session.AvatarExistsAsync(uri);
+        
+        if (existsResult.IsFailed)
+        {
+            return existsResult.ToResult();
+        }
+
+        if (existsResult.Value)
+        {
+            //Avatar exists already, no need to store it again
+            return Result.Ok();
+        }
+        
         var avatarResult = await _client.GetAvatarStreamAsync(uri, cancellationToken);
 
         if (avatarResult.IsFailed)
@@ -29,11 +42,8 @@ public class AddAvatarService : IAddAvatarService
             
         var addAvatarResult = await _session.AddAvatarImageAsync(uri, imageStream);
         
-        if (addAvatarResult.IsFailed)
-        {
-            return addAvatarResult;
-        }
-        
-        return Result.Ok();
+        return addAvatarResult.IsSuccess 
+            ? Result.Ok() 
+            : addAvatarResult;
     }
 }

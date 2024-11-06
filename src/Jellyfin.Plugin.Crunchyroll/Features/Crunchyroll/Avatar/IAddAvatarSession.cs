@@ -7,5 +7,5 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 public interface IAddAvatarSession
 {
     public ValueTask<Result> AddAvatarImageAsync(string url, Stream imageStream);
-    public ValueTask<bool> AvatarExistsAsync(string url);
+    public ValueTask<Result<bool>> AvatarExistsAsync(string url);
 }
