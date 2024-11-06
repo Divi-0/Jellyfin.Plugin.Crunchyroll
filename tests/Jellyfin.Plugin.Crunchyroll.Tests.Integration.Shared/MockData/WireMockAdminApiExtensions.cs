@@ -521,6 +521,18 @@ public static class WireMockAdminApiExtensions
                                     Pattern = "*"
                                 }
                             }
+                        },
+                        new ParamModel()
+                        {
+                            Name = "filter",
+                            Matchers = new MatcherModel[]
+                            {
+                                new MatcherModel()
+                                {
+                                    Name = "WildcardMatcher",
+                                    Pattern = "statuscode:200"
+                                }
+                            }
                         }
                     }))
             .WithResponse(rsp => rsp
