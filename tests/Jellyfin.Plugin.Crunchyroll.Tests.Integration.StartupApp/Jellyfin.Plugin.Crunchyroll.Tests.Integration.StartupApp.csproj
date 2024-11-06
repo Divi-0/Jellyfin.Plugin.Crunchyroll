@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <InvariantGlobalization>true</InvariantGlobalization>
         <RootNamespace>Jellyfin.Plugin.Crunchyroll.Tests.Integration.StartupApp</RootNamespace>
-        <Configurations>Debug;Release;Debug-Copy</Configurations>
+        <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 

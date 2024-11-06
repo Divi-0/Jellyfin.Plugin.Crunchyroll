@@ -5,7 +5,7 @@
         <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <Nullable>enable</Nullable>
-        <Configurations>Debug;Release;Debug-Copy</Configurations>
+        <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
