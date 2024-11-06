@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jellyfin.Plugin.Crunchyroll
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared", "tests\Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared\Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.csproj", "{F6C6F777-E47D-4719-9E4C-0574A9724A0F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jellyfin.Plugin.Crunchyroll.Tests.E2E", "tests\Jellyfin.Plugin.Crunchyroll.Tests.E2E\Jellyfin.Plugin.Crunchyroll.Tests.E2E.csproj", "{B2547333-8A3D-42C5-8C05-2B5115636155}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +69,12 @@ Global
 		{F6C6F777-E47D-4719-9E4C-0574A9724A0F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F6C6F777-E47D-4719-9E4C-0574A9724A0F}.Debug-Copy|Any CPU.ActiveCfg = Debug|Any CPU
 		{F6C6F777-E47D-4719-9E4C-0574A9724A0F}.Debug-Copy|Any CPU.Build.0 = Debug|Any CPU
+		{B2547333-8A3D-42C5-8C05-2B5115636155}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2547333-8A3D-42C5-8C05-2B5115636155}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2547333-8A3D-42C5-8C05-2B5115636155}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2547333-8A3D-42C5-8C05-2B5115636155}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2547333-8A3D-42C5-8C05-2B5115636155}.Debug-Copy|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2547333-8A3D-42C5-8C05-2B5115636155}.Debug-Copy|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{9F6AAEBD-9FA6-4441-8A44-3D0420B8B469} = {A1583A04-1039-4B89-B8EB-7B96A38BBE05}
@@ -76,5 +84,6 @@ Global
 		{36C5D1D5-C69E-4843-8BA2-C81D7847A128} = {A1583A04-1039-4B89-B8EB-7B96A38BBE05}
 		{420797EC-EA13-47CD-9666-520DFB33D519} = {A1583A04-1039-4B89-B8EB-7B96A38BBE05}
 		{F6C6F777-E47D-4719-9E4C-0574A9724A0F} = {A1583A04-1039-4B89-B8EB-7B96A38BBE05}
+		{B2547333-8A3D-42C5-8C05-2B5115636155} = {A1583A04-1039-4B89-B8EB-7B96A38BBE05}
 	EndGlobalSection
 EndGlobal

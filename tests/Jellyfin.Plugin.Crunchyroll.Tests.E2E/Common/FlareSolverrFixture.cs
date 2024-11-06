@@ -1,45 +1,41 @@
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
-using Jellyfin.Plugin.Crunchyroll;
-using Jellyfin.Plugin.Crunchyroll.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
-namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.E2E.Common;
 
-public class FlareSolverrFixture : IAsyncLifetime
+public sealed class FlareSolverrFixture : IAsyncLifetime
 {
     private readonly IContainer _container;
     private const int ContainerPort = 8191;
     
+    private const string ContainerName = "flareSolverr-e2e";
+    
     public FlareSolverrFixture()
     {
         _container = new ContainerBuilder()
+            .WithName(ContainerName)
             .WithImage("ghcr.io/flaresolverr/flaresolverr:latest")
             .WithPortBinding(ContainerPort, true)
             .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(Convert.ToUInt16(ContainerPort))))
+            .WithNetwork(DockerNetwork.NetworkName)
             .Build();
     }
     
     public async Task InitializeAsync()
     {
         await _container.StartAsync();
-
-        _ = Task.Run(() =>
-        {
-            while (CrunchyrollPlugin.Instance is null)
-            {
-            }
-
-            var config = CrunchyrollPlugin.Instance.ServiceProvider.GetRequiredService<PluginConfiguration>();
-            config.FlareSolverrUrl =
-                new UriBuilder(Uri.UriSchemeHttp, "127.0.0.1", _container.GetMappedPublicPort(ContainerPort))
-                    .ToString();
-        });
     }
 
     public async Task DisposeAsync()
     {
+        await _container.StopAsync();
         await _container.DisposeAsync();
     }
+    
+    public static string Url => 
+        new UriBuilder(
+            Uri.UriSchemeHttp, 
+            ContainerName, 
+            ContainerPort)
+        .ToString();
 }
