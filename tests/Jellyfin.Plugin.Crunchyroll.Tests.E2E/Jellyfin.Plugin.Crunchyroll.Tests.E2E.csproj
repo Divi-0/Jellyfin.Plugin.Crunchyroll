@@ -27,7 +27,7 @@
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="xcopy /y &quot;$(SolutionDir)src/Jellyfin.Plugin.Crunchyroll/$(OutDir)*.*&quot; $(TargetDir)plugin" />
+      <Exec Command="rd /s /q &quot;$(TargetDir)plugin&quot;&#xA;mkdir $(TargetDir)plugin&#xA;xcopy /y &quot;$(SolutionDir)src/Jellyfin.Plugin.Crunchyroll/$(OutDir)*.*&quot; $(TargetDir)plugin" />
     </Target>
 
 </Project>
