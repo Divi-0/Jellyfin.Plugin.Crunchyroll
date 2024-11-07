@@ -230,4 +230,66 @@ public class AddAvatarServiceTests
             .Received(1)
             .AddAvatarImageAsync(archivedImageUrl, Arg.Is<Stream>(actualStream => actualStream == stream));
     }
+    
+    [Fact]
+    public async Task DoesNotFetchAvatar_WhenUriIsAlreadyBeingFetched_GivenDuplicateWebArchiveUri()
+    {
+        //Arrange
+        var webArchiveOrgUri = new UriBuilder(Uri.UriSchemeHttp, "web.archive.org");
+        var archivedImageUrl = _faker.Internet.UrlWithPath(fileExt: "png");
+        var uri = $"{webArchiveOrgUri}im_/{archivedImageUrl}";
+        var stream = new MemoryStream();
+        
+        var cancellationTokenSource = new CancellationTokenSource();
+        
+        _session
+            .AvatarExistsAsync(archivedImageUrl)
+            .Returns(Result.Ok(false));
+        
+        _client
+            .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>())
+            .Returns(Task.Run(async () =>
+            {
+                while (!cancellationTokenSource.IsCancellationRequested)
+                {
+                    await Task.Delay(500);
+                }
+                
+                return Result.Ok<Stream>(stream);
+            }));
+        
+        _session
+            .AddAvatarImageAsync(archivedImageUrl, Arg.Any<Stream>())
+            .Returns(Result.Ok());
+        
+        //Act
+        var firstTask = _sut.AddAvatarIfNotExists(uri, CancellationToken.None);
+        var secondTask = Task.Run(async () =>
+        {
+            var result = await _sut.AddAvatarIfNotExists(uri, CancellationToken.None);
+            await cancellationTokenSource.CancelAsync();
+            return result;
+        });
+        
+        var results = await Task.WhenAll(firstTask.AsTask(), secondTask);
+
+        //Assert
+        results.Should().AllSatisfy(x =>
+        {
+            x.IsSuccess.Should()
+                .BeTrue("first task adds image, second task sees uri is already being fetched");
+        });
+        
+        await _session
+            .Received(1)
+            .AvatarExistsAsync(archivedImageUrl);
+        
+        await _client
+            .Received(1)
+            .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
+            
+        await _session
+            .Received(1)
+            .AddAvatarImageAsync(archivedImageUrl, Arg.Is<Stream>(actualStream => actualStream == stream));
+    }
 }

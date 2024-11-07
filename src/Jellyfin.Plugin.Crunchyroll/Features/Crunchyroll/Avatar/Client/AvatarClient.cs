@@ -25,7 +25,6 @@ public class AvatarClient : IAvatarClient
     
     public async Task<Result<Stream>> GetAvatarStreamAsync(string uri, CancellationToken cancellationToken)
     {
-        HttpResponseMessage response;
         try
         {
             var request = new HttpRequestMessage()
@@ -38,20 +37,20 @@ public class AvatarClient : IAvatarClient
                 }
             };
             
-            response = await _httpClient.SendAsync(request, cancellationToken);
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("request failed for Uri {Uri} with statuscode {StatusCode}", uri, response.StatusCode);
+                return Result.Fail(GetAvatarImageErrorCodes.GetAvatarImageRequestFailed);
+            }
+
+            return await response.Content.ReadAsStreamAsync(cancellationToken);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "request failed for Uri {Uri}", uri);
             return Result.Fail(GetAvatarImageErrorCodes.GetAvatarImageRequestFailed);
         }
-
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogError("request failed for Uri {Uri} with statuscode {StatusCode}", uri, response.StatusCode);
-            return Result.Fail(GetAvatarImageErrorCodes.GetAvatarImageRequestFailed);
-        }
-
-        return await response.Content.ReadAsStreamAsync(cancellationToken);
     }
 }

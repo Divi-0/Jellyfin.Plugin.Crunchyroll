@@ -42,17 +42,17 @@ public class SetEpisodeIdTask : IPostSeasonIdSetTask
             return;
         }
 
-        foreach (var episode in ((Folder)seasonItem).Children)
+        await Parallel.ForEachAsync(((Folder)seasonItem).Children, async (episode, _) =>
         {
             var setEpisodeIdResult = await SetEpisodeId(episode, titleId, seasonId, cancellationToken);
 
             if (setEpisodeIdResult.IsFailed)
             {
-                continue;
+                return;
             }
-            
+
             await RunPostTasks(episode, cancellationToken);
-        }
+        });
     }
 
     private async ValueTask<Result> SetEpisodeId(BaseItem episode, string? titleId,

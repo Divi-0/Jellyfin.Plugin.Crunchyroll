@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -10,6 +11,8 @@ public class AddAvatarService : IAddAvatarService
 {
     private readonly IAddAvatarSession _session;
     private readonly IAvatarClient _client;
+    
+    private readonly ConcurrentDictionary<string, bool> _concurrentDictionary = new();
 
     public AddAvatarService(IAddAvatarSession session, IAvatarClient client)
     {
@@ -20,6 +23,11 @@ public class AddAvatarService : IAddAvatarService
     public async ValueTask<Result> AddAvatarIfNotExists(string uri, CancellationToken cancellationToken)
     {
         var archivedUrl = WaybackMachineImageHelper.GetArchivedImageUri(uri);
+        
+        if (!_concurrentDictionary.TryAdd(uri, true))
+        {
+            return Result.Ok();
+        }
         
         var existsResult = await _session.AvatarExistsAsync(archivedUrl);
         
@@ -44,6 +52,8 @@ public class AddAvatarService : IAddAvatarService
         var imageStream = avatarResult.Value;
             
         var addAvatarResult = await _session.AddAvatarImageAsync(archivedUrl, imageStream);
+
+        _concurrentDictionary.TryRemove(uri, out _);
         
         return addAvatarResult.IsSuccess 
             ? Result.Ok() 

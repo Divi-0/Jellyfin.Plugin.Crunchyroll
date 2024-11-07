@@ -6,12 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
