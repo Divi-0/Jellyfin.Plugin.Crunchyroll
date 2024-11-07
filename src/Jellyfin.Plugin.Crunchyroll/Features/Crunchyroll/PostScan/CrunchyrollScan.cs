@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,6 +46,8 @@ public class CrunchyrollScan : ILibraryPostScanTask
             return;
         }
         
+        var startTimestamp = Stopwatch.GetTimestamp();
+        
         Guid? topParentId = null;
         if (!string.IsNullOrWhiteSpace(_config.LibraryPath))
         {
@@ -82,6 +85,9 @@ public class CrunchyrollScan : ILibraryPostScanTask
                 progress.Report(percent);
             }
         }
+
+        var elapsedTime = Stopwatch.GetElapsedTime(startTimestamp);
+        _logger.LogInformation("CrunchyrollScan took {ElapsedTime}", elapsedTime.ToString("g"));
 
         progress.Report(100);
     }
