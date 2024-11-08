@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client.Dto;
 using Microsoft.Extensions.Logging;
@@ -17,8 +18,6 @@ public class WaybackMachineClient : IWaybackMachineClient
     private readonly HttpClient _httpClient;
     private readonly ILogger<WaybackMachineClient> _logger;
 
-    private const int TimeoutInSeconds = 180;
-
     public WaybackMachineClient(HttpClient httpClient, PluginConfiguration config, ILogger<WaybackMachineClient> logger)
     {
         _httpClient = httpClient;
@@ -26,8 +25,6 @@ public class WaybackMachineClient : IWaybackMachineClient
 
         _httpClient.BaseAddress =
             new Uri(config.ArchiveOrgUrl);
-        
-        _httpClient.Timeout = TimeSpan.FromSeconds(TimeoutInSeconds);
     }
 
     public async Task<Result<IReadOnlyList<SearchResponse>>> SearchAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default)
@@ -38,7 +35,11 @@ public class WaybackMachineClient : IWaybackMachineClient
         HttpResponseMessage response;
         try
         {
-            response = await _httpClient.GetAsync(path, cancellationToken);
+            response = await WaybackMachineRequestResiliencePipeline
+                .Get(_logger)
+                .ExecuteAsync(
+                    async _ => await _httpClient.GetAsync(path, cancellationToken), 
+                    cancellationToken);
         }
         catch (Exception e)
         {

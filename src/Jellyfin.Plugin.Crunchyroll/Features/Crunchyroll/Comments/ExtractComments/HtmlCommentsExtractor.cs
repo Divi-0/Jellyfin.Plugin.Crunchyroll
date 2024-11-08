@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using HtmlAgilityPack;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 using Microsoft.Extensions.Logging;
@@ -33,7 +33,11 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
         HttpResponseMessage response;
         try
         {
-            response = await _httpClient.GetAsync(url, cancellationToken);
+            response = await WaybackMachineRequestResiliencePipeline
+                .Get(_logger)
+                .ExecuteAsync(
+                    async _ => await _httpClient.GetAsync(url, cancellationToken), 
+                    cancellationToken);
         }
         catch (Exception e)
         {
