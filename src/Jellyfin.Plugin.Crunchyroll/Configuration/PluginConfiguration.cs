@@ -15,4 +15,5 @@ public class PluginConfiguration : BasePluginConfiguration
     public string LocalDatabasePath { get; set; } = string.Empty;
     public bool IsWaybackMachineEnabled { get; set; } = true;
     public string LibraryPath { get; set; } = string.Empty;
+    public int WaybackMachineWaitTimeoutInSeconds { get; set; } = 180;
 }

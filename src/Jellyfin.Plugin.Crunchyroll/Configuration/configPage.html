@@ -66,6 +66,12 @@
                     </div>
                 </div>
                 <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="WaybackMachineWaitTimeoutInSeconds">WaybackMachineWaitTimeoutInSeconds</label>
+                    <input id="WaybackMachineWaitTimeoutInSeconds" name="WaybackMachineWaitTimeoutInSeconds" type="number" is="emby-input" min="0" />
+                    <div class="fieldDescription">Timeout in seconds; This timeout only occurs when the request to wayback machine are throttled
+                        or refused due to the ddos protection</div>
+                </div>
+                <div class="inputContainer">
                     <label class="inputLabel inputLabelUnfocused" for="LibraryPath">LibraryPath</label>
                     <input id="LibraryPath" name="LibraryPath" type="text" is="emby-input" />
                     <div class="fieldDescription">It is recommended to specify which folders to scan for. 
@@ -100,6 +106,7 @@
                     document.querySelector('#LocalDatabasePath').value = config.LocalDatabasePath;
                     document.querySelector('#IsWaybackMachineEnabled').checked = config.IsWaybackMachineEnabled;
                     document.querySelector('#LibraryPath').value = config.LibraryPath;
+                    document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value = config.WaybackMachineWaitTimeoutInSeconds;
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -118,6 +125,7 @@
                     config.ArchiveOrgUrl = document.querySelector('#ArchiveOrgUrl').value;
                     config.LocalDatabasePath = document.querySelector('#LocalDatabasePath').value;
                     config.LibraryPath = document.querySelector('#LibraryPath').value;
+                    config.WaybackMachineWaitTimeoutInSeconds = document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value;
                     config.IsWaybackMachineEnabled = document.querySelector('#IsWaybackMachineEnabled').checked;
                     ApiClient.updatePluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);

@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
@@ -15,16 +17,18 @@ public class HtmlReviewsExtractorTests
     
     private readonly HtmlReviewsExtractor _sut;
     private readonly MockHttpMessageHandler _mockHttpMessageHandler;
-    private readonly PluginConfiguration _config;
-    
+
     public HtmlReviewsExtractorTests()
     {
         _fixture = new Fixture();
         
         _mockHttpMessageHandler = new MockHttpMessageHandler();
         var logger = Substitute.For<ILogger<HtmlReviewsExtractor>>();
-        _config = new PluginConfiguration();
-        _sut = new HtmlReviewsExtractor(_mockHttpMessageHandler.ToHttpClient(), logger, _config);
+        var config = new PluginConfiguration
+        {
+            WaybackMachineWaitTimeoutInSeconds = 1
+        };
+        _sut = new HtmlReviewsExtractor(_mockHttpMessageHandler.ToHttpClient(), logger, config);
     }
 
     [Fact]
@@ -120,5 +124,42 @@ public class HtmlReviewsExtractorTests
             "a date cannot be parsed");
 
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
+    }
+    
+    [Fact]
+    public async Task RetriesAndReturnsListOfReviews_WhenRequestReturnedConnectionRefused_GivenUrl()
+    {
+        //Arrange
+        var url = _fixture.Create<Uri>().AbsoluteUri;
+        
+        var canellationTokenSource = new CancellationTokenSource();
+        
+        var mockedRequest = _mockHttpMessageHandler
+            .When(url)
+            .Respond(_ =>
+            {
+                if (canellationTokenSource.IsCancellationRequested)
+                {
+                    return new HttpResponseMessage()
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(Properties.Resources.WaybackHtmlCrunchyrollReviews, 
+                            Encoding.UTF8, 
+                            "text/html")
+                    };
+                }
+                
+                canellationTokenSource.Cancel();
+                throw new HttpRequestException("error", new SocketException());
+            });
+        
+        //Act
+        var result = await _sut.GetReviewsAsync(url, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNullOrEmpty();
+
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(2);
     }
 }

@@ -35,7 +35,7 @@ public partial class HtmlReviewsExtractor : IHtmlReviewsExtractor
         try
         {
             response = await WaybackMachineRequestResiliencePipeline
-                .Get(_logger)
+                .Get(_logger, _config.WaybackMachineWaitTimeoutInSeconds)
                 .ExecuteAsync(
                     async _ => await _httpClient.GetAsync(url, cancellationToken), 
                     cancellationToken);

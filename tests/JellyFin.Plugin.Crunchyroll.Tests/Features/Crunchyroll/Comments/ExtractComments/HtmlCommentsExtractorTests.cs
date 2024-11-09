@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using Bogus;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
@@ -18,8 +21,11 @@ public class HtmlCommentsExtractorTests
     {
         _mockHttpMessageHandler = new MockHttpMessageHandler();
         var logger = Substitute.For<ILogger<HtmlCommentsExtractor>>();
-        _config = new PluginConfiguration();
-        
+        _config = new PluginConfiguration
+        {
+            WaybackMachineWaitTimeoutInSeconds = 1
+        };
+
         _sut = new HtmlCommentsExtractor(_mockHttpMessageHandler.ToHttpClient(), logger, _config);
     }
 
@@ -124,5 +130,48 @@ public class HtmlCommentsExtractorTests
         comments.First(x => x.Author == "abc543").Likes.Should().Be(likesAsNumber);
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
+    }
+    
+    [Fact]
+    public async Task RetriesAndReturnsComments_WhenRequestReturnedConnectionRefused_GivenValidUrl()
+    {
+        //Arrange
+        var url = new Faker().Internet.Url();
+        
+        var canellationTokenSource = new CancellationTokenSource();
+        
+        var mockedRequest = _mockHttpMessageHandler
+            .When(url)
+            .Respond(_ =>
+            {
+                if (canellationTokenSource.IsCancellationRequested)
+                {
+                    return new HttpResponseMessage()
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(Properties.Resources.WaybackHtmlCrunchyrollComments, 
+                            Encoding.UTF8, 
+                            "text/html")
+                    };
+                }
+                
+                canellationTokenSource.Cancel();
+                throw new HttpRequestException("error", new SocketException());
+            });
+        
+        //Act
+        var result = await _sut.GetCommentsAsync(url, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        var comments = result.Value;
+        comments.Should().NotBeEmpty();
+
+        comments.Should().AllSatisfy(comment =>
+        {
+            comment.RepliesCount.Should().Be(0, "Replies are not readable in wayback machine");
+        });
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(2);
     }
 }

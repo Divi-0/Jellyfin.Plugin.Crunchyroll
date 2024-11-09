@@ -16,11 +16,13 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
 public class WaybackMachineClient : IWaybackMachineClient
 {
     private readonly HttpClient _httpClient;
+    private readonly PluginConfiguration _config;
     private readonly ILogger<WaybackMachineClient> _logger;
 
     public WaybackMachineClient(HttpClient httpClient, PluginConfiguration config, ILogger<WaybackMachineClient> logger)
     {
         _httpClient = httpClient;
+        _config = config;
         _logger = logger;
 
         _httpClient.BaseAddress =
@@ -36,7 +38,7 @@ public class WaybackMachineClient : IWaybackMachineClient
         try
         {
             response = await WaybackMachineRequestResiliencePipeline
-                .Get(_logger)
+                .Get(_logger, _config.WaybackMachineWaitTimeoutInSeconds)
                 .ExecuteAsync(
                     async _ => await _httpClient.GetAsync(path, cancellationToken), 
                     cancellationToken);

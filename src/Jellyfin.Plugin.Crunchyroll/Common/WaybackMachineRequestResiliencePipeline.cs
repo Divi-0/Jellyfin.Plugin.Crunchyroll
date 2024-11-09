@@ -10,7 +10,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Common;
 
 public static class WaybackMachineRequestResiliencePipeline
 {
-    public static ResiliencePipeline Get(ILogger logger)
+    public static ResiliencePipeline Get(ILogger logger, int waitTimeoutInSeconds = 180)
     {
         return new ResiliencePipelineBuilder()
             .AddRetry(new RetryStrategyOptions
@@ -19,11 +19,12 @@ public static class WaybackMachineRequestResiliencePipeline
                     args.Outcome.Exception is HttpRequestException { InnerException: SocketException }),
                 OnRetry = async _ =>
                 {
-                    const int minutesToWait = 3;
-                    logger.LogInformation("Request was blocked by wayback machine. Waiting {Minutes}min to retry", 
-                        minutesToWait);
-                    await Task.Delay(TimeSpan.FromMinutes(minutesToWait));
-                }
+                    logger.LogInformation("Request was blocked by wayback machine. Waiting {Minutes}sec to retry", 
+                        waitTimeoutInSeconds);
+                    await Task.Delay(TimeSpan.FromSeconds(waitTimeoutInSeconds));
+                },
+                MaxRetryAttempts = 3,
+                MaxDelay = TimeSpan.Zero
             })
             .Build();
     }
