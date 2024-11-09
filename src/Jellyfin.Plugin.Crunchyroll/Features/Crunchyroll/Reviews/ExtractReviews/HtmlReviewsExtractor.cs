@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
 
-public partial class HtmlReviewsExtractor : IHtmlReviewsExtractor
+public class HtmlReviewsExtractor : IHtmlReviewsExtractor
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<HtmlReviewsExtractor> _logger;
@@ -86,8 +86,6 @@ public partial class HtmlReviewsExtractor : IHtmlReviewsExtractor
 
             var votingSectionElement = reviewElement.SelectSingleNode(".//div[contains(@class, 'review-votings__votes-section')]");
             var votingContent = votingSectionElement.SelectSingleNode(".//span").GetDirectInnerText();
-        
-            var votingNumbers = DigitsRegex().Matches(votingContent);
 
             var createdAt = TryParseDate(createdAtString);
             
@@ -101,12 +99,7 @@ public partial class HtmlReviewsExtractor : IHtmlReviewsExtractor
                 AuthorRating = autorRating,
                 Title = title!,
                 Body = body!,
-                Rating = new ReviewItemRating()
-                {
-                    Likes = Convert.ToInt32(votingNumbers[0].Value),
-                    Dislikes = Convert.ToInt32(votingNumbers[1].Value) - Convert.ToInt32(votingNumbers[0].Value),
-                    Total = Convert.ToInt32(votingNumbers[1].Value)
-                },
+                Rating = votingContent,
                 CreatedAt = createdAt
             };
         
@@ -121,9 +114,6 @@ public partial class HtmlReviewsExtractor : IHtmlReviewsExtractor
         var hasParsed = DateTime.TryParse(dateString, new CultureInfo(_config.CrunchyrollLanguage), out var date);
         return hasParsed ? date : default;
     }
-
-    [GeneratedRegex(@"\d+")]
-    private static partial Regex DigitsRegex();
 
     private const string FullStarSvg = "M15.266 8.352L11.988 1.723 8.73 8.352 1.431 9.397 6.71 14.528 5.465 21.849 11.999 18.39 18.544 21.85 17.285 14.528 22.57 9.398z";
 }

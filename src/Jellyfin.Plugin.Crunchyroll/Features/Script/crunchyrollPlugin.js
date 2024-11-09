@@ -137,7 +137,8 @@ function getReviewsHtml(reviews){
             .replace("{Username}", review.Author.Username)
             .replace("{Title}", review.Title)
             .replace("{Body}", review.Body)
-            .replace("{Stars}", starBody);
+            .replace("{Stars}", starBody)
+            .replace("{Rating}", review.Rating);
 
 
         reviewsElement.appendChild(root);
@@ -169,7 +170,7 @@ function getCommentsHtml(comments){
             .replace("{AvatarUri}", comment.AvatarIconUri)
             .replace("{Username}", comment.Author)
             .replace("{Message}", comment.Message)
-            .replace("{Likes}", comment.Likes)
+            .replace("{Likes}", comment.Likes);
 
 
         commentsElement.appendChild(root);
@@ -179,7 +180,7 @@ function getCommentsHtml(comments){
 }
 
 const reviewHtml = `
-<div style="display: grid; grid-template: 'avatar-section details-section' auto 'avatar-section footer-section' auto / 3.75rem; row-gap: 1rem; column-gap: 1.875rem;">
+<div style="display: grid; grid-template: 'avatar-section details-section' auto 'avatar-section footer-section' auto / 3.75rem; row-gap: 0.7rem; column-gap: 1.875rem;">
     <div>
       <img src="{AvatarUri}" alt="Avatar" width="62px" height="62px" style="border-radius: 50%">
     </div>
@@ -200,7 +201,7 @@ const reviewHtml = `
     </div>
   <div></div>
   <div style="height: 24px">
-    <span style="font-size: 0.875rem; color: #a0a0a0;">76 out of 85 users liked this</span>
+    <span style="font-size: 0.875rem; color: #a0a0a0;">{Rating}</span>
   </div>
 </div>
 `;

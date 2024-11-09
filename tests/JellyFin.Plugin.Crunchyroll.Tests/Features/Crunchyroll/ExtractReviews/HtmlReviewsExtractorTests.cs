@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
@@ -45,6 +46,12 @@ public class HtmlReviewsExtractorTests
         //Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNullOrEmpty();
+        result.Value.Should().AllSatisfy(x =>
+        {
+            var textContainsAtLeastTwoUniqueNumbersRegex = new Regex(@"(\D*\d){2,}");
+            var match = textContainsAtLeastTwoUniqueNumbersRegex.Match(x.Rating);
+            match.Success.Should().BeTrue();
+        });
 
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
     }

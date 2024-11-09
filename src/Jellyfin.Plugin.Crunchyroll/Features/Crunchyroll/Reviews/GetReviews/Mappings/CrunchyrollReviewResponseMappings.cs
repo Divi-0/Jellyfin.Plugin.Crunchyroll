@@ -14,7 +14,7 @@ public static class CrunchyrollReviewResponseMappings
     /// <exception cref="ArgumentOutOfRangeException">If author rating is not recognized</exception>
     public static ReviewsResponse ToReviewsResponse(this CrunchyrollReviewsResponse crunchyrollReviewsResponse, string crunchyrollAvatarEndpoint)
     {
-        var reviews = crunchyrollReviewsResponse.Items.Select(x => new ReviewItem()
+        var reviews = crunchyrollReviewsResponse.Items.Select(x => new ReviewItem
         {
             Author = new ReviewItemAuthor()
             {
@@ -24,12 +24,7 @@ public static class CrunchyrollReviewResponseMappings
             AuthorRating = CrunchyrollAuthorRatingToAuthorRating(x.AuthorRating),
             Title = x.Review.Title,
             Body = x.Review.Body,
-            Rating = new ReviewItemRating()
-            {
-                Likes = ConvertDisplayedToNumber(x.Ratings.Yes),
-                Dislikes = ConvertDisplayedToNumber(x.Ratings.No),
-                Total = ConvertDisplayedToNumber(x.Ratings.Yes) + ConvertDisplayedToNumber(x.Ratings.No),
-            },
+            Rating = string.Empty, //Translations are made on the client side, add all translations for every language? (only needed if the reviews get activated again)
             CreatedAt = DateTime.Parse(x.Review.CreatedAt)
         });
 
