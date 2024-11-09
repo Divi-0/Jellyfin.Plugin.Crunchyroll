@@ -166,7 +166,7 @@ public class SetEpisodeIdTaskTests
     }
 
     [Fact]
-    public async Task SkipItem_WhenEpisodeHasNoIndexNumber_GivenSeasonWithSeasonId()
+    public async Task SkipItem_WhenEpisodeHasNoIndexNumberAndWasNotParsableByName_GivenSeasonWithSeasonId()
     {
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
@@ -303,7 +303,7 @@ public class SetEpisodeIdTaskTests
     }
     
     [Fact]
-    public async Task SkipsItem_WhenEpisodeHasAlreadyAId_GivenSeasonWithSeasonIdAndEpisodeWithId()
+    public async Task SkipsItem_WhenEpisodeHasAlreadyAnId_GivenSeasonWithSeasonIdAndEpisodeWithId()
     {
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
@@ -337,6 +337,60 @@ public class SetEpisodeIdTaskTests
         
         await _libraryManager
             .DidNotReceive()
+            .UpdateItemAsync(
+                Arg.Is<BaseItem>(x => x == episode), 
+                Arg.Is<BaseItem>(x => x == episode.DisplayParent), 
+                ItemUpdateType.MetadataEdit, 
+                Arg.Any<CancellationToken>());
+
+        _postSeasonIdSetTasks.Should().AllSatisfy(x =>
+        {
+            x.Received(1).RunAsync(episode, Arg.Any<CancellationToken>());
+        });
+    }
+    
+    [Fact]
+    public async Task SetsEpisodeIdAndRunsPostTasks_WhenHasNoIndexNumberButWasParsableFromName_GivenSeasonWithSeasonId()
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+        var season = SeasonFaker.GenerateWithSeasonId(series);
+        var episode = EpisodeFaker.Generate();
+        var episodeNumber = Random.Shared.Next(1, int.MaxValue);
+        episode.Name = $"E{episodeNumber} - {episode.Name}";
+        episode.IndexNumber = null;
+        
+        _libraryManager
+            .GetItemById(series.Id)
+            .Returns(series);
+        
+        _itemRepository
+            .GetItemList(Arg.Is<InternalItemsQuery>(x =>
+                x.ParentId == season.Id &&
+                x.GroupByPresentationUniqueKey == false &&
+                x.DtoOptions.Fields.Count != 0))
+            .Returns([episode]);
+
+        var crunchyrollId = CrunchyrollIdFaker.Generate();
+        var crunchyrollSlugTitle = CrunchyrollSlugFaker.Generate();
+        _mediator
+            .Send(new EpisodeIdQuery(
+                series.ProviderIds[CrunchyrollExternalKeys.Id], 
+                season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                episodeNumber.ToString()))
+            .Returns(new EpisodeIdResult(crunchyrollId, crunchyrollSlugTitle));
+        
+        //Act
+        await _sut.RunAsync(season, CancellationToken.None);
+
+        //Assert
+        episode.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeId, out var episodeId).Should().BeTrue();
+        episode.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeSlugTitle, out var episodeSlugTitle).Should().BeTrue();
+        episodeId.Should().Be(crunchyrollId);
+        episodeSlugTitle.Should().Be(crunchyrollSlugTitle);
+        
+        await _libraryManager
+            .Received(1)
             .UpdateItemAsync(
                 Arg.Is<BaseItem>(x => x == episode), 
                 Arg.Is<BaseItem>(x => x == episode.DisplayParent), 

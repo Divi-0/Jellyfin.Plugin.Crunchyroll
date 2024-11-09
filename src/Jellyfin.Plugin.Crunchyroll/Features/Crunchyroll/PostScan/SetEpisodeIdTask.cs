@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 
-public class SetEpisodeIdTask : IPostSeasonIdSetTask
+public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
 {
     private readonly IMediator _mediator;
     private readonly ILibraryManager _libraryManager;
@@ -69,14 +70,27 @@ public class SetEpisodeIdTask : IPostSeasonIdSetTask
             _logger.LogDebug("Episode with name {Name} has already a id and slugTitle. Skipping...", episode.Name);
             return Result.Ok();
         }
-        
+
+        int episodeNumber;
         if (!episode.IndexNumber.HasValue)
         {
-            _logger.LogDebug("Episode {Name} has no Indexnumber. Skipping...", episode.Name);
-            return Result.Fail(ErrorCodes.PreconditionFailed);
+            var match = EpisodeNameFormatRegex().Match(episode.Name);
+
+            if (!match.Success)
+            {
+                _logger.LogDebug("Episode {Name} has no IndexNumber and number could not be read from name. Skipping...", 
+                    episode.Name);
+                return Result.Fail(ErrorCodes.PreconditionFailed);
+            }
+            
+            episodeNumber = int.Parse(match.Groups[1].Value);
+        }
+        else
+        {
+            episodeNumber = episode.IndexNumber.Value;
         }
 
-        var episodeIdResult = await _mediator.Send(new EpisodeIdQuery(titleId!, seasonId!, episode.IndexNumber!.Value.ToString()), cancellationToken);
+        var episodeIdResult = await _mediator.Send(new EpisodeIdQuery(titleId!, seasonId!, episodeNumber.ToString()), cancellationToken);
 
         if (episodeIdResult.IsFailed)
         {
@@ -100,4 +114,7 @@ public class SetEpisodeIdTask : IPostSeasonIdSetTask
             await task.RunAsync(episodeItem, cancellationToken);
         }
     }
+
+    [GeneratedRegex(@"E\D*(\d*)")]
+    private static partial Regex EpisodeNameFormatRegex();
 }
