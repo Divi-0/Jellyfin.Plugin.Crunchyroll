@@ -36,44 +36,55 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
         var seasonNumberDuplicateCounters = new Dictionary<int, int>();
         foreach (var season in ((Folder)seriesItem).Children)
         {
-            await SetIdForSeason(seriesItem, titleId, season, seasonNumberDuplicateCounters, cancellationToken);
+            var setIdResult = await SetIdForSeason(seriesItem, titleId, season, seasonNumberDuplicateCounters, cancellationToken);
+
+            if (setIdResult.IsFailed)
+            {
+                continue;
+            }
+            
             await RunPostTasks(season, cancellationToken);
         }
     }
 
-    private async Task SetIdForSeason(BaseItem seriesItem, string? titleId, BaseItem season, 
+    private async Task<Result> SetIdForSeason(BaseItem seriesItem, string? titleId, BaseItem season, 
         Dictionary<int, int> seasonNumberDuplicateCounters, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(titleId))
         {
             _logger.LogDebug("TitleId for item with name {Name} is not set, skipping season id task...", seriesItem.Name);
-            return;
+            return Result.Fail(Domain.Constants.ErrorCodes.ProviderIdNotSet);
         }
                 
         var hasSeasonId = season.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeasonId, out string? seasonId) &&
                           !string.IsNullOrWhiteSpace(seasonId);
 
-        if (!season.IndexNumber.HasValue || hasSeasonId)
+        if (hasSeasonId)
         {
             _logger.LogDebug("SeasonId for season with name {Name} is already set, skipping...", season.Name);
-            return;
+            return Result.Ok();
         }
 
         try
         {
-            seasonNumberDuplicateCounters.TryGetValue(season.IndexNumber.Value, out var seasonCounter);
-
             //For example Attack on Titan has an "OAD" Season, then search by Folder Name
             var seasonIdResult = await GetSeasonIdByName(titleId, season, cancellationToken);
 
             if (seasonIdResult.IsFailed)
             {
                 _logger.LogDebug("SeasonIdQuery failed. Skipping season with name {Name}", season.Name);
-                return;
+                return seasonIdResult.ToResult();
             }
 
             if (seasonIdResult.Value is null)
             {
+                if (!season.IndexNumber.HasValue)
+                {
+                    _logger.LogError("Item with name '{Name}' has no IndexNumber. Skipping...", season.Name);
+                    return Result.Fail(Domain.Constants.ErrorCodes.Internal);
+                }
+                
+                seasonNumberDuplicateCounters.TryGetValue(season.IndexNumber.Value, out var seasonCounter);
                 seasonIdResult = await GetSeasonIdByNumber(titleId, season, seasonCounter, cancellationToken);
                 seasonCounter += 1;
                 seasonNumberDuplicateCounters[season.IndexNumber.Value] = seasonCounter;
@@ -82,14 +93,17 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
             if (seasonIdResult.IsFailed)
             {
                 _logger.LogDebug("SeasonIdQuery failed. Skipping season with name {Name}", season.Name);
-                return;
+                return seasonIdResult.ToResult();
             }
 
             await UpdateSeasonItem(season, seasonIdResult.Value, cancellationToken);
+            
+            return Result.Ok();
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Unknown error on setting season id for {Name}", season.Name);
+            return Result.Fail(Domain.Constants.ErrorCodes.Internal);
         }
     }
 
