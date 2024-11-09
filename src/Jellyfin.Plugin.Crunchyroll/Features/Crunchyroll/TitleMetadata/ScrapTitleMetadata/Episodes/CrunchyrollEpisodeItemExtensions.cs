@@ -6,16 +6,25 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTi
 
 public static class CrunchyrollEpisodeItemExtensions
 {
-    public static Entities.Episode ToEpisodeEntity(this CrunchyrollEpisodeItem item)
+    public static Episode ToEpisodeEntity(this CrunchyrollEpisodeItem item)
     {
-        return new Episode()
+        var thumbnailUri = string.Empty;
+
+        if (item.Images.Thumbnail.Length != 0 && item.Images.Thumbnail[0].Length != 0)
+        {
+            thumbnailUri = item.Images.Thumbnail.First().Last().Source;
+        }
+        
+        //map field "episode" to EpisodeNumber because some episodes are displayed as "6.5"
+        //if field "episode" is empty use field "episode_number" e.g. One Piece Episode "ONE PIECE FAN LETTER"
+        return new Episode
         {
             Id = item.Id,
             Title = item.Title,
             SlugTitle = item.SlugTitle,
             Description = item.Description,
-            EpisodeNumber = item.Episode,
-            ThumbnailUrl = item.Images.Thumbnail.First().Last().Source
+            EpisodeNumber = string.IsNullOrWhiteSpace(item.Episode) ? item.EpisodeNumber.ToString() : item.Episode,
+            ThumbnailUrl = thumbnailUri
         };
     }
 }

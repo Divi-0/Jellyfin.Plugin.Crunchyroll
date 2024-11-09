@@ -66,11 +66,11 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         };
 
         var seasonEpisodesDictionary = new ConcurrentDictionary<string, List<Episode>>();
-        await Parallel.ForEachAsync(crunchyrollSeasons, parallelOptions, async (item, token) =>
+        await Parallel.ForEachAsync(crunchyrollSeasons, parallelOptions, async (season, token) =>
         {
-            var episodesResult =  await _episodesClient.GetEpisodesAsync(item.Id, token);
+            var episodesResult =  await _episodesClient.GetEpisodesAsync(season.Id, token);
             
-            seasonEpisodesDictionary[item.Id] = episodesResult.IsFailed ? 
+            seasonEpisodesDictionary[season.Id] = episodesResult.IsFailed ? 
                 Array.Empty<Episode>().ToList() : 
                 episodesResult.Value.Data
                     .Select(x => x.ToEpisodeEntity()).ToList();

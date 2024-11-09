@@ -62,29 +62,32 @@ public class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         }
 
         var crunchyrollEpisode = crunchyrollEpisodeResult.Value;
-        var imageStreamResult = await GetThumbnailImageStreamAsync(crunchyrollEpisode.ThumbnailUrl, cancellationToken);
-
-        if (imageStreamResult.IsSuccess)
+        if (!string.IsNullOrWhiteSpace(crunchyrollEpisode.ThumbnailUrl))
         {
-            var filePath = Path.Combine(_thumbnailDirPath, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
-            var createImageResult = await CreateFileAsync(filePath, imageStreamResult.Value, cancellationToken);
+            var imageStreamResult = await GetThumbnailImageStreamAsync(crunchyrollEpisode.ThumbnailUrl, cancellationToken);
 
-            if (createImageResult.IsFailed)
+            if (imageStreamResult.IsSuccess)
             {
-                return;
+                var filePath = Path.Combine(_thumbnailDirPath, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
+                var createImageResult = await CreateFileAsync(filePath, imageStreamResult.Value, cancellationToken);
+
+                if (createImageResult.IsFailed)
+                {
+                    return;
+                }
+            
+                episodeItem.SetImage(new ItemImageInfo()
+                {
+                    Path = filePath,
+                    Type = ImageType.Thumb,
+                }, 0);
+            
+                episodeItem.SetImage(new ItemImageInfo()
+                {
+                    Path = filePath,
+                    Type = ImageType.Primary,
+                }, 0);
             }
-            
-            episodeItem.SetImage(new ItemImageInfo()
-            {
-                Path = filePath,
-                Type = ImageType.Thumb,
-            }, 0);
-            
-            episodeItem.SetImage(new ItemImageInfo()
-            {
-                Path = filePath,
-                Type = ImageType.Primary,
-            }, 0);
         }
 
         episodeItem.Name = crunchyrollEpisode.Title;

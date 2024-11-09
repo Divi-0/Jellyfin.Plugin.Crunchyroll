@@ -747,6 +747,7 @@ public static class WireMockAdminApiExtensions
                     SlugTitle = CrunchyrollSlugFaker.Generate(title),
                     Description = new Faker().Lorem.Sentences(),
                     Episode = episode.IndexNumber!.Value.ToString(),
+                    EpisodeNumber = episode.IndexNumber!.Value,
                     Images = new CrunchyrollEpisodeImages
                     {
                         Thumbnail = [[new CrunchyrollEpisodeThumbnailSizes

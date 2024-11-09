@@ -11,4 +11,6 @@ public record CrunchyrollEpisodeItem
     public required CrunchyrollEpisodeImages Images { get; init; }
     public required string Description { get; init; }
     public required string Episode { get; init; }
+    [JsonPropertyName("episode_number")]
+    public required int EpisodeNumber { get; init; }
 }
