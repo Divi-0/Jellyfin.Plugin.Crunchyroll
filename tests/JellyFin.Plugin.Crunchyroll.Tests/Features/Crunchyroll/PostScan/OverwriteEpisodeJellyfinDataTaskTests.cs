@@ -144,9 +144,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
         (await _fileSystem.File.ReadAllBytesAsync(thumbnailFilePath)).Should().BeEquivalentTo(imageBytes);
 
-        episode.Name.Should().Be(expectedIndexNumber == null
-            ? crunchyrollEpisode.Title
-            : $"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}");
+        episode.Name.Should().Be($"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}");
 
         episode.Overview.Should().Be(crunchyrollEpisode.Description);
         episode.IndexNumber!.Should().Be(expectedIndexNumber == 0 
