@@ -1,11 +1,9 @@
 using Bogus;
 using FluentAssertions;
-using J2N;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
-using Xunit.Abstractions;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ScrapTitleMetadata.Episodes;
 
@@ -40,7 +38,8 @@ public class CrunchyrollEpisodeItemMappingTests
                     Source = thumbnailUri,
                     Type = "thumbnail"
                 }]]
-            }
+            },
+            SequenceNumber = 123.4
         };
 
         //Act
@@ -54,7 +53,8 @@ public class CrunchyrollEpisodeItemMappingTests
             Description = crunchyrollEpisodeItem.Description,
             SlugTitle = crunchyrollEpisodeItem.SlugTitle,
             EpisodeNumber = crunchyrollEpisodeItem.Episode,
-            ThumbnailUrl = thumbnailUri
+            ThumbnailUrl = thumbnailUri,
+            SequenceNumber = 123.4
         };
         
         entity.Should().BeEquivalentTo(expectedEntity);
@@ -82,7 +82,8 @@ public class CrunchyrollEpisodeItemMappingTests
                     Source = thumbnailUri,
                     Type = "thumbnail"
                 }]]
-            }
+            },
+            SequenceNumber = 123.4
         };
 
         //Act
@@ -96,7 +97,8 @@ public class CrunchyrollEpisodeItemMappingTests
             Description = crunchyrollEpisodeItem.Description,
             SlugTitle = crunchyrollEpisodeItem.SlugTitle,
             EpisodeNumber = "5",
-            ThumbnailUrl = thumbnailUri
+            ThumbnailUrl = thumbnailUri,
+            SequenceNumber = 123.4
         };
         
         entity.Should().BeEquivalentTo(expectedEntity);
@@ -106,7 +108,6 @@ public class CrunchyrollEpisodeItemMappingTests
     public void ReturnsEmptyImages_WhenItemHasNoImages_GivenCrunchyrollItem()
     {
         //Arrange
-        var thumbnailUri = _faker.Internet.UrlWithPath(fileExt: "png");
         var crunchyrollEpisodeItem = new CrunchyrollEpisodeItem
         {
             Id = CrunchyrollIdFaker.Generate(),
@@ -115,7 +116,8 @@ public class CrunchyrollEpisodeItemMappingTests
             SlugTitle = CrunchyrollSlugFaker.Generate(),
             Episode = string.Empty,
             EpisodeNumber = 5,
-            Images = new CrunchyrollEpisodeImages()
+            Images = new CrunchyrollEpisodeImages(),
+            SequenceNumber = 123.4
         };
 
         //Act
@@ -129,7 +131,8 @@ public class CrunchyrollEpisodeItemMappingTests
             Description = crunchyrollEpisodeItem.Description,
             SlugTitle = crunchyrollEpisodeItem.SlugTitle,
             EpisodeNumber = "5",
-            ThumbnailUrl = string.Empty
+            ThumbnailUrl = string.Empty,
+            SequenceNumber = 123.4
         };
         
         entity.Should().BeEquivalentTo(expectedEntity);

@@ -93,12 +93,25 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
 
         episodeItem.Name = crunchyrollEpisode.Title;
         episodeItem.Overview = crunchyrollEpisode.Description;
-        var match = NumberRegex().Match(crunchyrollEpisode.EpisodeNumber);
 
-        if (match.Success)
+        if (!episodeItem.IndexNumber.HasValue)
         {
-            episodeItem.IndexNumber = int.Parse(match.Value);
-            episodeItem.Name = $"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}";
+            var match = NumberRegex().Match(crunchyrollEpisode.EpisodeNumber);
+
+            if (match.Success)
+            {
+                if (crunchyrollEpisode.SequenceNumber % 1 != 0)
+                {
+                    episodeItem.ProviderIds[CrunchyrollExternalKeys.EpisodeDecimalEpisodeNumber] = 
+                        crunchyrollEpisode.SequenceNumber.ToString("0.0");
+                }
+                else
+                {
+                    episodeItem.IndexNumber = int.Parse(match.Value);
+                }
+                
+                episodeItem.Name = $"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}";
+            }
         }
         
         await _libraryManager.UpdateItemAsync(episodeItem, episodeItem.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);

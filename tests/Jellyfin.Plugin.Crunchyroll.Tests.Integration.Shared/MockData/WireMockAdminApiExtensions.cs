@@ -757,7 +757,8 @@ public static class WireMockAdminApiExtensions
                             Height = 0,
                             Width = 0
                         }]]
-                    }
+                    },
+                    SequenceNumber = episode.IndexNumber!.Value,
                 };
                 return item;
             }).ToList()

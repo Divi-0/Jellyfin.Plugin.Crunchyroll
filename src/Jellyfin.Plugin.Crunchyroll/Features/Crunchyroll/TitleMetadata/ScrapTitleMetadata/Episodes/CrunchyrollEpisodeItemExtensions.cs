@@ -26,7 +26,8 @@ public static class CrunchyrollEpisodeItemExtensions
             EpisodeNumber = string.IsNullOrWhiteSpace(item.Episode) 
                 ? item.EpisodeNumber.HasValue ? item.EpisodeNumber.Value.ToString() : string.Empty 
                 : item.Episode,
-            ThumbnailUrl = thumbnailUri
+            ThumbnailUrl = thumbnailUri,
+            SequenceNumber = item.SequenceNumber
         };
     }
 }
