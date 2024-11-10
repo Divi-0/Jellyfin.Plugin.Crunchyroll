@@ -329,7 +329,11 @@ public sealed class CrunchyrollUnitOfWork :
                     .Where(x => x.TitleId == titleId)
                     .FirstOrDefault();
                 
-                return titleMetadata?.Seasons.FirstOrDefault(x => x.Title.Contains(name))?.Id;
+                return titleMetadata?
+                    .Seasons
+                    .FirstOrDefault(x => x.Title.Replace(":", string.Empty) //Replace ':' to make folder names compatible
+                        .Contains(name.Replace(":", string.Empty))
+                    )?.Id;
             });
 
             return ValueTask.FromResult(seasonId);
