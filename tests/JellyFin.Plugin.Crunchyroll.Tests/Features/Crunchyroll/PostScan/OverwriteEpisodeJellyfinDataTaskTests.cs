@@ -104,7 +104,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
     [InlineData("FMI1", 1)]
     [InlineData("FMI2", 2)]
     [InlineData("SP", null)]
-    public async Task SetsIndexNumber_WhenIndexNumberOfJellyfinEpisodeIsNull_GivenEpisodeWithEpisodeId(
+    public async Task SetsIndexNumberAndTitleWithEpisodeNumber_WhenIndexNumberOfJellyfinEpisodeIsNull_GivenEpisodeWithEpisodeId(
         string episodeIdentifier, int? expectedIndexNumber)
     {
         //Arrange
@@ -147,8 +147,11 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         _fileSystem.AllDirectories.Should().Contain(path => path == _directory);
         var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
         (await _fileSystem.File.ReadAllBytesAsync(thumbnailFilePath)).Should().BeEquivalentTo(imageBytes);
-        
-        episode.Name.Should().Be(crunchyrollEpisode.Title);
+
+        episode.Name.Should().Be(expectedIndexNumber == null
+            ? crunchyrollEpisode.Title
+            : $"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}");
+
         episode.Overview.Should().Be(crunchyrollEpisode.Description);
         episode.IndexNumber!.Should().Be(expectedIndexNumber == 0 
             ? int.Parse(crunchyrollEpisode.EpisodeNumber) 
