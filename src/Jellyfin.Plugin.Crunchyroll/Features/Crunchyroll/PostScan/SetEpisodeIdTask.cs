@@ -71,7 +71,7 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
             return Result.Ok();
         }
 
-        int episodeNumber;
+        string episodeIdentifier;
         if (!episode.IndexNumber.HasValue)
         {
             var match = EpisodeNameFormatRegex().Match(episode.Name);
@@ -83,14 +83,14 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
                 return Result.Fail(ErrorCodes.PreconditionFailed);
             }
             
-            episodeNumber = int.Parse(match.Groups[1].Value);
+            episodeIdentifier = match.Groups[1].Value;
         }
         else
         {
-            episodeNumber = episode.IndexNumber.Value;
+            episodeIdentifier = episode.IndexNumber.Value.ToString();
         }
 
-        var episodeIdResult = await _mediator.Send(new EpisodeIdQuery(titleId!, seasonId!, episodeNumber.ToString()), cancellationToken);
+        var episodeIdResult = await _mediator.Send(new EpisodeIdQuery(titleId!, seasonId!, episodeIdentifier), cancellationToken);
 
         if (episodeIdResult.IsFailed)
         {
@@ -115,6 +115,6 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
         }
     }
 
-    [GeneratedRegex(@"E\D*(\d*)")]
+    [GeneratedRegex(@"^E-?(.*\d) |-$")]
     private static partial Regex EpisodeNameFormatRegex();
 }

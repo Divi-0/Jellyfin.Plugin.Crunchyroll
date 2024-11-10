@@ -349,15 +349,19 @@ public class SetEpisodeIdTaskTests
         });
     }
     
-    [Fact]
-    public async Task SetsEpisodeIdAndRunsPostTasks_WhenHasNoIndexNumberButWasParsableFromName_GivenSeasonWithSeasonId()
+    [Theory]
+    [InlineData("E1124", "1124")]
+    [InlineData("E502", "502")]
+    [InlineData("E-FMI1", "FMI1")]
+    [InlineData("E-FMI2", "FMI2")]
+    public async Task SetsEpisodeIdAndRunsPostTasks_WhenHasNoIndexNumberButWasParsableFromName_GivenSeasonWithSeasonId(
+        string episodeFileName, string episodeIdentifier)
     {
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
         var season = SeasonFaker.GenerateWithSeasonId(series);
         var episode = EpisodeFaker.Generate();
-        var episodeNumber = Random.Shared.Next(1, int.MaxValue);
-        episode.Name = $"E{episodeNumber} - {episode.Name}";
+        episode.Name = $"{episodeFileName} - {episode.Name}";
         episode.IndexNumber = null;
         
         _libraryManager
@@ -377,7 +381,7 @@ public class SetEpisodeIdTaskTests
             .Send(new EpisodeIdQuery(
                 series.ProviderIds[CrunchyrollExternalKeys.Id], 
                 season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
-                episodeNumber.ToString()))
+                episodeIdentifier))
             .Returns(new EpisodeIdResult(crunchyrollId, crunchyrollSlugTitle));
         
         //Act
