@@ -83,6 +83,76 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         
         episode.Name.Should().Be(crunchyrollEpisode.Title);
         episode.Overview.Should().Be(crunchyrollEpisode.Description);
+        episode.IndexNumber!.Value.Should().Be(int.Parse(crunchyrollEpisode.EpisodeNumber));
+        
+        var imageInfoPrimary = episode.GetImageInfo(ImageType.Primary, 0);
+        imageInfoPrimary.Should().NotBeNull();
+        imageInfoPrimary.Path.Should().Be(thumbnailFilePath);
+        
+        var imageInfoThumb = episode.GetImageInfo(ImageType.Thumb, 0);
+        imageInfoThumb.Should().NotBeNull();
+        imageInfoThumb.Path.Should().Be(thumbnailFilePath);
+        
+        await _libraryManager
+            .Received(1)
+            .UpdateItemAsync(episode, episode.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData("", 0)]
+    [InlineData("432", 432)]
+    [InlineData("FMI1", 1)]
+    [InlineData("FMI2", 2)]
+    [InlineData("SP", null)]
+    public async Task SetsIndexNumber_WhenIndexNumberOfJellyfinEpisodeIsNull_GivenEpisodeWithEpisodeId(
+        string episodeIdentifier, int? expectedIndexNumber)
+    {
+        //Arrange
+        var episode = EpisodeFaker.GenerateWithEpisodeId();
+        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode);
+        var imageBytes = new Faker().Random.Bytes(1024);
+
+        if (!expectedIndexNumber.HasValue)
+        {
+            episode.IndexNumber = null;
+        }
+        
+        if (!string.IsNullOrWhiteSpace(episodeIdentifier))
+        {
+            crunchyrollEpisode = crunchyrollEpisode with {EpisodeNumber = episodeIdentifier};
+        }
+        
+        _libraryManager
+            .GetItemById(episode.ParentId)
+            .Returns((BaseItem?)null);
+
+        _session
+            .GetEpisodeAsync(crunchyrollEpisode.Id)
+            .Returns(crunchyrollEpisode);
+
+        var mockedRequest = _mockHttpMessageHandler
+            .When(crunchyrollEpisode.ThumbnailUrl)
+            .Respond(new StreamContent(new MemoryStream(imageBytes)));
+
+        //Act
+        await _sut.RunAsync(episode, CancellationToken.None);
+
+        //Assert
+        await _session
+            .Received(1)
+            .GetEpisodeAsync(crunchyrollEpisode.Id);
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1, "it should download the thumbnail");
+        
+        _fileSystem.AllDirectories.Should().Contain(path => path == _directory);
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
+        (await _fileSystem.File.ReadAllBytesAsync(thumbnailFilePath)).Should().BeEquivalentTo(imageBytes);
+        
+        episode.Name.Should().Be(crunchyrollEpisode.Title);
+        episode.Overview.Should().Be(crunchyrollEpisode.Description);
+        episode.IndexNumber!.Should().Be(expectedIndexNumber == 0 
+            ? int.Parse(crunchyrollEpisode.EpisodeNumber) 
+            : expectedIndexNumber);
         
         var imageInfoPrimary = episode.GetImageInfo(ImageType.Primary, 0);
         imageInfoPrimary.Should().NotBeNull();

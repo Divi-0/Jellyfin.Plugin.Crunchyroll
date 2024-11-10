@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Abstractions;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -13,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
 
-public class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
+public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<OverwriteEpisodeJellyfinDataTask> _logger;
@@ -92,6 +93,12 @@ public class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
 
         episodeItem.Name = crunchyrollEpisode.Title;
         episodeItem.Overview = crunchyrollEpisode.Description;
+        var match = NumberRegex().Match(crunchyrollEpisode.EpisodeNumber);
+
+        if (match.Success)
+        {
+            episodeItem.IndexNumber = int.Parse(match.Value);
+        }
         
         await _libraryManager.UpdateItemAsync(episodeItem, episodeItem.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
     }
@@ -151,4 +158,7 @@ public class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
             return Result.Fail(ErrorCodes.HttpRequestFailed);
         }
     }
+
+    [GeneratedRegex(@"\d+")]
+    private static partial Regex NumberRegex();
 }
