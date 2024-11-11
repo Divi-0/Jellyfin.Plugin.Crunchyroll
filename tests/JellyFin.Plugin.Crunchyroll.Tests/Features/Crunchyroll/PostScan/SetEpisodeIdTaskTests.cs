@@ -357,6 +357,7 @@ public class SetEpisodeIdTaskTests
     [InlineData("S13E542", "542")]
     [InlineData("S13E-SP", "SP")]
     [InlineData("S13E-SP1 - abc", "SP1")]
+    [InlineData("S1E6.5 - def", "6.5")]
     public async Task SetsEpisodeIdAndRunsPostTasks_WhenHasNoIndexNumberButWasParsableFromName_GivenSeasonWithSeasonId(
         string episodeFileName, string episodeIdentifier)
     {
