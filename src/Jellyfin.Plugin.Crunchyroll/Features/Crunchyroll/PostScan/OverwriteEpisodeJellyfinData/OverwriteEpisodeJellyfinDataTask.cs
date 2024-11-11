@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
@@ -99,9 +100,15 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         {
             var match = EpisodeNumberRegex().Match(crunchyrollEpisode.EpisodeNumber);
 
+            //if regex matches and episodeNumber is not sequence number then the episode is part of a normal season
+            //e.g. One Piece Season 13 has special episodes in between 
             if (match.Success && Math.Abs(double.Parse(match.Value) - crunchyrollEpisode.SequenceNumber) < 0.5)
             {
                 episodeItem.IndexNumber = int.Parse(match.Value);
+            }
+            else
+            {
+                SetSpecialEpisodeAirsBefore((Episode)episodeItem, crunchyrollEpisode.SequenceNumber);
             }
             
             episodeItem.Name = $"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}";
@@ -170,6 +177,14 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
             _logger.LogError(e, "Failed to get image for url {Url}", url);
             return Result.Fail(ErrorCodes.HttpRequestFailed);
         }
+    }
+
+    private static void SetSpecialEpisodeAirsBefore(Episode episode, double crunchyrollSequenceNumber)
+    {
+        //Add 0.5 to sequenceNumber, because every special episode between normal episodes are decimals with x.5
+        episode.AirsBeforeEpisodeNumber = Convert.ToInt32(crunchyrollSequenceNumber + 0.5);
+        episode.AirsBeforeSeasonNumber = episode.Season.IndexNumber;
+        episode.ParentIndexNumber = 0; //Manipulate ParentIndex to Season 0 so that Jellyfin thinks it is a special
     }
 
     [GeneratedRegex(@"\d+")]

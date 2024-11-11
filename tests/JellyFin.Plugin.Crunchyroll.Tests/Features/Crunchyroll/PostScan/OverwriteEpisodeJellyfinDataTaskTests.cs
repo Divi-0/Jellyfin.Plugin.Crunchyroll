@@ -107,7 +107,8 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         string episodeIdentifier, int? expectedIndexNumber)
     {
         //Arrange
-        var episode = EpisodeFaker.GenerateWithEpisodeId();
+        var season = SeasonFaker.Generate();
+        var episode = EpisodeFaker.GenerateWithEpisodeId(season);
         var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode);
         var imageBytes = new Faker().Random.Bytes(1024);
         episode.IndexNumber = null;
@@ -123,7 +124,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         
         _libraryManager
             .GetItemById(episode.ParentId)
-            .Returns((BaseItem?)null);
+            .Returns(season);
 
         _session
             .GetEpisodeAsync(crunchyrollEpisode.Id)
@@ -153,6 +154,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         episode.IndexNumber!.Should().Be(expectedIndexNumber == 0 
             ? int.Parse(crunchyrollEpisode.EpisodeNumber) 
             : expectedIndexNumber);
+        episode.AirsBeforeEpisodeNumber.Should().BeNull();
         
         var imageInfoPrimary = episode.GetImageInfo(ImageType.Primary, 0);
         imageInfoPrimary.Should().NotBeNull();
@@ -164,26 +166,27 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         
         await _libraryManager
             .Received(1)
-            .UpdateItemAsync(episode, episode.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+            .UpdateItemAsync(episode, season, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task SetsProviderIdDecimalEpisodeNumber_WhenIndexNumberOfJellyfinEpisodeIsNullAndCrunchyrollEpisodeNumberIsDecimal_GivenEpisodeWithEpisodeId()
+    public async Task SetsProviderIdDecimalEpisodeNumberAndSetsAirsBefore_WhenIndexNumberOfJellyfinEpisodeIsNullAndCrunchyrollEpisodeNumberIsDecimal_GivenEpisodeWithEpisodeId()
     {
         //Arrange
-        var episode = EpisodeFaker.GenerateWithEpisodeId();
+        var season = SeasonFaker.Generate();
+        var episode = EpisodeFaker.GenerateWithEpisodeId(season);
         var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode);
         var imageBytes = new Faker().Random.Bytes(1024);
         episode.IndexNumber = null;
         
         crunchyrollEpisode = crunchyrollEpisode with
         {
-            SequenceNumber = Random.Shared.Next(1, int.MaxValue) + 0.5
+            SequenceNumber = Random.Shared.Next(1, int.MaxValue - 1) + 0.5
         };
         
         _libraryManager
-            .GetItemById(episode.ParentId)
-            .Returns((BaseItem?)null);
+            .GetItemById(episode.SeasonId)
+            .Returns(season);
 
         _session
             .GetEpisodeAsync(crunchyrollEpisode.Id)
@@ -212,6 +215,10 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         episode.IndexNumber!.Should().Be(null);
         episode.ProviderIds[CrunchyrollExternalKeys.EpisodeDecimalEpisodeNumber]
             .Should().Be(crunchyrollEpisode.SequenceNumber.ToString("0.0"));
+        episode.AirsBeforeEpisodeNumber.Should().Be(Convert.ToInt32(crunchyrollEpisode.SequenceNumber + 0.5));
+        episode.AirsBeforeSeasonNumber.Should().Be(season.IndexNumber);
+        episode.ParentIndexNumber.Should()
+            .Be(0, "Specials have to be in Season 0");
         
         var imageInfoPrimary = episode.GetImageInfo(ImageType.Primary, 0);
         imageInfoPrimary.Should().NotBeNull();
@@ -223,7 +230,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         
         await _libraryManager
             .Received(1)
-            .UpdateItemAsync(episode, episode.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+            .UpdateItemAsync(episode, season, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
     }
 
     [Fact]

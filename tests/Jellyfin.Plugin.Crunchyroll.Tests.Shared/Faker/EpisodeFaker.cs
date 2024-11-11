@@ -6,7 +6,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 
 public static class EpisodeFaker
 {
-    public static Episode Generate(BaseItem? parent = null)
+    public static Episode Generate(Season? parent = null)
     {
         var parentId = parent?.Id ?? Guid.NewGuid();
         return new Bogus.Faker<Episode>()
@@ -18,7 +18,7 @@ public static class EpisodeFaker
             .Generate();
     }    
     
-    public static Episode GenerateWithEpisodeId(BaseItem? parent = null)
+    public static Episode GenerateWithEpisodeId(Season? parent = null)
     {
         var episode = Generate(parent);
 
