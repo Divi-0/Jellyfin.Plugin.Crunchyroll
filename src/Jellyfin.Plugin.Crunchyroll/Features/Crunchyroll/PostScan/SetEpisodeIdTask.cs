@@ -115,6 +115,6 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
         }
     }
 
-    [GeneratedRegex(@"^E-?(.*?) |-$")]
+    [GeneratedRegex(@"E-?([^ -]+)")]
     private static partial Regex EpisodeNameFormatRegex();
 }
