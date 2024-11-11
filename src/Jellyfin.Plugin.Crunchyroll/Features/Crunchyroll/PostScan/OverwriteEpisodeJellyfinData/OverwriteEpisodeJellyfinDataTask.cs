@@ -40,11 +40,12 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
     
     public async Task RunAsync(BaseItem episodeItem, CancellationToken cancellationToken)
     {
-        var hasEpisodeId = episodeItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeId, out string? episodeId) &&
-                           !string.IsNullOrWhiteSpace(episodeId);
+        var hasEpisodeId = episodeItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeId, 
+                               out var episodeId) && !string.IsNullOrWhiteSpace(episodeId);
 
         if (!hasEpisodeId)
         {
+            _logger.LogDebug("Episode with name {Name} has no crunchyroll id. Skipping...", episodeItem.Name);
             return;
         }
 
@@ -96,22 +97,20 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
 
         if (!episodeItem.IndexNumber.HasValue)
         {
-            var match = NumberRegex().Match(crunchyrollEpisode.EpisodeNumber);
+            var match = EpisodeNumberRegex().Match(crunchyrollEpisode.EpisodeNumber);
 
-            if (match.Success)
+            if (match.Success && Math.Abs(double.Parse(match.Value) - crunchyrollEpisode.SequenceNumber) < 0.5)
             {
-                if (crunchyrollEpisode.SequenceNumber % 1 != 0)
-                {
-                    episodeItem.ProviderIds[CrunchyrollExternalKeys.EpisodeDecimalEpisodeNumber] = 
-                        crunchyrollEpisode.SequenceNumber.ToString("0.0");
-                }
-                else
-                {
-                    episodeItem.IndexNumber = int.Parse(match.Value);
-                }
+                episodeItem.IndexNumber = int.Parse(match.Value);
             }
             
             episodeItem.Name = $"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}";
+            
+            if (crunchyrollEpisode.SequenceNumber % 1 != 0)
+            {
+                episodeItem.ProviderIds[CrunchyrollExternalKeys.EpisodeDecimalEpisodeNumber] = 
+                    crunchyrollEpisode.SequenceNumber.ToString("0.0");
+            }
         }
         
         await _libraryManager.UpdateItemAsync(episodeItem, episodeItem.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
@@ -174,5 +173,5 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
     }
 
     [GeneratedRegex(@"\d+")]
-    private static partial Regex NumberRegex();
+    private static partial Regex EpisodeNumberRegex();
 }

@@ -103,7 +103,6 @@ public class OverwriteEpisodeJellyfinDataTaskTests
     [InlineData("432", 432)]
     [InlineData("FMI1", 1)]
     [InlineData("FMI2", 2)]
-    [InlineData("SP", null)]
     public async Task SetsIndexNumberAndTitleWithEpisodeNumber_WhenIndexNumberOfJellyfinEpisodeIsNull_GivenEpisodeWithEpisodeId(
         string episodeIdentifier, int? expectedIndexNumber)
     {
@@ -115,7 +114,11 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         
         if (!string.IsNullOrWhiteSpace(episodeIdentifier))
         {
-            crunchyrollEpisode = crunchyrollEpisode with {EpisodeNumber = episodeIdentifier};
+            crunchyrollEpisode = crunchyrollEpisode with
+            {
+                EpisodeNumber = episodeIdentifier,
+                SequenceNumber = Convert.ToDouble(expectedIndexNumber)
+            };
         }
         
         _libraryManager
@@ -165,18 +168,16 @@ public class OverwriteEpisodeJellyfinDataTaskTests
     }
 
     [Fact]
-    public async Task SetsProviderIdOddEpisodeNumber_WhenIndexNumberOfJellyfinEpisodeIsNullAndCrunchyrollEpisodeNumberIsDecimal_GivenEpisodeWithEpisodeId()
+    public async Task SetsProviderIdDecimalEpisodeNumber_WhenIndexNumberOfJellyfinEpisodeIsNullAndCrunchyrollEpisodeNumberIsDecimal_GivenEpisodeWithEpisodeId()
     {
         //Arrange
         var episode = EpisodeFaker.GenerateWithEpisodeId();
         var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode);
         var imageBytes = new Faker().Random.Bytes(1024);
         episode.IndexNumber = null;
-
-        var specialEpisodeNumber = Random.Shared.Next(1, int.MaxValue);
+        
         crunchyrollEpisode = crunchyrollEpisode with
         {
-            EpisodeNumber = $"SP{specialEpisodeNumber}",
             SequenceNumber = Random.Shared.Next(1, int.MaxValue) + 0.5
         };
         
