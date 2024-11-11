@@ -10,7 +10,7 @@ public static class GetCommentsServiceExtension
     public static IServiceCollection AddGetComments(this IServiceCollection serviceCollection, PluginConfiguration configuration)
     {
         serviceCollection.AddHttpClient<ICrunchyrollGetCommentsClient, CrunchyrollGetCommentsClient>()
-            .AddFlareSolverrProxy(configuration)
+            .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
 
         serviceCollection.AddSingleton<IGetCommentsSession, CrunchyrollUnitOfWork>();

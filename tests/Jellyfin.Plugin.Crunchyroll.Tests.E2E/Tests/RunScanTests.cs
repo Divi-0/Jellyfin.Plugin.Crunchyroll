@@ -8,14 +8,11 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.E2E.Tests;
 public class RunScanTests
 {
     private readonly JellyfinFixture _jellyfinFixture;
-    private readonly FlareSolverrFixture _flareSolverrFixture;
     private readonly IBrowser _browser;
     
-    public RunScanTests(PlaywrightFixture playwrightFixture, JellyfinFixture jellyfinFixture, 
-        FlareSolverrFixture flareSolverrFixture)
+    public RunScanTests(PlaywrightFixture playwrightFixture, JellyfinFixture jellyfinFixture)
     {
         _jellyfinFixture = jellyfinFixture;
-        _flareSolverrFixture = flareSolverrFixture;
         _browser = playwrightFixture.Browser;
     }
 
@@ -29,8 +26,7 @@ public class RunScanTests
             await page.FinishWizardAsync(_jellyfinFixture.Url, JellyfinFixture.VideoContainerPath);
             await page.LoginAsync();
             await page.GoToDashboardAsync();
-            await page.SetCrunchyrollPluginConfigAsync(_jellyfinFixture.Url, FlareSolverrFixture.Url,
-                JellyfinFixture.VideoContainerPath);
+            await page.SetCrunchyrollPluginConfigAsync(_jellyfinFixture.Url, JellyfinFixture.VideoContainerPath);
             await page.StartLibraryScan(_jellyfinFixture.Url);
         }
         catch

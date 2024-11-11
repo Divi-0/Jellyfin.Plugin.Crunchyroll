@@ -39,7 +39,6 @@ public class PluginFixture : IAsyncLifetime
 [CollectionDefinition(CollectionNames.Plugin)]
 public class PluginCollection : 
     ICollectionFixture<WireMockFixture>,
-    ICollectionFixture<FlareSolverrFixture>,
     ICollectionFixture<CrunchyrollDatabaseFixture>,
     ICollectionFixture<PluginFixture>
 {

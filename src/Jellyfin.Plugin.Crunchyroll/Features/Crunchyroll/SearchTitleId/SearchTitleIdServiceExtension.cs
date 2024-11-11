@@ -10,7 +10,7 @@ public static class SearchTitleIdServiceExtension
     public static IServiceCollection AddSearchAndAssignTitleId(this IServiceCollection serviceCollection, PluginConfiguration configuration)
     {
         serviceCollection.AddHttpClient<ICrunchyrollTitleIdClient, CrunchyrollTitleIdClient>()
-            .AddFlareSolverrProxy(configuration)
+            .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
         
         return serviceCollection;

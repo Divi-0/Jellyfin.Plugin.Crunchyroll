@@ -93,9 +93,7 @@ public class CrunchyrollScan : ILibraryPostScanTask
     private bool IsConfigValid()
     {
         if (string.IsNullOrWhiteSpace(_config.CrunchyrollUrl) ||
-            string.IsNullOrWhiteSpace(_config.CrunchyrollLanguage) ||
-            string.IsNullOrWhiteSpace(_config.FlareSolverrUrl) ||
-            _config.FlareSolverrTimeout == 0)
+            string.IsNullOrWhiteSpace(_config.CrunchyrollLanguage))
         {
             return false;
         }

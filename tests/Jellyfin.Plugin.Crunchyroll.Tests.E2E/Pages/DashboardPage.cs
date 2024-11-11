@@ -12,8 +12,7 @@ public static class DashboardPage
         await adminMenuOptions.Locator("[data-itemid='dashboard']").ClickAsync();
     }
     
-    public static async Task SetCrunchyrollPluginConfigAsync(this IPage page, string jellyfinUrl, 
-        string flareSolverrUrl, string animeVideoPath)
+    public static async Task SetCrunchyrollPluginConfigAsync(this IPage page, string jellyfinUrl, string animeVideoPath)
     {
         const string crunchyrollPluginGuid = "c6f8461a9a6f4c658bb9825866cabc91";
         
@@ -23,10 +22,7 @@ public static class DashboardPage
         await crunchyrollPluginCard.ClickAsync();
 
         var crunchyrollPluginConfigForm = page.Locator("form#CrunchyrollPluginConfigForm");
-
-        var flareSolverrUrlInputElement = crunchyrollPluginConfigForm.Locator("input#FlareSolverrUrl");
-        await flareSolverrUrlInputElement.WaitForAsync(new LocatorWaitForOptions() { State = WaitForSelectorState.Visible });;
-        await flareSolverrUrlInputElement.FillAsync(flareSolverrUrl);
+        
         var libraryPathInputElement = crunchyrollPluginConfigForm.Locator("input#LibraryPath");
         await libraryPathInputElement.WaitForAsync(new LocatorWaitForOptions() { State = WaitForSelectorState.Visible });
         await libraryPathInputElement.FillAsync(animeVideoPath);
@@ -75,6 +71,6 @@ public static class DashboardPage
 
         var divRunningTasks = page.Locator("#divRunningTasks");
         await divRunningTasks.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        await divRunningTasks.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden, Timeout = 360000});
+        await divRunningTasks.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden, Timeout = 0});
     }
 }

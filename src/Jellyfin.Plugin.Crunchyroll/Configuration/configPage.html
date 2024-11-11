@@ -10,31 +10,6 @@
         <div class="content-primary">
             <form id="CrunchyrollPluginConfigForm">
                 <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="FlareSolverrUrl">FlareSolverrUrl</label>
-                    <input id="FlareSolverrUrl" name="FlareSolverrUrl" type="text" is="emby-input" />
-                    <div class="fieldDescription">FlareSolverr Endpoint URL</div>
-                </div>
-                <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="FlareSolverrTimeout">FlareSolverrTimeout</label>
-                    <input id="FlareSolverrTimeout" name="FlareSolverrTimeout" type="number" is="emby-input" min="0" />
-                    <div class="fieldDescription">Timeout in milliseconds</div>
-                </div>
-                <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="FlareSolverrProxyUrl">FlareSolverrProxyUrl</label>
-                    <input id="FlareSolverrProxyUrl" name="FlareSolverrProxyUrl" type="text" is="emby-input" />
-                    <div class="fieldDescription">FlareSolverr Proxy URL</div>
-                </div>
-                <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="FlareSolverrProxyUsername">FlareSolverrProxyUsername</label>
-                    <input id="FlareSolverrProxyUsername" name="FlareSolverrProxyUsername" type="text" is="emby-input" />
-                    <div class="fieldDescription">FlareSolverr Proxy Username</div>
-                </div>
-                <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="FlareSolverrProxyPassword">FlareSolverrProxyPassword</label>
-                    <input id="FlareSolverrProxyPassword" name="FlareSolverrProxyPassword" type="text" is="emby-input" />
-                    <div class="fieldDescription">FlareSolverr Proxy Password</div>
-                </div>
-                <div class="inputContainer">
                     <label class="inputLabel inputLabelUnfocused" for="CrunchyrollUrl">CrunchyrollUrl</label>
                     <input id="CrunchyrollUrl" name="CrunchyrollUrl" type="text" is="emby-input" />
                     <div class="fieldDescription">CrunchyrollUrl</div>
@@ -95,11 +70,6 @@
             .addEventListener('pageshow', function() {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId).then(function (config) {
-                    document.querySelector('#FlareSolverrUrl').value = config.FlareSolverrUrl;
-                    document.querySelector('#FlareSolverrTimeout').value = config.FlareSolverrTimeout;
-                    document.querySelector('#FlareSolverrProxyUrl').value = config.FlareSolverrProxyUrl;
-                    document.querySelector('#FlareSolverrProxyUsername').value = config.FlareSolverrProxyUsername;
-                    document.querySelector('#FlareSolverrProxyPassword').value = config.FlareSolverrProxyPassword;
                     document.querySelector('#CrunchyrollUrl').value = config.CrunchyrollUrl;
                     document.querySelector('#CrunchyrollLanguage').value = config.CrunchyrollLanguage;
                     document.querySelector('#ArchiveOrgUrl').value = config.ArchiveOrgUrl;
@@ -115,11 +85,6 @@
             .addEventListener('submit', function(e) {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId).then(function (config) {
-                    config.FlareSolverrUrl = document.querySelector('#FlareSolverrUrl').value;
-                    config.FlareSolverrTimeout = document.querySelector('#FlareSolverrTimeout').value;
-                    config.FlareSolverrProxyUrl = document.querySelector('#FlareSolverrProxyUrl').value;
-                    config.FlareSolverrProxyUsername = document.querySelector('#FlareSolverrProxyUsername').value;
-                    config.FlareSolverrProxyPassword = document.querySelector('#FlareSolverrProxyPassword').value;
                     config.CrunchyrollUrl = document.querySelector('#CrunchyrollUrl').value;
                     config.CrunchyrollLanguage = document.querySelector('#CrunchyrollLanguage').value;
                     config.ArchiveOrgUrl = document.querySelector('#ArchiveOrgUrl').value;

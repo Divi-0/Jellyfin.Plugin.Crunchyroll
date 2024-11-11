@@ -26,7 +26,6 @@ public class CrunchyrollScanTests
 
         _config = new PluginConfiguration();
         _config.LibraryPath = "/mnt/Crunchyroll";
-        _config.FlareSolverrUrl = "abc";
         
         _sut = new CrunchyrollScan(logger, _libraryManager, _postScanTasks, _config);
     }
@@ -146,42 +145,6 @@ public class CrunchyrollScanTests
     {
         //Arrange
         _config.CrunchyrollLanguage = string.Empty;
-
-        //Act
-        await _sut.Run(new Progress<double>(), CancellationToken.None);
-
-        //Assert
-        foreach (var postScanTask in _postScanTasks)
-        {
-            await postScanTask
-                .DidNotReceive()
-                .RunAsync(Arg.Any<BaseItem>(), Arg.Any<CancellationToken>());
-        }
-    }
-
-    [Fact]
-    public async Task SkipsScan_WhenConfigIsInvalid_GivenEmptyFalerSolverrUrl()
-    {
-        //Arrange
-        _config.FlareSolverrUrl = string.Empty;
-
-        //Act
-        await _sut.Run(new Progress<double>(), CancellationToken.None);
-
-        //Assert
-        foreach (var postScanTask in _postScanTasks)
-        {
-            await postScanTask
-                .DidNotReceive()
-                .RunAsync(Arg.Any<BaseItem>(), Arg.Any<CancellationToken>());
-        }
-    }
-
-    [Fact]
-    public async Task SkipsScan_WhenConfigIsInvalid_GivenFalerSolverrTimeoutZero()
-    {
-        //Arrange
-        _config.FlareSolverrTimeout = 0;
 
         //Act
         await _sut.Run(new Progress<double>(), CancellationToken.None);

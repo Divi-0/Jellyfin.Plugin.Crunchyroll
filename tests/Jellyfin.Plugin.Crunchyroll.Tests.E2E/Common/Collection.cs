@@ -9,5 +9,4 @@ public static class CollectionNames
 public class Collection : 
     ICollectionFixture<DockerNetwork>,
     ICollectionFixture<PlaywrightFixture>,
-    ICollectionFixture<FlareSolverrFixture>,
     ICollectionFixture<JellyfinFixture>;

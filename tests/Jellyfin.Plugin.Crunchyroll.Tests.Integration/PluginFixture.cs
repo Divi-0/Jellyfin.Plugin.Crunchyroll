@@ -39,7 +39,6 @@ public class PluginFixture : IDisposable
 public class PluginCollection : 
     ICollectionFixture<PluginFixture>,
     ICollectionFixture<WireMockFixture>,
-    ICollectionFixture<FlareSolverrFixture>,
     ICollectionFixture<WaybackMachineDisabledConfigFixture>,
     ICollectionFixture<CrunchyrollDatabaseFixture>
 {

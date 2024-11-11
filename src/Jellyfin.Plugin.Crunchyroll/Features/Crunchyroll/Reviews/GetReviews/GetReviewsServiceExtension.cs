@@ -10,7 +10,7 @@ public static class GetReviewsServiceExtension
     public static IServiceCollection AddCrunchyrollGetReviews(this IServiceCollection serviceCollection, PluginConfiguration configuration)
     {
         serviceCollection.AddHttpClient<ICrunchyrollGetReviewsClient, CrunchyrollGetReviewsClient>()
-            .AddFlareSolverrProxy(configuration)
+            .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
         
         serviceCollection.AddSingleton<IGetReviewsSession, CrunchyrollUnitOfWork>();

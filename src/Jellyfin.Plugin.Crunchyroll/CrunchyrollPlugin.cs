@@ -48,6 +48,7 @@ public class CrunchyrollPlugin : MediaBrowser.Common.Plugins.BasePlugin<PluginCo
         serviceCollection.AddWaybackMachine();
 
         serviceCollection.AddHttpMeasureRequestTimeMessageHandler();
+        serviceCollection.AddScoped<HttpUserAgentHeaderMessageHandler>();
 
         serviceCollection.AddSingleton<PluginConfiguration>(Configuration);
         serviceCollection.AddSingleton<ILibraryManager>(_libraryManager);

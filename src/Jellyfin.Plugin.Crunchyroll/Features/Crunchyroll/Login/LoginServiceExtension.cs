@@ -11,7 +11,7 @@ public static class LoginServiceExtension
     public static IServiceCollection AddCrunchyrollLogin(this IServiceCollection serviceCollection, PluginConfiguration configuration)
     {
         serviceCollection.AddHttpClient<ICrunchyrollLoginClient, CrunchyrollLoginClient>()
-            .AddFlareSolverrProxy(configuration)
+            .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
 
         serviceCollection.AddSingleton<ILoginService, LoginService>();
