@@ -95,14 +95,14 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
         {
             return commentsResult.ToResult();
         }
+        
+        await HandleAvatarUris(commentsResult.Value, cancellationToken);
 
         await _session.InsertComments(new EpisodeComments()
         {
             EpisodeId = request.EpisodeId,
             Comments = commentsResult.Value
         });
-        
-        await HandleAvatarUris(commentsResult.Value, cancellationToken);
         
         return Result.Ok();
     }
