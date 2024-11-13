@@ -28,20 +28,23 @@ public class AvatarClient : IAvatarClient
     {
         try
         {
-            var request = new HttpRequestMessage()
-            {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri(uri),
-                Headers =
-                {
-                    { HeaderNames.Accept, "image/png,image/jpeg" }
-                }
-            };
-            
             var response = await WaybackMachineRequestResiliencePipeline
                 .Get(_logger)
                 .ExecuteAsync(
-                    async _ => await _httpClient.SendAsync(request, cancellationToken), 
+                    async _ =>
+                    {
+                        var request = new HttpRequestMessage()
+                        {
+                            Method = HttpMethod.Get,
+                            RequestUri = new Uri(uri),
+                            Headers =
+                            {
+                                { HeaderNames.Accept, "image/png,image/jpeg" }
+                            }
+                        };
+                        
+                        return await _httpClient.SendAsync(request, cancellationToken);
+                    }, 
                     cancellationToken);
             
             if (!response.IsSuccessStatusCode)
