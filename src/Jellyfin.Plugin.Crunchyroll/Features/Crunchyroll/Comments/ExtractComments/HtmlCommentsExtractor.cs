@@ -52,9 +52,13 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
         }
 
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
+        return ExtractCommentsFromHtml(content);
+    }
 
+    private Result<IReadOnlyList<CommentItem>> ExtractCommentsFromHtml(string html)
+    {
         var htmlDocument = new HtmlDocument();
-        htmlDocument.LoadHtml(content);
+        htmlDocument.LoadHtml(html);
 
         var commentsParentElement = htmlDocument.DocumentNode.SelectSingleNode("//div[@class='erc-comments']");
 
@@ -62,7 +66,6 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
         {
             return Result.Fail(ExtractCommentsErrorCodes.HtmlExtractorInvalidCrunchyrollCommentsPage);
         }
-        
 
         var comments = new List<CommentItem>();
 
@@ -122,6 +125,11 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
             return result;
         }
         
+        if (likes.Equals("like", StringComparison.OrdinalIgnoreCase))
+        {
+            return 0; //the like button contains the text "Like", when the comment has zero likes
+        }
+        
         var match = NumberAndUnitRegex().Match(likes);
         
         if (!match.Success)
@@ -134,7 +142,7 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
 
         if (!unit.Equals("k", StringComparison.OrdinalIgnoreCase))
         {
-            throw new NotImplementedException($"value '{unit}' is not implemented");
+            throw new NotImplementedException($"value '{likes}' can not be converted");
         }
 
         var decimalValue = Convert.ToDecimal(number, new CultureInfo(_config.CrunchyrollLanguage));

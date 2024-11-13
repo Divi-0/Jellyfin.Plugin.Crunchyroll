@@ -53,9 +53,13 @@ public class HtmlReviewsExtractor : IHtmlReviewsExtractor
         }
     
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
+        return ExtractReviewsFromHtml(content);
+    }
 
+    private Result<IReadOnlyList<ReviewItem>> ExtractReviewsFromHtml(string html)
+    {
         var htmlDocument = new HtmlDocument();
-        htmlDocument.LoadHtml(content);
+        htmlDocument.LoadHtml(html);
     
         var reviewParentElement = htmlDocument.DocumentNode.SelectSingleNode("//div[@class='erc-reviews']");
 
