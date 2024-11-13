@@ -66,12 +66,14 @@ public class ExtractReviewsCommandTests
 
         var reviews = _fixture.CreateMany<ReviewItem>().ToList();
 
+        var archivedImageUrls = new Dictionary<ReviewItem, string>();
         foreach (var review in reviews)
         {
             var archivedImageUrl = new Faker().Internet.UrlWithPath(fileExt: "png");
             var uri = $"{webArchiveOrgUri}im_/{archivedImageUrl}";
             
             review.Author.AvatarUri = uri;
+            archivedImageUrls[review] = archivedImageUrl;
         }
         
         var url = Path.Combine(
@@ -97,7 +99,7 @@ public class ExtractReviewsCommandTests
         {
             _addAvatarService
                 .AddAvatarIfNotExists(review.Author.AvatarUri, Arg.Any<CancellationToken>())
-                .Returns(Result.Ok());
+                .Returns(Result.Ok(archivedImageUrls[review]));
         }
         
         //Act
@@ -215,7 +217,7 @@ public class ExtractReviewsCommandTests
         {
             _addAvatarService
                 .AddAvatarIfNotExists(review.Author.AvatarUri, Arg.Any<CancellationToken>())
-                .Returns(Result.Ok());
+                .Returns(Result.Ok(review.Author.AvatarUri));
         }
         
         //Act
@@ -426,7 +428,7 @@ public class ExtractReviewsCommandTests
         {
             _addAvatarService
                 .AddAvatarIfNotExists(review.Author.AvatarUri, Arg.Any<CancellationToken>())
-                .Returns(Result.Ok());
+                .Returns(Result.Ok(review.Author.AvatarUri));
         }
         
         //Act
@@ -514,7 +516,7 @@ public class ExtractReviewsCommandTests
         {
             _addAvatarService
                 .AddAvatarIfNotExists(review.Author.AvatarUri, Arg.Any<CancellationToken>())
-                .Returns(Result.Ok());
+                .Returns(Result.Ok(review.Author.AvatarUri));
         }
         
         //Act

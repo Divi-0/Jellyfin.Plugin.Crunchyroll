@@ -6,5 +6,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 
 public interface IAddAvatarService
 {
-    public ValueTask<Result> AddAvatarIfNotExists(string uri, CancellationToken cancellationToken);
+    /// <returns>the archived uri by waybackmachine</returns>
+    public ValueTask<Result<string>> AddAvatarIfNotExists(string uri, CancellationToken cancellationToken);
 }

@@ -48,6 +48,7 @@ public class AddAvatarServiceTests
         
         //Assert
         result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(uri);
         
         await _session
             .Received(1)
@@ -77,6 +78,7 @@ public class AddAvatarServiceTests
         
         //Assert
         result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(uri);
         
         await _session
             .Received(1)
@@ -217,6 +219,7 @@ public class AddAvatarServiceTests
         
         //Assert
         result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(archivedImageUrl);
         
         await _session
             .Received(1)

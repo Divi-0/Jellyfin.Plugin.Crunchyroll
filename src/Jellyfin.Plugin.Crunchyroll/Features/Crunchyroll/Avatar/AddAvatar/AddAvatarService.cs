@@ -20,13 +20,13 @@ public class AddAvatarService : IAddAvatarService
         _client = client;
     }
     
-    public async ValueTask<Result> AddAvatarIfNotExists(string uri, CancellationToken cancellationToken)
+    public async ValueTask<Result<string>> AddAvatarIfNotExists(string uri, CancellationToken cancellationToken)
     {
         var archivedUrl = WaybackMachineImageHelper.GetArchivedImageUri(uri);
         
         if (!_concurrentDictionary.TryAdd(uri, true))
         {
-            return Result.Ok();
+            return Result.Ok(archivedUrl);
         }
         
         var existsResult = await _session.AvatarExistsAsync(archivedUrl);
@@ -39,7 +39,7 @@ public class AddAvatarService : IAddAvatarService
         if (existsResult.Value)
         {
             //Avatar exists already, no need to store it again
-            return Result.Ok();
+            return Result.Ok(archivedUrl);
         }
         
         var avatarResult = await _client.GetAvatarStreamAsync(uri, cancellationToken);
@@ -56,7 +56,7 @@ public class AddAvatarService : IAddAvatarService
         _concurrentDictionary.TryRemove(uri, out _);
         
         return addAvatarResult.IsSuccess 
-            ? Result.Ok() 
+            ? Result.Ok(archivedUrl) 
             : addAvatarResult;
     }
 }

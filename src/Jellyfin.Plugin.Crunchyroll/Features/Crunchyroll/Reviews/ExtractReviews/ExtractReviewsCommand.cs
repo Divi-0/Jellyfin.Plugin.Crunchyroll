@@ -128,8 +128,11 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
 
         await Parallel.ForEachAsync(reviews.Select(x => x.Author), parallelOptions, async (author, token) =>
         {
-            _ = await _addAvatarService.AddAvatarIfNotExists(author.AvatarUri, token);
-            author.AvatarUri = WaybackMachineImageHelper.GetArchivedImageUri(author.AvatarUri);
+            var addAvatarResult = await _addAvatarService.AddAvatarIfNotExists(author.AvatarUri, token);
+            if (addAvatarResult.IsSuccess)
+            {
+                author.AvatarUri = addAvatarResult.Value;
+            }
         });
     }
 

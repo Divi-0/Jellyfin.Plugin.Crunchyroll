@@ -115,14 +115,18 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
             CancellationToken = cancellationToken
         };
         
-        await Parallel.ForEachAsync(comments.Select(x => x.AvatarIconUri), parallelOptions, async (avatarUri, token) =>
+        await Parallel.ForEachAsync(comments, parallelOptions, async (comment, token) =>
         {
-            if (string.IsNullOrWhiteSpace(avatarUri))
+            if (string.IsNullOrWhiteSpace(comment.AvatarIconUri))
             {
                 return;
             }
             
-            _ = await _addAvatarService.AddAvatarIfNotExists(avatarUri, token);
+            var addAvatarResult = await _addAvatarService.AddAvatarIfNotExists(comment.AvatarIconUri, token);
+            if (addAvatarResult.IsSuccess)
+            {
+                comment.AvatarIconUri = addAvatarResult.Value;
+            }
         });
     }
 }

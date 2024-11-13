@@ -1,11 +1,11 @@
 using System.Web;
 using AutoFixture;
+using Bogus;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
@@ -26,10 +26,12 @@ public class ExtractCommentsCommandHandlerTests
     private readonly PluginConfiguration _config;
     
     private readonly Fixture _fixture;
+    private readonly Faker _faker;
     
     public ExtractCommentsCommandHandlerTests()
     {
         _fixture = new Fixture();
+        _faker = new Faker();
         
         _htmlCommentsExtractor = Substitute.For<IHtmlCommentsExtractor>();
         _commentsSession = Substitute.For<IExtractCommentsSession>();
@@ -69,11 +71,15 @@ public class ExtractCommentsCommandHandlerTests
             .InsertComments(Arg.Do<EpisodeComments>(x => actualEpisodeComments = x))
             .Returns(ValueTask.CompletedTask);
 
+        var avatarUris = new Dictionary<CommentItem, string>();
         foreach (var comment in comments)
         {
+            var archivedUri = _faker.Internet.UrlWithPath(fileExt: "png");
+            avatarUris[comment] = archivedUri;
+            comment.AvatarIconUri = $"{comment.AvatarIconUri}/{archivedUri}";
             _addAvatarService
                 .AddAvatarIfNotExists(comment.AvatarIconUri!, Arg.Any<CancellationToken>())
-                .Returns(Result.Ok());
+                .Returns(Result.Ok(archivedUri));
         }
 
         //Act
@@ -99,13 +105,19 @@ public class ExtractCommentsCommandHandlerTests
             .InsertComments(Arg.Any<EpisodeComments>());
         
         actualEpisodeComments.EpisodeId.Should().Be(episodeId);
-        actualEpisodeComments.Comments.Should().BeEquivalentTo(comments);
+        actualEpisodeComments.Comments.Should().BeEquivalentTo(comments, opt => opt
+            .Excluding(x => x.AvatarIconUri));
+
+        actualEpisodeComments.Comments.Should().AllSatisfy(x =>
+        {
+            x.AvatarIconUri.Should().Be(avatarUris[x]);
+        });
         
         foreach (var comment in comments)
         {
             await _addAvatarService
                 .Received()
-                .AddAvatarIfNotExists(comment.AvatarIconUri!, Arg.Any<CancellationToken>());
+                .AddAvatarIfNotExists(Arg.Is<string>(x => x.Contains(avatarUris[comment])), Arg.Any<CancellationToken>());
         }
     }
     
@@ -181,7 +193,7 @@ public class ExtractCommentsCommandHandlerTests
     }
     
     [Fact]
-    public async Task IgnoresAvatarUri_WhenGetAvatarImageStreamFails_GivenEpisodeIdAndSlugTitle()
+    public async Task IgnoresAvatarUri_WhenAddAvatarImageFails_GivenEpisodeIdAndSlugTitle()
     {
         //Arrange
         var episodeId = CrunchyrollIdFaker.Generate();
@@ -202,8 +214,12 @@ public class ExtractCommentsCommandHandlerTests
             .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(comments);
         
+        var avatarUris = new Dictionary<CommentItem, string>();
         foreach (var comment in comments)
         {
+            var archivedUri = _faker.Internet.UrlWithPath(fileExt: "png");
+            avatarUris[comment] = archivedUri;
+            comment.AvatarIconUri = $"{comment.AvatarIconUri}/{archivedUri}";
             _addAvatarService
                 .AddAvatarIfNotExists(comment.AvatarIconUri!, Arg.Any<CancellationToken>())
                 .Returns(Result.Fail("error"));
@@ -215,12 +231,16 @@ public class ExtractCommentsCommandHandlerTests
 
         //Assert
         result.IsSuccess.Should().BeTrue();
+        comments.Should().AllSatisfy(x =>
+        {
+            x.AvatarIconUri.Should().NotBe(avatarUris[x]);
+        });
 
         foreach (var comment in comments)
         {
             await _addAvatarService
                 .Received(1)
-                .AddAvatarIfNotExists(comment.AvatarIconUri!, Arg.Any<CancellationToken>());
+                .AddAvatarIfNotExists(Arg.Is<string>(x => x.Contains(avatarUris[comment])), Arg.Any<CancellationToken>());
         }
     }
 
