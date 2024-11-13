@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
@@ -37,7 +38,11 @@ public class AvatarClient : IAvatarClient
                 }
             };
             
-            var response = await _httpClient.SendAsync(request, cancellationToken);
+            var response = await WaybackMachineRequestResiliencePipeline
+                .Get(_logger)
+                .ExecuteAsync(
+                    async _ => await _httpClient.SendAsync(request, cancellationToken), 
+                    cancellationToken);
             
             if (!response.IsSuccessStatusCode)
             {
