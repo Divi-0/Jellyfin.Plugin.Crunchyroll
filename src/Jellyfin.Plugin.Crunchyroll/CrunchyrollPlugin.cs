@@ -44,11 +44,10 @@ public class CrunchyrollPlugin : MediaBrowser.Common.Plugins.BasePlugin<PluginCo
         serviceCollection.AddMediator();
         serviceCollection.AddMemoryCache();
         
-        serviceCollection.AddCrunchyroll(Configuration);
+        serviceCollection.AddCrunchyroll();
         serviceCollection.AddWaybackMachine();
 
         serviceCollection.AddHttpMeasureRequestTimeMessageHandler();
-        serviceCollection.AddScoped<HttpUserAgentHeaderMessageHandler>();
 
         serviceCollection.AddSingleton<PluginConfiguration>(Configuration);
         serviceCollection.AddSingleton<ILibraryManager>(_libraryManager);

@@ -105,6 +105,7 @@ async function showComments(id) {
 
 function getReviewsHtml(reviews){
     let reviewsWrapper = document.createElement("div");
+    reviewsWrapper.id = "crunchyroll-reviews-wrapper"
 
     reviewsWrapper.innerHTML = `
     <h5 style="font-size: 1.25rem; line-height: 1.625rem; font-weight: 600;">${reviews.length} Reviews</h5>
@@ -180,7 +181,7 @@ function getCommentsHtml(comments){
 }
 
 const reviewHtml = `
-<div style="display: grid; grid-template: 'avatar-section details-section' auto 'avatar-section footer-section' auto / 3.75rem; row-gap: 0.7rem; column-gap: 1.875rem;">
+<div class="crunchyroll-review" style="display: grid; grid-template: 'avatar-section details-section' auto 'avatar-section footer-section' auto / 3.75rem; row-gap: 0.7rem; column-gap: 1.875rem;">
     <div>
       <img src="{AvatarUri}" alt="Avatar" width="62px" height="62px" style="border-radius: 50%">
     </div>
@@ -189,7 +190,7 @@ const reviewHtml = `
       font-size: 1rem; font-weight: 600; font-family: Lato, Helvetica Neue, helvetica, sans-serif; margin: 0 0 1rem 0;
        color: #fff;">
       {Username}</h5>
-      <div style="display: flex; flex-direction: row; margin-bottom: 0.75rem; column-gap: 0.1rem">
+      <div class="stars" style="display: flex; flex-direction: row; margin-bottom: 0.75rem; column-gap: 0.1rem">
           {Stars}
       </div>
       <div style="display: grid; grid-row-gap: 0.75rem">
@@ -200,13 +201,13 @@ const reviewHtml = `
       </div>
     </div>
   <div></div>
-  <div style="height: 24px">
+  <div class="rating-section" style="height: 24px">
     <span style="font-size: 0.875rem; color: #a0a0a0;">{Rating}</span>
   </div>
 </div>
 `;
 const commentHtml = `
-<div style="display: grid; grid-template-columns: 62px 1fr; gap: 1.875rem;">
+<div class="crunchyroll-comment" style="display: grid; grid-template-columns: 62px 1fr; gap: 1.875rem;">
       <img src="{AvatarUri}" alt="Avatar" width="62px" height="62px" style="border-radius: 50%">
     <div>
       <div style="margin-bottom: .25rem;">
@@ -219,7 +220,7 @@ const commentHtml = `
           <p style="font-size: 1rem;font-family: Lato, Helvetica Neue, helvetica, sans-serif;;font-weight: 500;line-height: 1.5rem; 
           margin: 0;  color: #fff;">{Message}</p>
       </div>
-      <div style="height: 20px; display: flex; align-items: center; font-size: .75rem; line-height: 1rem;">
+      <div class="likes" style="height: 20px; display: flex; align-items: center; font-size: .75rem; line-height: 1rem;">
         ${thumbsUpSvg}
         {Likes}
       </div>

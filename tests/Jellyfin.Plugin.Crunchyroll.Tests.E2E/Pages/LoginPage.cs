@@ -7,7 +7,7 @@ public static class LoginPage
 {
     public static async Task<IPage> LoginAsync(this IPage page)
     {
-        await page.WaitForURLAsync(new Regex(@"index\.html"));
+        await page.WaitForURLAsync(new Regex(@"index\.html|login\.html"));
         var loginForm = page.Locator(".manualLoginForm");
         await loginForm.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         

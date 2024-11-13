@@ -7,7 +7,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.GetComments;
 
 public static class GetCommentsServiceExtension
 {
-    public static IServiceCollection AddGetComments(this IServiceCollection serviceCollection, PluginConfiguration configuration)
+    public static IServiceCollection AddGetComments(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddHttpClient<ICrunchyrollGetCommentsClient, CrunchyrollGetCommentsClient>()
             .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()

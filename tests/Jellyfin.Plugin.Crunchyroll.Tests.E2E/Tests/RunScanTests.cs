@@ -28,10 +28,15 @@ public class RunScanTests
             await page.GoToDashboardAsync();
             await page.SetCrunchyrollPluginConfigAsync(_jellyfinFixture.Url, JellyfinFixture.VideoContainerPath);
             await page.StartLibraryScan(_jellyfinFixture.Url);
+
+            //One Piece
+            var seriesPage = await page.SeriesShouldHaveDataFromCrunchyrollAsync(_jellyfinFixture.Url, "GRMG8ZQZR", 5);
+            await seriesPage.ShouldHaveSeasonsWithMetadataAsync("GRMG8ZQZR", _browser);
         }
-        catch
+        catch(Exception)
         {
             await File.WriteAllBytesAsync("error.png", await page.ScreenshotAsync());
+            throw;
         }
         finally
         {

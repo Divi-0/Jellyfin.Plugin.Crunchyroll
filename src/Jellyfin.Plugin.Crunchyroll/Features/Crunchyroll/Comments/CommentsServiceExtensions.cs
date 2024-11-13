@@ -7,10 +7,10 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments;
 
 public static class CommentsServiceExtensions
 {
-    public static IServiceCollection AddCrunchyrollComments(this IServiceCollection services, PluginConfiguration configuration)
+    public static IServiceCollection AddCrunchyrollComments(this IServiceCollection services)
     {
         services.AddExtractComments();
-        services.AddGetComments(configuration);
+        services.AddGetComments();
 
         return services;
     }

@@ -7,7 +7,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId;
 
 public static class SearchTitleIdServiceExtension
 {
-    public static IServiceCollection AddSearchAndAssignTitleId(this IServiceCollection serviceCollection, PluginConfiguration configuration)
+    public static IServiceCollection AddSearchAndAssignTitleId(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddHttpClient<ICrunchyrollTitleIdClient, CrunchyrollTitleIdClient>()
             .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()

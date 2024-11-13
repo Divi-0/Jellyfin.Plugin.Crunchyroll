@@ -9,7 +9,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTi
 
 public static class ScrapTitleMetadataServiceExtension
 {
-    public static IServiceCollection AddCrunchyrollScrapTitleMetadata(this IServiceCollection serviceCollection, PluginConfiguration configuration)
+    public static IServiceCollection AddCrunchyrollScrapTitleMetadata(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddHttpClient<ICrunchyrollSeasonsClient, CrunchyrollSeasonsClient>()
             .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()

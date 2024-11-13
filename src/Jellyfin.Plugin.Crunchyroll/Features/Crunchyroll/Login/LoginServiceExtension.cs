@@ -8,7 +8,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 
 public static class LoginServiceExtension
 {
-    public static IServiceCollection AddCrunchyrollLogin(this IServiceCollection serviceCollection, PluginConfiguration configuration)
+    public static IServiceCollection AddCrunchyrollLogin(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddHttpClient<ICrunchyrollLoginClient, CrunchyrollLoginClient>()
             .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()

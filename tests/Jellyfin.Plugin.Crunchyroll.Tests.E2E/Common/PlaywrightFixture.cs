@@ -10,7 +10,14 @@ public sealed class PlaywrightFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         PlaywrightInstance = await Playwright.CreateAsync();
-        Browser = await PlaywrightInstance.Chromium.LaunchAsync();
+        Browser = await PlaywrightInstance.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+        {
+#if DEBUG
+            Headless = false
+#else
+            Headless = true 
+#endif
+        });
     }
 
     public async Task DisposeAsync()

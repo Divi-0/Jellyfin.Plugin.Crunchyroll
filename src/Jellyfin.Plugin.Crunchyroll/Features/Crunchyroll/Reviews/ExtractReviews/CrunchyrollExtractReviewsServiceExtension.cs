@@ -6,7 +6,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReview
 
 public static class CrunchyrollExtractReviewsServiceExtension
 {
-    public static IServiceCollection AddCrunchyrollExtractReviews(this IServiceCollection serviceCollection, PluginConfiguration configuration)
+    public static IServiceCollection AddCrunchyrollExtractReviews(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddHttpClient<IHtmlReviewsExtractor, HtmlReviewsExtractor>()
             .AddPollyHttpClientDefaultPolicy();

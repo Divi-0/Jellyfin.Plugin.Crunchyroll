@@ -71,6 +71,6 @@ public static class DashboardPage
 
         var divRunningTasks = page.Locator("#divRunningTasks");
         await divRunningTasks.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        await divRunningTasks.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden, Timeout = 0});
+        await divRunningTasks.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden, Timeout = 3_600_000});
     }
 }

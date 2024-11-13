@@ -8,7 +8,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 
 public static class AvatarServiceExtension
 {
-    public static IServiceCollection AddCrunchyrollAvatar(this IServiceCollection serviceCollection, PluginConfiguration configuration)
+    public static IServiceCollection AddCrunchyrollAvatar(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddSingleton<IGetAvatarSession, CrunchyrollUnitOfWork>();
         serviceCollection.AddSingleton<IAddAvatarSession, CrunchyrollUnitOfWork>();

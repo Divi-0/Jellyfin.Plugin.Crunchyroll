@@ -7,7 +7,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews;
 
 public static class GetReviewsServiceExtension
 {
-    public static IServiceCollection AddCrunchyrollGetReviews(this IServiceCollection serviceCollection, PluginConfiguration configuration)
+    public static IServiceCollection AddCrunchyrollGetReviews(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddHttpClient<ICrunchyrollGetReviewsClient, CrunchyrollGetReviewsClient>()
             .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
