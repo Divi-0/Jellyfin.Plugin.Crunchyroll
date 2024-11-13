@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -16,7 +17,8 @@ public static class WaybackMachineRequestResiliencePipeline
             .AddRetry(new RetryStrategyOptions
             {
                 ShouldHandle = args => ValueTask.FromResult(
-                    args.Outcome.Exception is HttpRequestException { InnerException: SocketException }),
+                    args.Outcome.Exception is HttpRequestException { InnerException: SocketException } || 
+                    args.Outcome.Result is HttpResponseMessage { StatusCode: HttpStatusCode.TooManyRequests }),
                 OnRetry = async _ =>
                 {
                     logger.LogInformation("Request was blocked by wayback machine. Waiting {Minutes}sec to retry", 

@@ -1,3 +1,4 @@
+using System;
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,7 +8,10 @@ public static class ExtractCommentsServiceExtensions
 {
     public static IServiceCollection AddExtractComments(this IServiceCollection services)
     {
-        services.AddHttpClient<IHtmlCommentsExtractor, HtmlCommentsExtractor>()
+        services.AddHttpClient<IHtmlCommentsExtractor, HtmlCommentsExtractor>(httpclient =>
+            {
+                httpclient.Timeout = TimeSpan.FromSeconds(180);
+            })
             .AddPollyHttpClientDefaultPolicy();
 
         services.AddSingleton<IExtractCommentsSession, CrunchyrollUnitOfWork>();

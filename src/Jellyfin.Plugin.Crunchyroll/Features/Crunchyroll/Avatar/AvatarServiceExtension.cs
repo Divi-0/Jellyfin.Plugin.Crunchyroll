@@ -1,4 +1,4 @@
-using Jellyfin.Plugin.Crunchyroll.Configuration;
+using System;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.Client;
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
@@ -14,7 +14,10 @@ public static class AvatarServiceExtension
         serviceCollection.AddSingleton<IAddAvatarSession, CrunchyrollUnitOfWork>();
         serviceCollection.AddSingleton<IAddAvatarService, AddAvatarService>();
         
-        serviceCollection.AddHttpClient<IAvatarClient, AvatarClient>()
+        serviceCollection.AddHttpClient<IAvatarClient, AvatarClient>(httpclient => 
+            {
+                httpclient.Timeout = TimeSpan.FromSeconds(180);
+            })
             .AddPollyHttpClientDefaultPolicy();
         
         return serviceCollection;

@@ -9,7 +9,10 @@ public static class WaybackMachineServiceExtensions
 {
     public static IServiceCollection AddWaybackMachine(this IServiceCollection serviceCollection)
     {
-        serviceCollection.AddHttpClient<IWaybackMachineClient, WaybackMachineClient>()
+        serviceCollection.AddHttpClient<IWaybackMachineClient, WaybackMachineClient>(httpclient =>
+            {
+                httpclient.Timeout = TimeSpan.FromSeconds(180);
+            })
             .AddPollyHttpClientDefaultPolicy();
         
         return serviceCollection;
