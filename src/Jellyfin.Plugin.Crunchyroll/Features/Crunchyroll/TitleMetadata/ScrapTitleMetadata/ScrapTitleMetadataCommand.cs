@@ -8,6 +8,7 @@ using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
@@ -18,7 +19,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTi
 public record ScrapTitleMetadataCommand : IRequest<Result>
 {
     public required string TitleId { get; init; }
-    public required string SlugTitle { get; init; }
 }
 
 public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetadataCommand, Result>
@@ -88,6 +88,8 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         
         if (titleMetadata is null)
         {
+            var crunchyrollPosterTall = seriesMetadataResult.Value.Images.PosterTall.First().Last();
+            var crunchyrollPosterWide = seriesMetadataResult.Value.Images.PosterWide.First().Last();
             titleMetadata = new Entities.TitleMetadata
             {
                 TitleId = request.TitleId,
@@ -95,8 +97,18 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
                 Description = seriesMetadataResult.Value.Description,
                 Title = seriesMetadataResult.Value.Title,
                 Studio = seriesMetadataResult.Value.ContentProvider,
-                PosterTallUri = seriesMetadataResult.Value.Images.PosterTall.First().Last().Source,
-                PosterWideUri = seriesMetadataResult.Value.Images.PosterWide.First().Last().Source,
+                PosterTall = new ImageSource
+                {
+                    Uri = crunchyrollPosterTall.Source,
+                    Width = crunchyrollPosterTall.Width,
+                    Height = crunchyrollPosterTall.Height,
+                },
+                PosterWide = new ImageSource
+                {
+                    Uri = crunchyrollPosterWide.Source,
+                    Width = crunchyrollPosterWide.Width,
+                    Height = crunchyrollPosterWide.Height,
+                },
                 Seasons = seasons
             };
         }
@@ -144,7 +156,20 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         titleMetadata.SlugTitle = seriesContentResponse.SlugTitle;
         titleMetadata.Description = seriesContentResponse.Description;
         titleMetadata.Studio = seriesContentResponse.ContentProvider;
-        titleMetadata.PosterTallUri = seriesContentResponse.Images.PosterTall.First().Last().Source; //Last(), to get the highest quality of all images
-        titleMetadata.PosterWideUri = seriesContentResponse.Images.PosterWide.First().Last().Source; //Last(), to get the highest quality of all images
+        
+        var crunchyrollPosterTall = seriesContentResponse.Images.PosterTall.First().Last();
+        var crunchyrollPosterWide = seriesContentResponse.Images.PosterWide.First().Last();
+        titleMetadata.PosterTall = new ImageSource
+        {
+            Uri = crunchyrollPosterTall.Source,
+            Width = crunchyrollPosterTall.Width,
+            Height = crunchyrollPosterTall.Height,
+        };
+        titleMetadata.PosterWide = new ImageSource
+        {
+            Uri = crunchyrollPosterWide.Source,
+            Width = crunchyrollPosterWide.Width,
+            Height = crunchyrollPosterWide.Height,
+        };
     }
 }

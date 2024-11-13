@@ -3,6 +3,7 @@ using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ScrapTitleMetadata.Episodes;
@@ -53,7 +54,12 @@ public class CrunchyrollEpisodeItemMappingTests
             Description = crunchyrollEpisodeItem.Description,
             SlugTitle = crunchyrollEpisodeItem.SlugTitle,
             EpisodeNumber = crunchyrollEpisodeItem.Episode,
-            ThumbnailUrl = thumbnailUri,
+            Thumbnail = new ImageSource
+            {
+                Uri = thumbnailUri,
+                Width = 0,
+                Height = 0
+            },
             SequenceNumber = 123.4
         };
         
@@ -77,8 +83,8 @@ public class CrunchyrollEpisodeItemMappingTests
             {
                 Thumbnail = [[new CrunchyrollEpisodeThumbnailSizes
                 {
-                    Height = 0,
-                    Width = 0,
+                    Height = 34,
+                    Width = 12,
                     Source = thumbnailUri,
                     Type = "thumbnail"
                 }]]
@@ -97,7 +103,12 @@ public class CrunchyrollEpisodeItemMappingTests
             Description = crunchyrollEpisodeItem.Description,
             SlugTitle = crunchyrollEpisodeItem.SlugTitle,
             EpisodeNumber = "5",
-            ThumbnailUrl = thumbnailUri,
+            Thumbnail = new ImageSource
+            {
+                Uri = thumbnailUri,
+                Width = 12,
+                Height = 34
+            },
             SequenceNumber = 123.4
         };
         
@@ -131,7 +142,12 @@ public class CrunchyrollEpisodeItemMappingTests
             Description = crunchyrollEpisodeItem.Description,
             SlugTitle = crunchyrollEpisodeItem.SlugTitle,
             EpisodeNumber = "5",
-            ThumbnailUrl = string.Empty,
+            Thumbnail = new ImageSource
+            {
+                Uri = string.Empty,
+                Width = 0,
+                Height = 0
+            },
             SequenceNumber = 123.4
         };
         

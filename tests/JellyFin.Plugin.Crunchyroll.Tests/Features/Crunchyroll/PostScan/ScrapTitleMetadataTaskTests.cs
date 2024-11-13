@@ -28,10 +28,9 @@ public class ScrapTitleMetadataTaskTests
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
         var titleId = series.ProviderIds[CrunchyrollExternalKeys.Id];
-        var slugTitle = series.ProviderIds[CrunchyrollExternalKeys.SlugTitle];
         
         _mediator
-            .Send(new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle }, 
+            .Send(new ScrapTitleMetadataCommand { TitleId = titleId }, 
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
@@ -41,7 +40,7 @@ public class ScrapTitleMetadataTaskTests
         //Assert
         await _mediator
             .Received(1)
-            .Send(new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle },
+            .Send(new ScrapTitleMetadataCommand { TitleId = titleId },
                 Arg.Any<CancellationToken>());
     }
 

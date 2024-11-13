@@ -6,6 +6,7 @@ using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeriesJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
@@ -59,8 +60,18 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Description = _faker.Lorem.Sentences(),
             Title = _faker.Random.Words(),
             Studio = _faker.Random.Words(),
-            PosterTallUri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
-            PosterWideUri = _faker.Internet.UrlWithPath(fileExt: "jpg")
+            PosterTall = new ImageSource
+            {
+                Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
+                Height = 1,
+                Width = 1
+            },
+            PosterWide = new ImageSource
+            {
+                Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
+                Height = 1,
+                Width = 1
+            }
         };
 
         _libraryManager
@@ -73,12 +84,12 @@ public class OverwriteSeriesJellyfinDataTaskTests
 
         var posterTallBytes = _faker.Random.Bytes(1000);
         _crunchyrollSeriesClient
-            .GetPosterImagesAsync(titleMetadata.PosterTallUri, Arg.Any<CancellationToken>())
+            .GetPosterImagesAsync(titleMetadata.PosterTall.Uri, Arg.Any<CancellationToken>())
             .Returns(new MemoryStream(posterTallBytes));
         
         var posterWideBytes = _faker.Random.Bytes(1000);
         _crunchyrollSeriesClient
-            .GetPosterImagesAsync(titleMetadata.PosterWideUri, Arg.Any<CancellationToken>())
+            .GetPosterImagesAsync(titleMetadata.PosterWide.Uri, Arg.Any<CancellationToken>())
             .Returns(new MemoryStream(posterWideBytes));
         
         //Act
@@ -95,16 +106,16 @@ public class OverwriteSeriesJellyfinDataTaskTests
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetPosterImagesAsync(titleMetadata.PosterTallUri, Arg.Any<CancellationToken>());
+            .GetPosterImagesAsync(titleMetadata.PosterTall.Uri, Arg.Any<CancellationToken>());
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetPosterImagesAsync(titleMetadata.PosterWideUri, Arg.Any<CancellationToken>());
+            .GetPosterImagesAsync(titleMetadata.PosterWide.Uri, Arg.Any<CancellationToken>());
 
         _fileSystem.AllDirectories.Should().Contain(path => path == _directory);
 
-        var posterTallFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterTallUri));
-        var posterWideFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterWideUri));
+        var posterTallFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterTall.Uri));
+        var posterWideFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterWide.Uri));
 
         (await _fileSystem.File.ReadAllBytesAsync(posterTallFilePath)).Should().BeEquivalentTo(posterTallBytes);
         (await _fileSystem.File.ReadAllBytesAsync(posterWideFilePath)).Should().BeEquivalentTo(posterWideBytes);
@@ -115,11 +126,15 @@ public class OverwriteSeriesJellyfinDataTaskTests
         
         series.ImageInfos.Should().Contain(x => 
             x.Path == posterTallFilePath &&
-            x.Type == ImageType.Primary);
+            x.Type == ImageType.Primary &&
+            x.Width == titleMetadata.PosterTall.Width &&
+            x.Height == titleMetadata.PosterTall.Height);
         
         series.ImageInfos.Should().Contain(x => 
             x.Path == posterWideFilePath &&
-            x.Type == ImageType.Backdrop);
+            x.Type == ImageType.Backdrop &&
+            x.Width == titleMetadata.PosterTall.Width &&
+            x.Height == titleMetadata.PosterTall.Height);
     }
     
     [Fact]
@@ -201,8 +216,18 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Description = _faker.Lorem.Sentences(),
             Title = _faker.Random.Words(),
             Studio = _faker.Random.Words(),
-            PosterTallUri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
-            PosterWideUri = _faker.Internet.UrlWithPath(fileExt: "jpg")
+            PosterTall = new ImageSource
+            {
+                Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
+                Height = 1,
+                Width = 1
+            },
+            PosterWide = new ImageSource
+            {
+                Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
+                Height = 1,
+                Width = 1
+            }
         };
         
         _getTitleMetadata
@@ -210,12 +235,12 @@ public class OverwriteSeriesJellyfinDataTaskTests
             .Returns(titleMetadata);
         
         _crunchyrollSeriesClient
-            .GetPosterImagesAsync(titleMetadata.PosterTallUri, Arg.Any<CancellationToken>())
+            .GetPosterImagesAsync(titleMetadata.PosterTall.Uri, Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
         
         var posterWideBytes = _faker.Random.Bytes(1000);
         _crunchyrollSeriesClient
-            .GetPosterImagesAsync(titleMetadata.PosterWideUri, Arg.Any<CancellationToken>())
+            .GetPosterImagesAsync(titleMetadata.PosterWide.Uri, Arg.Any<CancellationToken>())
             .Returns(new MemoryStream(posterWideBytes));
         
         //Act
@@ -232,14 +257,14 @@ public class OverwriteSeriesJellyfinDataTaskTests
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetPosterImagesAsync(titleMetadata.PosterTallUri, Arg.Any<CancellationToken>());
+            .GetPosterImagesAsync(titleMetadata.PosterTall.Uri, Arg.Any<CancellationToken>());
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetPosterImagesAsync(titleMetadata.PosterWideUri, Arg.Any<CancellationToken>());
+            .GetPosterImagesAsync(titleMetadata.PosterWide.Uri, Arg.Any<CancellationToken>());
 
-        var posterTallFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterTallUri));
-        var posterWideFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterWideUri));
+        var posterTallFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterTall.Uri));
+        var posterWideFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterWide.Uri));
 
         _fileSystem.AllFiles.Should().NotContain(posterTallFilePath);
         (await _fileSystem.File.ReadAllBytesAsync(posterWideFilePath)).Should().BeEquivalentTo(posterWideBytes);
@@ -274,8 +299,18 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Description = _faker.Lorem.Sentences(),
             Title = _faker.Random.Words(),
             Studio = _faker.Random.Words(),
-            PosterTallUri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
-            PosterWideUri = _faker.Internet.UrlWithPath(fileExt: "jpg")
+            PosterTall = new ImageSource
+            {
+                Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
+                Height = 1,
+                Width = 1
+            },
+            PosterWide = new ImageSource
+            {
+                Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
+                Height = 1,
+                Width = 1
+            }
         };
         
         _getTitleMetadata
@@ -283,11 +318,11 @@ public class OverwriteSeriesJellyfinDataTaskTests
             .Returns(titleMetadata);
         
         _crunchyrollSeriesClient
-            .GetPosterImagesAsync(titleMetadata.PosterTallUri, Arg.Any<CancellationToken>())
+            .GetPosterImagesAsync(titleMetadata.PosterTall.Uri, Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
         
         _crunchyrollSeriesClient
-            .GetPosterImagesAsync(titleMetadata.PosterWideUri, Arg.Any<CancellationToken>())
+            .GetPosterImagesAsync(titleMetadata.PosterWide.Uri, Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
         
         //Act
@@ -304,14 +339,14 @@ public class OverwriteSeriesJellyfinDataTaskTests
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetPosterImagesAsync(titleMetadata.PosterTallUri, Arg.Any<CancellationToken>());
+            .GetPosterImagesAsync(titleMetadata.PosterTall.Uri, Arg.Any<CancellationToken>());
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetPosterImagesAsync(titleMetadata.PosterWideUri, Arg.Any<CancellationToken>());
+            .GetPosterImagesAsync(titleMetadata.PosterWide.Uri, Arg.Any<CancellationToken>());
 
-        var posterTallFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterTallUri));
-        var posterWideFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterWideUri));
+        var posterTallFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterTall.Uri));
+        var posterWideFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterWide.Uri));
 
         _fileSystem.AllFiles.Should().NotContain(posterTallFilePath);
         _fileSystem.AllFiles.Should().NotContain(posterWideFilePath);
@@ -348,8 +383,18 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Description = _faker.Lorem.Sentences(),
             Title = _faker.Random.Words(),
             Studio = _faker.Random.Words(),
-            PosterTallUri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
-            PosterWideUri = _faker.Internet.UrlWithPath(fileExt: "jpg")
+            PosterTall = new ImageSource
+            {
+                Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
+                Height = 1,
+                Width = 1
+            },
+            PosterWide = new ImageSource
+            {
+                Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
+                Height = 1,
+                Width = 1
+            }
         };
         
         _getTitleMetadata
@@ -358,12 +403,12 @@ public class OverwriteSeriesJellyfinDataTaskTests
         
         var posterTallBytes = _faker.Random.Bytes(1000);
         _crunchyrollSeriesClient
-            .GetPosterImagesAsync(titleMetadata.PosterTallUri, Arg.Any<CancellationToken>())
+            .GetPosterImagesAsync(titleMetadata.PosterTall.Uri, Arg.Any<CancellationToken>())
             .Returns(new MemoryStream(posterTallBytes));
         
         var posterWideBytes = _faker.Random.Bytes(1000);
         _crunchyrollSeriesClient
-            .GetPosterImagesAsync(titleMetadata.PosterWideUri, Arg.Any<CancellationToken>())
+            .GetPosterImagesAsync(titleMetadata.PosterWide.Uri, Arg.Any<CancellationToken>())
             .Returns(new MemoryStream(posterWideBytes));
         
         var file = Substitute.For<IFile>();
@@ -388,14 +433,14 @@ public class OverwriteSeriesJellyfinDataTaskTests
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetPosterImagesAsync(titleMetadata.PosterTallUri, Arg.Any<CancellationToken>());
+            .GetPosterImagesAsync(titleMetadata.PosterTall.Uri, Arg.Any<CancellationToken>());
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetPosterImagesAsync(titleMetadata.PosterWideUri, Arg.Any<CancellationToken>());
+            .GetPosterImagesAsync(titleMetadata.PosterWide.Uri, Arg.Any<CancellationToken>());
 
-        var posterTallFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterTallUri));
-        var posterWideFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterWideUri));
+        var posterTallFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterTall.Uri));
+        var posterWideFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterWide.Uri));
 
         _fileSystem.AllFiles.Should().NotContain(posterTallFilePath);
         _fileSystem.AllFiles.Should().NotContain(posterTallFilePath);

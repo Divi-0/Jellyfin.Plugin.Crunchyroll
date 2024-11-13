@@ -163,8 +163,12 @@ public static class DatabaseMockHelper
             metadata.Title.Should().Be(seriesContentResponse.Title);
             metadata.Description.Should().Be(seriesContentResponse.Description);
             metadata.Studio.Should().Be(seriesContentResponse.ContentProvider);
-            metadata.PosterTallUri.Should().Be(seriesContentResponse.Images.PosterTall.First().Last().Source);
-            metadata.PosterWideUri.Should().Be(seriesContentResponse.Images.PosterWide.First().Last().Source);
+            metadata.PosterTall.Uri.Should().Be(seriesContentResponse.Images.PosterTall.First().Last().Source);
+            metadata.PosterWide.Uri.Should().Be(seriesContentResponse.Images.PosterWide.First().Last().Source);
+            metadata.PosterTall.Height.Should().Be(seriesContentResponse.Images.PosterTall.First().Last().Height);
+            metadata.PosterWide.Height.Should().Be(seriesContentResponse.Images.PosterWide.First().Last().Height);
+            metadata.PosterTall.Width.Should().Be(seriesContentResponse.Images.PosterTall.First().Last().Width);
+            metadata.PosterWide.Width.Should().Be(seriesContentResponse.Images.PosterWide.First().Last().Width);
             metadata.Seasons.Should().NotBeEmpty();
             metadata.Seasons.Should().AllSatisfy(x =>
             {

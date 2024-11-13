@@ -6,6 +6,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons.Dtos;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
@@ -45,7 +46,6 @@ public class ScrapTitleMetadataCommandHandlerTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
 
         _loginService
             .LoginAnonymously(Arg.Any<CancellationToken>())
@@ -117,7 +117,7 @@ public class ScrapTitleMetadataCommandHandlerTests
                     actualTitleMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -142,14 +142,30 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Received(1)
             .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
 
-        actualTitleMetadata.Should().NotBeNull();
-        actualTitleMetadata.TitleId.Should().Be(titleId);
-        actualTitleMetadata.Title.Should().Be(seriesMetadataResponse.Title);
-        actualTitleMetadata.Description.Should().Be(seriesMetadataResponse.Description);
-        actualTitleMetadata.SlugTitle.Should().Be(seriesMetadataResponse.SlugTitle);
-        actualTitleMetadata.Studio.Should().Be(seriesMetadataResponse.ContentProvider);
-        actualTitleMetadata.PosterTallUri.Should().Be(seriesMetadataResponse.Images.PosterTall.First().Last().Source);
-        actualTitleMetadata.PosterWideUri.Should().Be(seriesMetadataResponse.Images.PosterWide.First().Last().Source);
+        var expectedTitleMetadata = new Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata()
+        {
+            TitleId = titleId,
+            Title = seriesMetadataResponse.Title,
+            Description = seriesMetadataResponse.Description,
+            SlugTitle = seriesMetadataResponse.SlugTitle,
+            Studio = seriesMetadataResponse.ContentProvider,
+            PosterTall = new ImageSource
+            {
+                Uri = seriesMetadataResponse.Images.PosterTall.First().Last().Source,
+                Width = seriesMetadataResponse.Images.PosterTall.First().Last().Width,
+                Height = seriesMetadataResponse.Images.PosterTall.First().Last().Height
+            },
+            PosterWide = new ImageSource
+            {
+                Uri = seriesMetadataResponse.Images.PosterWide.First().Last().Source,
+                Width = seriesMetadataResponse.Images.PosterWide.First().Last().Width,
+                Height = seriesMetadataResponse.Images.PosterWide.First().Last().Height
+            },
+        };
+        
+        actualTitleMetadata.Should().BeEquivalentTo(expectedTitleMetadata, opt => opt
+            .Excluding(x => x.Seasons));
+        
         actualTitleMetadata.Seasons.Should().AllSatisfy(season =>
         {
             seasonsResponse.Data.Should().Contain(y => y.Id == season.Id);
@@ -157,7 +173,9 @@ public class ScrapTitleMetadataCommandHandlerTests
 
             season.Episodes.Should().AllSatisfy(episode =>
             {
-                episode.ThumbnailUrl.Should().NotBeNullOrEmpty();
+                episode.Thumbnail.Uri.Should().NotBeNullOrEmpty();
+                episode.Thumbnail.Width.Should().NotBe(0);
+                episode.Thumbnail.Height.Should().NotBe(0);
             });
         });
     }
@@ -167,7 +185,6 @@ public class ScrapTitleMetadataCommandHandlerTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
         
         _loginService
             .LoginAnonymously(Arg.Any<CancellationToken>())
@@ -179,7 +196,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Returns(Result.Fail(error));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -200,7 +217,6 @@ public class ScrapTitleMetadataCommandHandlerTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
 
         _loginService
             .LoginAnonymously(Arg.Any<CancellationToken>())
@@ -225,7 +241,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Returns(Result.Fail(error));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -255,7 +271,6 @@ public class ScrapTitleMetadataCommandHandlerTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
         
         _loginService
             .LoginAnonymously(Arg.Any<CancellationToken>())
@@ -289,7 +304,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Returns(seriesContentItem);
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -324,7 +339,6 @@ public class ScrapTitleMetadataCommandHandlerTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
         
         var error = _fixture.Create<string>();
         _loginService
@@ -332,7 +346,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Returns(Result.Fail(error));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -349,7 +363,6 @@ public class ScrapTitleMetadataCommandHandlerTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
 
         _loginService
             .LoginAnonymously(Arg.Any<CancellationToken>())
@@ -390,7 +403,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -433,7 +446,6 @@ public class ScrapTitleMetadataCommandHandlerTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
 
         _loginService
             .LoginAnonymously(Arg.Any<CancellationToken>())
@@ -482,7 +494,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .AddOrUpdateTitleMetadata(Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -531,7 +543,6 @@ public class ScrapTitleMetadataCommandHandlerTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
 
         _loginService
             .LoginAnonymously(Arg.Any<CancellationToken>())
@@ -615,7 +626,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .AddOrUpdateTitleMetadata(Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -649,8 +660,8 @@ public class ScrapTitleMetadataCommandHandlerTests
         actualMetadata.Title.Should().Be(seriesMetadataResponse.Title);
         actualMetadata.Description.Should().Be(seriesMetadataResponse.Description);
         actualMetadata.Studio.Should().Be(seriesMetadataResponse.ContentProvider);
-        actualMetadata.PosterTallUri.Should().Be(seriesMetadataResponse.Images.PosterTall.First().Last().Source);
-        actualMetadata.PosterWideUri.Should().Be(seriesMetadataResponse.Images.PosterWide.First().Last().Source);
+        actualMetadata.PosterTall.Uri.Should().Be(seriesMetadataResponse.Images.PosterTall.First().Last().Source);
+        actualMetadata.PosterWide.Uri.Should().Be(seriesMetadataResponse.Images.PosterWide.First().Last().Source);
     }
     
     [Fact]
@@ -658,7 +669,6 @@ public class ScrapTitleMetadataCommandHandlerTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
 
         _loginService
             .LoginAnonymously(Arg.Any<CancellationToken>())
@@ -718,7 +728,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .AddOrUpdateTitleMetadata(Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -767,7 +777,6 @@ public class ScrapTitleMetadataCommandHandlerTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
 
         _loginService
             .LoginAnonymously(Arg.Any<CancellationToken>())
@@ -810,7 +819,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .AddOrUpdateTitleMetadata(Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -852,7 +861,6 @@ public class ScrapTitleMetadataCommandHandlerTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
 
         _loginService
             .LoginAnonymously(Arg.Any<CancellationToken>())
@@ -898,7 +906,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -936,7 +944,6 @@ public class ScrapTitleMetadataCommandHandlerTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var slugTitle = _fixture.Create<string>();
 
         _loginService
             .LoginAnonymously(Arg.Any<CancellationToken>())
@@ -960,7 +967,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId, SlugTitle = slugTitle };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert

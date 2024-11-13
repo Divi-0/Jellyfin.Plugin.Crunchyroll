@@ -36,8 +36,7 @@ public class ScrapTitleMetadataTask : IPostTitleIdSetTask
 
         _ = await _mediator.Send(new ScrapTitleMetadataCommand()
         {
-            TitleId = id!,
-            SlugTitle = slugTitle!
+            TitleId = id!
         }, cancellationToken);
     }
 }

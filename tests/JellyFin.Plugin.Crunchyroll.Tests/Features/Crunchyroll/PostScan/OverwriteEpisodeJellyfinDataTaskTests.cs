@@ -6,6 +6,7 @@ using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -64,7 +65,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Returns(crunchyrollEpisode);
 
         var mockedRequest = _mockHttpMessageHandler
-            .When(crunchyrollEpisode.ThumbnailUrl)
+            .When(crunchyrollEpisode.Thumbnail.Uri)
             .Respond(new StreamContent(new MemoryStream(imageBytes)));
 
         //Act
@@ -78,7 +79,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1, "it should download the thumbnail");
         
         _fileSystem.AllDirectories.Should().Contain(path => path == _directory);
-        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
         (await _fileSystem.File.ReadAllBytesAsync(thumbnailFilePath)).Should().BeEquivalentTo(imageBytes);
         
         episode.Name.Should().Be(crunchyrollEpisode.Title);
@@ -88,10 +89,14 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         var imageInfoPrimary = episode.GetImageInfo(ImageType.Primary, 0);
         imageInfoPrimary.Should().NotBeNull();
         imageInfoPrimary.Path.Should().Be(thumbnailFilePath);
+        imageInfoPrimary.Width.Should().Be(crunchyrollEpisode.Thumbnail.Width);
+        imageInfoPrimary.Height.Should().Be(crunchyrollEpisode.Thumbnail.Height);
         
         var imageInfoThumb = episode.GetImageInfo(ImageType.Thumb, 0);
         imageInfoThumb.Should().NotBeNull();
         imageInfoThumb.Path.Should().Be(thumbnailFilePath);
+        imageInfoThumb.Width.Should().Be(crunchyrollEpisode.Thumbnail.Width);
+        imageInfoThumb.Height.Should().Be(crunchyrollEpisode.Thumbnail.Height);
         
         await _libraryManager
             .Received(1)
@@ -131,7 +136,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Returns(crunchyrollEpisode);
 
         var mockedRequest = _mockHttpMessageHandler
-            .When(crunchyrollEpisode.ThumbnailUrl)
+            .When(crunchyrollEpisode.Thumbnail.Uri)
             .Respond(new StreamContent(new MemoryStream(imageBytes)));
 
         //Act
@@ -145,7 +150,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1, "it should download the thumbnail");
         
         _fileSystem.AllDirectories.Should().Contain(path => path == _directory);
-        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
         (await _fileSystem.File.ReadAllBytesAsync(thumbnailFilePath)).Should().BeEquivalentTo(imageBytes);
 
         episode.Name.Should().Be($"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}");
@@ -193,7 +198,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Returns(crunchyrollEpisode);
 
         var mockedRequest = _mockHttpMessageHandler
-            .When(crunchyrollEpisode.ThumbnailUrl)
+            .When(crunchyrollEpisode.Thumbnail.Uri)
             .Respond(new StreamContent(new MemoryStream(imageBytes)));
 
         //Act
@@ -207,7 +212,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1, "it should download the thumbnail");
         
         _fileSystem.AllDirectories.Should().Contain(path => path == _directory);
-        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
         (await _fileSystem.File.ReadAllBytesAsync(thumbnailFilePath)).Should().BeEquivalentTo(imageBytes);
 
         episode.Name.Should().Be($"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}");
@@ -256,7 +261,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Received(1)
             .GetEpisodeAsync(crunchyrollEpisode.Id);
         
-        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
         _fileSystem.File.Exists(thumbnailFilePath).Should().BeFalse("it could not get the episode from database");
         
         await _libraryManager
@@ -280,7 +285,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Returns(crunchyrollEpisode);
 
         var mockedRequest = _mockHttpMessageHandler
-            .When(crunchyrollEpisode.ThumbnailUrl)
+            .When(crunchyrollEpisode.Thumbnail.Uri)
             .Throw(new Exception());
 
         //Act
@@ -293,7 +298,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1, "it should try to download the thumbnail");
         
-        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
         _fileSystem.File.Exists(thumbnailFilePath).Should().BeFalse();
         
         episode.Name.Should().Be(crunchyrollEpisode.Title);
@@ -323,7 +328,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Returns(crunchyrollEpisode);
 
         var mockedRequest = _mockHttpMessageHandler
-            .When(crunchyrollEpisode.ThumbnailUrl)
+            .When(crunchyrollEpisode.Thumbnail.Uri)
             .Respond(HttpStatusCode.BadRequest);
 
         //Act
@@ -336,7 +341,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1, "it should try to download the thumbnail");
         
-        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
         _fileSystem.File.Exists(thumbnailFilePath).Should().BeFalse();
         
         episode.Name.Should().Be(crunchyrollEpisode.Title);
@@ -367,7 +372,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Returns(crunchyrollEpisode);
 
         var mockedRequest = _mockHttpMessageHandler
-            .When(crunchyrollEpisode.ThumbnailUrl)
+            .When(crunchyrollEpisode.Thumbnail.Uri)
             .Respond(new StreamContent(new MemoryStream(imageBytes)));
 
         var file = Substitute.For<IFile>();
@@ -388,7 +393,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1, "it should download the thumbnail");
         
-        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
         file
             .Received(1)
             .Create(thumbnailFilePath);
@@ -415,7 +420,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Returns(crunchyrollEpisode);
 
         var mockedRequest = _mockHttpMessageHandler
-            .When(crunchyrollEpisode.ThumbnailUrl)
+            .When(crunchyrollEpisode.Thumbnail.Uri)
             .Respond(new StreamContent(new MemoryStream(imageBytes)));
 
         var directory = Substitute.For<IDirectory>();
@@ -467,7 +472,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Returns(crunchyrollEpisode);
 
         var mockedRequest = _mockHttpMessageHandler
-            .When(crunchyrollEpisode.ThumbnailUrl)
+            .When(crunchyrollEpisode.Thumbnail.Uri)
             .Respond(new StreamContent(new MemoryStream(imageBytes)));
 
         //create directory on mock filesystem to pass file creation
@@ -518,7 +523,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Returns(crunchyrollEpisode);
 
         var mockedRequest = _mockHttpMessageHandler
-            .When(crunchyrollEpisode.ThumbnailUrl)
+            .When(crunchyrollEpisode.Thumbnail.Uri)
             .Respond(new StreamContent(new MemoryStream(imageBytes)));
         
         //use Substitute to check method calls
@@ -570,7 +575,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Returns(crunchyrollEpisode);
 
         var mockedRequest = _mockHttpMessageHandler
-            .When(crunchyrollEpisode.ThumbnailUrl)
+            .When(crunchyrollEpisode.Thumbnail.Uri)
             .Respond(HttpStatusCode.NotFound);
 
         //Act
@@ -583,7 +588,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1, "it should try to download the thumbnail");
         
-        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
         _fileSystem.File.Exists(thumbnailFilePath).Should().BeFalse();
         
         episode.Name.Should().Be(crunchyrollEpisode.Title);
@@ -626,7 +631,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         //Arrange
         var episode = EpisodeFaker.GenerateWithEpisodeId();
         var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode);
-        crunchyrollEpisode = crunchyrollEpisode with { ThumbnailUrl = string.Empty };
+        crunchyrollEpisode = crunchyrollEpisode with { Thumbnail = new ImageSource{Uri = string.Empty, Height = 0, Width = 0} };
         
         var imageBytes = new Faker().Random.Bytes(1024);
         
@@ -639,7 +644,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Returns(crunchyrollEpisode);
 
         var mockedRequest = _mockHttpMessageHandler
-            .When(crunchyrollEpisode.ThumbnailUrl)
+            .When(crunchyrollEpisode.Thumbnail.Uri)
             .Respond(new StreamContent(new MemoryStream(imageBytes)));
 
         //Act
@@ -658,7 +663,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             "it should try not download the thumbnail");
         
         _fileSystem.AllDirectories.Should().Contain(path => path == _directory);
-        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
         _fileSystem.File.Exists(thumbnailFilePath).Should().BeFalse();
         
         episode.Name.Should().Be(crunchyrollEpisode.Title);

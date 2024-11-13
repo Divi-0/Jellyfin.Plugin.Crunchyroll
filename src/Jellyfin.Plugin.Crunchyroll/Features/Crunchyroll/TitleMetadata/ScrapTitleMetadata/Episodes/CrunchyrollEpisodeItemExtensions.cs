@@ -1,6 +1,7 @@
 using System.Linq;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes;
 
@@ -8,11 +9,11 @@ public static class CrunchyrollEpisodeItemExtensions
 {
     public static Episode ToEpisodeEntity(this CrunchyrollEpisodeItem item)
     {
-        var thumbnailUri = string.Empty;
+        CrunchyrollEpisodeThumbnailSizes? thumbnail = null;
 
         if (item.Images.Thumbnail.Length != 0 && item.Images.Thumbnail[0].Length != 0)
         {
-            thumbnailUri = item.Images.Thumbnail.First().Last().Source;
+            thumbnail = item.Images.Thumbnail.First().Last();
         }
         
         //map field "episode" to EpisodeNumber because some episodes are displayed as "6.5"
@@ -26,7 +27,12 @@ public static class CrunchyrollEpisodeItemExtensions
             EpisodeNumber = string.IsNullOrWhiteSpace(item.Episode) 
                 ? item.EpisodeNumber.HasValue ? item.EpisodeNumber.Value.ToString() : string.Empty 
                 : item.Episode,
-            ThumbnailUrl = thumbnailUri,
+            Thumbnail = new ImageSource
+            {
+                Uri = thumbnail?.Source ?? string.Empty,
+                Width = thumbnail?.Width ?? 0,
+                Height = thumbnail?.Height ?? 0
+            },
             SequenceNumber = item.SequenceNumber
         };
     }

@@ -65,13 +65,13 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         }
 
         var crunchyrollEpisode = crunchyrollEpisodeResult.Value;
-        if (!string.IsNullOrWhiteSpace(crunchyrollEpisode.ThumbnailUrl))
+        if (!string.IsNullOrWhiteSpace(crunchyrollEpisode.Thumbnail.Uri))
         {
-            var imageStreamResult = await GetThumbnailImageStreamAsync(crunchyrollEpisode.ThumbnailUrl, cancellationToken);
+            var imageStreamResult = await GetThumbnailImageStreamAsync(crunchyrollEpisode.Thumbnail.Uri, cancellationToken);
 
             if (imageStreamResult.IsSuccess)
             {
-                var filePath = Path.Combine(_thumbnailDirPath, Path.GetFileName(crunchyrollEpisode.ThumbnailUrl));
+                var filePath = Path.Combine(_thumbnailDirPath, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
                 var createImageResult = await CreateFileAsync(filePath, imageStreamResult.Value, cancellationToken);
 
                 if (createImageResult.IsFailed)
@@ -83,12 +83,16 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
                 {
                     Path = filePath,
                     Type = ImageType.Thumb,
+                    Width = crunchyrollEpisode.Thumbnail.Width,
+                    Height = crunchyrollEpisode.Thumbnail.Height
                 }, 0);
             
                 episodeItem.SetImage(new ItemImageInfo()
                 {
                     Path = filePath,
                     Type = ImageType.Primary,
+                    Width = crunchyrollEpisode.Thumbnail.Width,
+                    Height = crunchyrollEpisode.Thumbnail.Height
                 }, 0);
             }
         }

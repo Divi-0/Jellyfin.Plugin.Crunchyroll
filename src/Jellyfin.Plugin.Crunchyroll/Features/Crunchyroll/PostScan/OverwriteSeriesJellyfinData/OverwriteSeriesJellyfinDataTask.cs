@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -53,8 +54,8 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
             return;
         }
 
-        _ = await GetAndAddImage(seriesItem, titleMetadata.PosterTallUri, ImageType.Primary, cancellationToken);
-        _ = await GetAndAddImage(seriesItem, titleMetadata.PosterWideUri, ImageType.Backdrop, cancellationToken);
+        _ = await GetAndAddImage(seriesItem, titleMetadata.PosterTall, ImageType.Primary, cancellationToken);
+        _ = await GetAndAddImage(seriesItem, titleMetadata.PosterWide, ImageType.Backdrop, cancellationToken);
         
         seriesItem.Name = titleMetadata.Title;
         seriesItem.Overview = titleMetadata.Description;
@@ -64,9 +65,9 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
             .UpdateItemAsync(seriesItem, seriesItem.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
     }
 
-    private async Task<Result> GetAndAddImage(BaseItem series, string uri, ImageType imageType, CancellationToken cancellationToken)
+    private async Task<Result> GetAndAddImage(BaseItem series, ImageSource imageSource, ImageType imageType, CancellationToken cancellationToken)
     {
-        var posterImageResult = await _crunchyrollSeriesClient.GetPosterImagesAsync(uri, cancellationToken);
+        var posterImageResult = await _crunchyrollSeriesClient.GetPosterImagesAsync(imageSource.Uri, cancellationToken);
 
         if (posterImageResult.IsFailed)
         {
@@ -77,7 +78,7 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
             Path.GetDirectoryName(typeof(OverwriteSeriesJellyfinDataTask).Assembly.Location)!,
             "series-images");
         
-        var filePath = Path.Combine(directory, Path.GetFileName(uri));
+        var filePath = Path.Combine(directory, Path.GetFileName(imageSource.Uri));
         
         try
         {
@@ -98,7 +99,9 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
         series.SetImage(new ItemImageInfo()
         {
             Path = filePath,
-            Type = imageType
+            Type = imageType,
+            Width = imageSource.Width,
+            Height = imageSource.Height
         }, 0);
         
         return Result.Ok();
