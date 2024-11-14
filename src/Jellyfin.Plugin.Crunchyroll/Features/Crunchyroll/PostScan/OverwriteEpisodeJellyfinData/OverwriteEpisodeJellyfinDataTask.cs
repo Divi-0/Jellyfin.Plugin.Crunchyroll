@@ -102,26 +102,7 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
 
         if (!episodeItem.IndexNumber.HasValue)
         {
-            var match = EpisodeNumberRegex().Match(crunchyrollEpisode.EpisodeNumber);
-
-            //if regex matches and episodeNumber is not sequence number then the episode is part of a normal season
-            //e.g. One Piece Season 13 has special episodes in between 
-            if (match.Success && Math.Abs(double.Parse(match.Value) - crunchyrollEpisode.SequenceNumber) < 0.5)
-            {
-                episodeItem.IndexNumber = int.Parse(match.Value);
-            }
-            else
-            {
-                SetSpecialEpisodeAirsBefore((Episode)episodeItem, crunchyrollEpisode.SequenceNumber);
-            }
-            
-            episodeItem.Name = $"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}";
-            
-            if (crunchyrollEpisode.SequenceNumber % 1 != 0)
-            {
-                episodeItem.ProviderIds[CrunchyrollExternalKeys.EpisodeDecimalEpisodeNumber] = 
-                    crunchyrollEpisode.SequenceNumber.ToString("0.0");
-            }
+            SetIndexNumberAndName((Episode)episodeItem, crunchyrollEpisode);
         }
         
         await _libraryManager.UpdateItemAsync(episodeItem, episodeItem.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
@@ -180,6 +161,35 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         {
             _logger.LogError(e, "Failed to get image for url {Url}", url);
             return Result.Fail(ErrorCodes.HttpRequestFailed);
+        }
+    }
+
+    private static void SetIndexNumberAndName(Episode episode, TitleMetadata.Entities.Episode crunchyrollEpisode)
+    {
+        if (string.IsNullOrWhiteSpace(crunchyrollEpisode.EpisodeNumber))
+        {
+            return;
+        }
+            
+        var match = EpisodeNumberRegex().Match(crunchyrollEpisode.EpisodeNumber);
+
+        //if regex matches and episodeNumber is not sequence number then the episode is part of a normal season
+        //e.g. One Piece Season 13 has special episodes in between 
+        if (match.Success && Math.Abs(double.Parse(match.Value) - crunchyrollEpisode.SequenceNumber) < 0.5)
+        {
+            episode.IndexNumber = int.Parse(match.Value);
+        }
+        else
+        {
+            SetSpecialEpisodeAirsBefore(episode, crunchyrollEpisode.SequenceNumber);
+        }
+            
+        episode.Name = $"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}";
+            
+        if (crunchyrollEpisode.SequenceNumber % 1 != 0)
+        {
+            episode.ProviderIds[CrunchyrollExternalKeys.EpisodeDecimalEpisodeNumber] = 
+                crunchyrollEpisode.SequenceNumber.ToString("0.0");
         }
     }
 

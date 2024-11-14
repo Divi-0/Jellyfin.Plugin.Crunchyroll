@@ -71,6 +71,26 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
             return Result.Ok();
         }
 
+        var episodeIdResult = await GetEpisodeIdAsync(episode, titleId!, seasonId!, cancellationToken);
+
+        if (episodeIdResult.IsFailed)
+        {
+            return episodeIdResult.ToResult();
+        }
+            
+        var episodeId = episodeIdResult.Value?.EpisodeId ?? string.Empty;
+        var episodeSlugTitle = episodeIdResult.Value?.EpisodeSlugTitle ?? string.Empty;
+        episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId] = episodeId;
+        episode.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle] = episodeSlugTitle;
+
+        await _libraryManager.UpdateItemAsync(episode, episode.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
+        
+        return Result.Ok();
+    }
+
+    private async Task<Result<EpisodeIdResult?>> GetEpisodeIdAsync(BaseItem episode, string titleId, string seasonId, 
+        CancellationToken cancellationToken)
+    {
         string episodeIdentifier;
         if (!episode.IndexNumber.HasValue)
         {
@@ -78,7 +98,15 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
 
             if (!match.Success)
             {
-                _logger.LogDebug("Episode {Name} has no IndexNumber and number could not be read from name. Skipping...", 
+                var episodeIdByNameResult = await _mediator.Send(new EpisodeIdQueryByName(titleId, seasonId, episode.Name), cancellationToken);
+
+                if (episodeIdByNameResult.IsSuccess)
+                {
+                    return episodeIdByNameResult.Value;
+                }
+                
+                _logger.LogDebug("Episode {Name} has no IndexNumber, number could not be read from name and id was " +
+                                 "not found by episode name. Skipping...", 
                     episode.Name);
                 return Result.Fail(ErrorCodes.PreconditionFailed);
             }
@@ -96,15 +124,8 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
         {
             return episodeIdResult.ToResult();
         }
-            
-        var episodeId = episodeIdResult.Value?.EpisodeId ?? string.Empty;
-        var episodeSlugTitle = episodeIdResult.Value?.EpisodeSlugTitle ?? string.Empty;
-        episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId] = episodeId;
-        episode.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle] = episodeSlugTitle;
 
-        await _libraryManager.UpdateItemAsync(episode, episode.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
-        
-        return Result.Ok();
+        return episodeIdResult.Value;
     }
 
     private async Task RunPostTasks(BaseItem episodeItem, CancellationToken cancellationToken)

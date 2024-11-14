@@ -175,6 +175,63 @@ public class OverwriteEpisodeJellyfinDataTaskTests
     }
 
     [Fact]
+    public async Task SetsNameAndDescription_WhenIndexNumberOfJellyfinEpisodeIsNullAndCrunchyrollEpisodeNumberIsEmpty_GivenEpisodeWithEpisodeId()
+    {
+        //Arrange
+        var season = SeasonFaker.Generate();
+        var episode = EpisodeFaker.GenerateWithEpisodeId(season);
+        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode);
+        var imageBytes = new Faker().Random.Bytes(1024);
+        episode.IndexNumber = null;
+        
+        crunchyrollEpisode = crunchyrollEpisode with { EpisodeNumber = string.Empty };
+        
+        _libraryManager
+            .GetItemById(episode.ParentId)
+            .Returns(season);
+
+        _session
+            .GetEpisodeAsync(crunchyrollEpisode.Id)
+            .Returns(crunchyrollEpisode);
+
+        var mockedRequest = _mockHttpMessageHandler
+            .When(crunchyrollEpisode.Thumbnail.Uri)
+            .Respond(new StreamContent(new MemoryStream(imageBytes)));
+
+        //Act
+        await _sut.RunAsync(episode, CancellationToken.None);
+
+        //Assert
+        await _session
+            .Received(1)
+            .GetEpisodeAsync(crunchyrollEpisode.Id);
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1, "it should download the thumbnail");
+        
+        _fileSystem.AllDirectories.Should().Contain(path => path == _directory);
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
+        (await _fileSystem.File.ReadAllBytesAsync(thumbnailFilePath)).Should().BeEquivalentTo(imageBytes);
+
+        episode.Name.Should().Be(crunchyrollEpisode.Title);
+
+        episode.Overview.Should().Be(crunchyrollEpisode.Description);
+        episode.IndexNumber.Should().BeNull();
+        episode.AirsBeforeEpisodeNumber.Should().BeNull();
+        
+        var imageInfoPrimary = episode.GetImageInfo(ImageType.Primary, 0);
+        imageInfoPrimary.Should().NotBeNull();
+        imageInfoPrimary.Path.Should().Be(thumbnailFilePath);
+        
+        var imageInfoThumb = episode.GetImageInfo(ImageType.Thumb, 0);
+        imageInfoThumb.Should().NotBeNull();
+        imageInfoThumb.Path.Should().Be(thumbnailFilePath);
+        
+        await _libraryManager
+            .Received(1)
+            .UpdateItemAsync(episode, season, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task SetsProviderIdDecimalEpisodeNumberAndSetsAirsBefore_WhenIndexNumberOfJellyfinEpisodeIsNullAndCrunchyrollEpisodeNumberIsDecimal_GivenEpisodeWithEpisodeId()
     {
         //Arrange

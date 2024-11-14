@@ -376,6 +376,38 @@ public sealed class CrunchyrollUnitOfWork :
         }
     }
 
+    public ValueTask<EpisodeIdResult?> GetEpisodeIdByNameAsync(string titleId, string seasonId, string episodeName)
+    {
+        _semaphore.Wait();
+
+        try
+        {
+            var episode = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var metadataCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
+
+                var titleMetadata = metadataCollection
+                    .Query()
+                    .Where(x => x.TitleId == titleId)
+                    .FirstOrDefault();
+                
+                var season = titleMetadata?.Seasons.FirstOrDefault(x => x.Id == seasonId);
+                
+                return season?.Episodes.FirstOrDefault(x => x.Title.Contains(episodeName, StringComparison.OrdinalIgnoreCase));
+            });
+
+            return ValueTask.FromResult(episode is null ? 
+                null : 
+                new EpisodeIdResult(episode.Id, episode.SlugTitle));
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
     public ValueTask InsertComments(EpisodeComments comments)
     {
         _semaphore.Wait();

@@ -95,7 +95,7 @@ public class CrunchyrollTitleIdClient : ICrunchyrollTitleIdClient
             }
         }
         
-        _logger.LogDebug("No title id for {Title} was found", title);
+        _logger.LogDebug("No title id for {Title} was found. response {@Response}", title, crunchyrollSearchResponse);
         
         return Result.Ok<SearchResponse?>(null);
     }

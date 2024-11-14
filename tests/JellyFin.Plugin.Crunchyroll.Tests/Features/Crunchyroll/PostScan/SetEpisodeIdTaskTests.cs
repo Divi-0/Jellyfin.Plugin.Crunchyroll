@@ -184,6 +184,10 @@ public class SetEpisodeIdTaskTests
                 x.GroupByPresentationUniqueKey == false &&
                 x.DtoOptions.Fields.Count != 0))
             .Returns([episode]);
+
+        _mediator
+            .Send(Arg.Any<EpisodeIdQueryByName>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Fail("error"));
         
         //Act
         await _sut.RunAsync(season, CancellationToken.None);
@@ -203,6 +207,104 @@ public class SetEpisodeIdTaskTests
         _postSeasonIdSetTasks.Should().AllSatisfy(x =>
         {
             x.DidNotReceive().RunAsync(episode, Arg.Any<CancellationToken>());
+        });
+    }
+
+    [Fact]
+    public async Task SetsEmptyEpisodeId_WhenGetEpisodeByNameReturnsNull_GivenSeasonWithSeasonId()
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+        var season = SeasonFaker.GenerateWithSeasonId(series);
+        
+        _libraryManager
+            .GetItemById(series.Id)
+            .Returns(series);
+        
+        var episode = EpisodeFaker.Generate();
+        episode.IndexNumber = null;
+        _itemRepository
+            .GetItemList(Arg.Is<InternalItemsQuery>(x =>
+                x.ParentId == season.Id &&
+                x.GroupByPresentationUniqueKey == false &&
+                x.DtoOptions.Fields.Count != 0))
+            .Returns([episode]);
+
+        _mediator
+            .Send(Arg.Any<EpisodeIdQueryByName>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<EpisodeIdResult?>(null));
+        
+        //Act
+        await _sut.RunAsync(season, CancellationToken.None);
+
+        //Assert
+        episode.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeId, out var episodeId).Should().BeTrue();
+        episodeId.Should().BeEmpty();
+        
+        await _libraryManager
+            .Received(1)
+            .UpdateItemAsync(
+                Arg.Is<BaseItem>(x => x == episode), 
+                Arg.Is<BaseItem>(x => x == episode.DisplayParent), 
+                ItemUpdateType.MetadataEdit, 
+                Arg.Any<CancellationToken>());
+
+        _postSeasonIdSetTasks.Should().AllSatisfy(x =>
+        {
+            x.Received().RunAsync(episode, Arg.Any<CancellationToken>());
+        });
+    }
+
+    [Fact]
+    public async Task SetsEpisodeId_WhenGetEpisodeByNameReturnsId_GivenSeasonWithSeasonId()
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+        var season = SeasonFaker.GenerateWithSeasonId(series);
+        
+        _libraryManager
+            .GetItemById(series.Id)
+            .Returns(series);
+        
+        var episode = EpisodeFaker.Generate();
+        episode.IndexNumber = null;
+        _itemRepository
+            .GetItemList(Arg.Is<InternalItemsQuery>(x =>
+                x.ParentId == season.Id &&
+                x.GroupByPresentationUniqueKey == false &&
+                x.DtoOptions.Fields.Count != 0))
+            .Returns([episode]);
+
+        var episodeIdResult = new EpisodeIdResult(CrunchyrollIdFaker.Generate(), CrunchyrollSlugFaker.Generate());
+        _mediator
+            .Send(Arg.Any<EpisodeIdQueryByName>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<EpisodeIdResult?>(episodeIdResult));
+        
+        //Act
+        await _sut.RunAsync(season, CancellationToken.None);
+
+        //Assert
+        episode.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeId, out var episodeId).Should().BeTrue();
+        episodeId.Should().Be(episodeIdResult.EpisodeId);
+        
+        episode.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeSlugTitle, out var episodeSlugTitle).Should().BeTrue();
+        episodeSlugTitle.Should().Be(episodeIdResult.EpisodeSlugTitle);
+        
+        await _mediator
+            .DidNotReceive()
+            .Send(Arg.Any<EpisodeIdQuery>(), Arg.Any<CancellationToken>());
+        
+        await _libraryManager
+            .Received(1)
+            .UpdateItemAsync(
+                Arg.Is<BaseItem>(x => x == episode), 
+                Arg.Is<BaseItem>(x => x == episode.DisplayParent), 
+                ItemUpdateType.MetadataEdit, 
+                Arg.Any<CancellationToken>());
+
+        _postSeasonIdSetTasks.Should().AllSatisfy(x =>
+        {
+            x.Received().RunAsync(episode, Arg.Any<CancellationToken>());
         });
     }
     

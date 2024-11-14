@@ -731,11 +731,11 @@ public static class WireMockAdminApiExtensions
     }
     
     public static async Task<CrunchyrollEpisodesResponse> MockCrunchyrollEpisodesResponse(this IWireMockAdminApi wireMockAdminApi, 
-        List<Episode> episodes, string seasonId, string language, string crunchyrollUrl)
+        List<Episode> episodes, string seasonId, string language, string crunchyrollUrl, CrunchyrollEpisodesResponse? response = null)
     {
         var faker = new Faker();
 
-        var episodesResponse = new CrunchyrollEpisodesResponse
+        var episodesResponse = response ?? new CrunchyrollEpisodesResponse
         {
             Data = episodes.Select(episode =>
             {
