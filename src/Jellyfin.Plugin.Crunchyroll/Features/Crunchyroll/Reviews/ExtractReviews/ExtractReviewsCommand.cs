@@ -82,7 +82,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         }
 
         //if invalid html error: retry with next timestamp; from last to first
-        Result<IReadOnlyList<ReviewItem>> reviewsResult = null!;
+        var reviewsResult = Result.Ok<IReadOnlyList<ReviewItem>>([]);
         for (var index = searchResult.Value.Count - 1; index >= 0; index--)
         {
             var searchResponse = searchResult.Value[index];
@@ -122,7 +122,6 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
     {
         var parallelOptions = new ParallelOptions
         {
-            MaxDegreeOfParallelism = Environment.ProcessorCount / 2,
             CancellationToken = cancellationToken
         };
 
@@ -145,6 +144,6 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
             return result.ToResult();
         }
         
-        return result.Value?.Any() ?? false;
+        return result.Value is not null;
     }
 }

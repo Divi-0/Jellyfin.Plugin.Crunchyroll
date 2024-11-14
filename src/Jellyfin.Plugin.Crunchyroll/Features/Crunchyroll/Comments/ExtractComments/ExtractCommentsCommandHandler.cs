@@ -68,7 +68,7 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
         }
 
         //if invalid html error: retry with next timestamp; from last to first
-        Result<IReadOnlyList<CommentItem>> commentsResult = null!;
+        var commentsResult = Result.Ok<IReadOnlyList<CommentItem>>([]);
         for (var index = searchResult.Value.Count - 1; index >= 0; index--)
         {
             var searchResponse = searchResult.Value[index];
@@ -111,7 +111,6 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
     {
         var parallelOptions = new ParallelOptions
         {
-            MaxDegreeOfParallelism = Environment.ProcessorCount / 2,
             CancellationToken = cancellationToken
         };
         

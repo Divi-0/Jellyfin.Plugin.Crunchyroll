@@ -120,6 +120,53 @@ public class ExtractCommentsCommandHandlerTests
                 .AddAvatarIfNotExists(Arg.Is<string>(x => x.Contains(avatarUris[comment])), Arg.Any<CancellationToken>());
         }
     }
+
+    [Fact]
+    public async Task StoresCommentsEntityWithZeroComments_WhenSearchResultIsEmpty_GivenEpisodeIdAndSlugTitle()
+    {
+        //Arrange
+        var episodeId = CrunchyrollIdFaker.Generate();
+        var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
+        
+        _commentsSession
+            .CommentsForEpisodeExists(episodeId)
+            .Returns(false);
+        
+        _waybackMachineClient
+            .SearchAsync(Arg.Any<string>(), Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<IReadOnlyList<SearchResponse>>([]));
+
+        EpisodeComments actualEpisodeComments = null!;
+        _commentsSession
+            .InsertComments(Arg.Do<EpisodeComments>(x => actualEpisodeComments = x))
+            .Returns(ValueTask.CompletedTask);
+
+        //Act
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+
+        await _waybackMachineClient
+            .Received(1)
+            .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/watch/{episodeId}/{episodeSlugTitle}"))),
+                new DateTime(2024, 07, 10),
+                Arg.Any<CancellationToken>());
+        
+        await _htmlCommentsExtractor
+            .DidNotReceive()
+            .GetCommentsAsync(Arg.Is<string>(x => x.Contains($"/watch/{episodeId}/{episodeSlugTitle}")), 
+                Arg.Any<CancellationToken>());
+
+        await _commentsSession
+            .Received(1)
+            .InsertComments(Arg.Any<EpisodeComments>());
+        
+        actualEpisodeComments.EpisodeId.Should().Be(episodeId);
+        actualEpisodeComments.Comments.Should().BeEmpty();
+    }
     
     [Fact]
     public async Task CrunchyrollUrlIsWithoutLanguagePath_WhenTwoLetterIsoLanguageNameEn_GivenTitleIdAndSlugTitle()

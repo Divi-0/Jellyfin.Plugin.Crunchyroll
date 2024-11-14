@@ -135,6 +135,59 @@ public class ExtractReviewsCommandTests
             x.Author.AvatarUri.Should().NotContain(webArchiveOrgUri);
         });
     }
+
+    [Fact]
+    public async Task StoresReviewsEntityWithZeroReviews_WhenSearchResultIsEmpty_GivenTitleIdAndSlugTitle()
+    {
+        //Arrange
+        var titleId = _fixture.Create<string>();
+        var slugTitle = _fixture.Create<string>();
+        
+        _getReviewsSession
+            .GetReviewsForTitleIdAsync(titleId)
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+        
+        _waybackMachineClient.SearchAsync(
+                Arg.Any<string>(),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
+                Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Ok<IReadOnlyList<SearchResponse>>([])));
+
+        IReadOnlyList<ReviewItem>? actualReviewItems = null;
+        _addReviewsSession
+            .AddReviewsForTitleIdAsync(titleId, Arg.Do<IReadOnlyList<ReviewItem>>(x => actualReviewItems = x))
+            .Returns(ValueTask.CompletedTask);
+        
+        //Act
+        var command = new ExtractReviewsCommand()
+        {
+            TitleId = titleId,
+            SlugTitle = slugTitle
+        };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        
+        await _waybackMachineClient
+            .Received(1)
+            .SearchAsync(
+                Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/{titleId}/{slugTitle}"))),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
+                Arg.Any<CancellationToken>());
+        
+        await _htmlReviewsExtractor
+            .DidNotReceive()
+            .GetReviewsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        
+        await _addReviewsSession
+            .Received(1)
+            .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>());
+
+        actualReviewItems.Should().NotBeNull();
+        actualReviewItems.Should().BeEmpty();
+    }
     
     [Fact]
     public async Task CrunchyrollUrlIsWithoutLanguagePath_WhenTwoLetterIsoLanguageNameEn_GivenTitleIdAndSlugTitle()
