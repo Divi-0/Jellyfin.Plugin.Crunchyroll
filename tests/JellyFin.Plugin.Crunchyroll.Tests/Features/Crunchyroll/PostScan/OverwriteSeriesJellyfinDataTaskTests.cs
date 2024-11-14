@@ -136,6 +136,97 @@ public class OverwriteSeriesJellyfinDataTaskTests
             x.Width == titleMetadata.PosterTall.Width &&
             x.Height == titleMetadata.PosterTall.Height);
     }
+
+    [Fact]
+    public async Task SkipsGetImage_WhenImageAlreadySet_GivenSeriesWithTitleId()
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+
+        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
+        {
+            TitleId = string.Empty,
+            SlugTitle = string.Empty,
+            Description = _faker.Lorem.Sentences(),
+            Title = _faker.Random.Words(),
+            Studio = _faker.Random.Words(),
+            PosterTall = new ImageSource
+            {
+                Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
+                Height = 1,
+                Width = 1
+            },
+            PosterWide = new ImageSource
+            {
+                Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
+                Height = 1,
+                Width = 1
+            }
+        };
+        
+        var posterTallFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterTall.Uri));
+        var posterWideFilePath = Path.Combine(_directory, Path.GetFileName(titleMetadata.PosterWide.Uri));
+        
+        series.SetImage(new ItemImageInfo()
+        {
+            Path = posterTallFilePath,
+            Type = ImageType.Primary,
+            Width = titleMetadata.PosterTall.Width,
+            Height = titleMetadata.PosterTall.Height
+        }, 0);        
+        
+        series.SetImage(new ItemImageInfo()
+        {
+            Path = posterWideFilePath,
+            Type = ImageType.Backdrop,
+            Width = titleMetadata.PosterWide.Width,
+            Height = titleMetadata.PosterWide.Height
+        }, 0);
+
+        _libraryManager
+            .GetItemById(series.ParentId)
+            .Returns((BaseItem?)null);
+        
+        _getTitleMetadata
+            .GetTitleMetadataAsync(Arg.Any<string>())
+            .Returns(titleMetadata);
+        
+        //Act
+        await _sut.RunAsync(series, CancellationToken.None);
+        
+        //Assert
+        series.Name.Should().Be(titleMetadata.Title);
+        series.Overview.Should().Be(titleMetadata.Description);
+        series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        
+        await _getTitleMetadata
+            .Received(1)
+            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.Id]);
+
+        await _crunchyrollSeriesClient
+            .DidNotReceive()
+            .GetPosterImagesAsync(titleMetadata.PosterTall.Uri, Arg.Any<CancellationToken>());
+
+        await _crunchyrollSeriesClient
+            .DidNotReceive()
+            .GetPosterImagesAsync(titleMetadata.PosterWide.Uri, Arg.Any<CancellationToken>());
+        
+        await _libraryManager
+            .Received(1)
+            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+        
+        series.ImageInfos.Should().Contain(x => 
+            x.Path == posterTallFilePath &&
+            x.Type == ImageType.Primary &&
+            x.Width == titleMetadata.PosterTall.Width &&
+            x.Height == titleMetadata.PosterTall.Height);
+        
+        series.ImageInfos.Should().Contain(x => 
+            x.Path == posterWideFilePath &&
+            x.Type == ImageType.Backdrop &&
+            x.Width == titleMetadata.PosterTall.Width &&
+            x.Height == titleMetadata.PosterTall.Height);
+    }
     
     [Fact]
     public async Task IgnoresSeries_WhenNoTitleMetadataFound_GivenSeriesWithTitleId()

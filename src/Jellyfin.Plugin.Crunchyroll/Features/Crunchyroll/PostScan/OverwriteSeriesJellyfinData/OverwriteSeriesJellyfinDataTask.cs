@@ -67,18 +67,32 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
 
     private async Task<Result> GetAndAddImage(BaseItem series, ImageSource imageSource, ImageType imageType, CancellationToken cancellationToken)
     {
+        var directory = Path.Combine(
+            Path.GetDirectoryName(typeof(OverwriteSeriesJellyfinDataTask).Assembly.Location)!,
+            "series-images");
+        
+        var filePath = Path.Combine(directory, Path.GetFileName(imageSource.Uri));
+        
+        var currentImage = series.GetImageInfo(imageType, imageIndex: 0);
+        
+        if (currentImage is null || 
+            (currentImage.Path == filePath && 
+             currentImage.Type == imageType &&
+             currentImage.Width == imageSource.Width &&
+             currentImage.Height == imageSource.Height))
+        {
+            _logger.LogDebug("Image with type {Type} for item with Name {Name} already exists, skipping...", 
+                imageType,
+                series.Name);
+            return Result.Ok();
+        }
+        
         var posterImageResult = await _crunchyrollSeriesClient.GetPosterImagesAsync(imageSource.Uri, cancellationToken);
 
         if (posterImageResult.IsFailed)
         {
             return posterImageResult.ToResult();
         }
-
-        var directory = Path.Combine(
-            Path.GetDirectoryName(typeof(OverwriteSeriesJellyfinDataTask).Assembly.Location)!,
-            "series-images");
-        
-        var filePath = Path.Combine(directory, Path.GetFileName(imageSource.Uri));
         
         try
         {

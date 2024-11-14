@@ -65,37 +65,7 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         }
 
         var crunchyrollEpisode = crunchyrollEpisodeResult.Value;
-        if (!string.IsNullOrWhiteSpace(crunchyrollEpisode.Thumbnail.Uri))
-        {
-            var imageStreamResult = await GetThumbnailImageStreamAsync(crunchyrollEpisode.Thumbnail.Uri, cancellationToken);
-
-            if (imageStreamResult.IsSuccess)
-            {
-                var filePath = Path.Combine(_thumbnailDirPath, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
-                var createImageResult = await CreateFileAsync(filePath, imageStreamResult.Value, cancellationToken);
-
-                if (createImageResult.IsFailed)
-                {
-                    return;
-                }
-            
-                episodeItem.SetImage(new ItemImageInfo()
-                {
-                    Path = filePath,
-                    Type = ImageType.Thumb,
-                    Width = crunchyrollEpisode.Thumbnail.Width,
-                    Height = crunchyrollEpisode.Thumbnail.Height
-                }, 0);
-            
-                episodeItem.SetImage(new ItemImageInfo()
-                {
-                    Path = filePath,
-                    Type = ImageType.Primary,
-                    Width = crunchyrollEpisode.Thumbnail.Width,
-                    Height = crunchyrollEpisode.Thumbnail.Height
-                }, 0);
-            }
-        }
+        await GetAndSetThumbnail((Episode)episodeItem, crunchyrollEpisode, cancellationToken);
 
         episodeItem.Name = crunchyrollEpisode.Title;
         episodeItem.Overview = crunchyrollEpisode.Description;
@@ -106,6 +76,67 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         }
         
         await _libraryManager.UpdateItemAsync(episodeItem, episodeItem.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
+    }
+
+    private async Task GetAndSetThumbnail(Episode episode, TitleMetadata.Entities.Episode crunchyrollEpisode,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(crunchyrollEpisode.Thumbnail.Uri))
+        {
+            return;
+        }
+        
+        var filePath = Path.Combine(_thumbnailDirPath, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
+        
+        var currentThumbImage = episode.GetImageInfo(ImageType.Thumb, imageIndex: 0);
+        var currentPrimaryImage = episode.GetImageInfo(ImageType.Primary, imageIndex: 0);
+        
+        if (IsImageEqualToCurrentThumbnail(currentThumbImage, filePath, ImageType.Thumb, crunchyrollEpisode) && 
+            IsImageEqualToCurrentThumbnail(currentPrimaryImage, filePath, ImageType.Primary, crunchyrollEpisode))
+        {
+            _logger.LogDebug("Image with type {Type} for item with Name {Name} already exists, skipping...", 
+                ImageType.Thumb,
+                episode.Name);
+            return;
+        }
+        
+        var imageStreamResult = await GetThumbnailImageStreamAsync(crunchyrollEpisode.Thumbnail.Uri, cancellationToken);
+
+        if (imageStreamResult.IsSuccess)
+        {
+            var createImageResult = await CreateFileAsync(filePath, imageStreamResult.Value, cancellationToken);
+
+            if (createImageResult.IsFailed)
+            {
+                return;
+            }
+            
+            episode.SetImage(new ItemImageInfo()
+            {
+                Path = filePath,
+                Type = ImageType.Thumb,
+                Width = crunchyrollEpisode.Thumbnail.Width,
+                Height = crunchyrollEpisode.Thumbnail.Height
+            }, 0);
+            
+            episode.SetImage(new ItemImageInfo()
+            {
+                Path = filePath,
+                Type = ImageType.Primary,
+                Width = crunchyrollEpisode.Thumbnail.Width,
+                Height = crunchyrollEpisode.Thumbnail.Height
+            }, 0);
+        }
+    }
+
+    private static bool IsImageEqualToCurrentThumbnail(ItemImageInfo? imageInfo, string path, ImageType imageType, 
+        TitleMetadata.Entities.Episode crunchyrollEpisode)
+    {
+        return imageInfo is null ||
+               (imageInfo.Path == path &&
+                imageInfo.Type == imageType &&
+                imageInfo.Width == crunchyrollEpisode.Thumbnail.Width &&
+                imageInfo.Height == crunchyrollEpisode.Thumbnail.Height);
     }
 
     private Result CreateDirectoryIfNotExists(string directoryPath)
