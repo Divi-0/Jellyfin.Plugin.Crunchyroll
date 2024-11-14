@@ -75,11 +75,6 @@ public class WaybackMachineClient : IWaybackMachineClient
             return Result.Fail(WaybackMachineErrorCodes.WaybackMachineGetAvailabilityFailed);
         }
 
-        if (jsonArray.Length == 0)
-        {
-            return Result.Fail(WaybackMachineErrorCodes.WaybackMachineNotFound);
-        }
-
         var searchResponses = jsonArray.Skip(1).Select(searchData => new SearchResponse
         {
             Timestamp = DateTime.ParseExact(searchData[0], "yyyyMMddHHmmss", CultureInfo.InvariantCulture),

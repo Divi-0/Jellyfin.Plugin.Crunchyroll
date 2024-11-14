@@ -116,7 +116,7 @@ public class WaybackMachineClientTests
     }
 
     [Fact]
-    public async Task ReturnsNotFound_WhenArrayIsEmpty_GivenUrlAndTimeStamp()
+    public async Task ReturnsEmptyArray_WhenResponseArrayIsEmpty_GivenUrlAndTimeStamp()
     {
         //Arrange
         var url = _fixture.Create<string>();
@@ -128,8 +128,8 @@ public class WaybackMachineClientTests
         var response = await _sut.SearchAsync(url, timeStamp, CancellationToken.None);
     
         //Assert
-        response.IsSuccess.Should().BeFalse();
-        response.Errors.Should().Contain(x => x.Message == WaybackMachineErrorCodes.WaybackMachineNotFound);
+        response.IsSuccess.Should().BeTrue();
+        response.Value.Should().BeEmpty();
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
     }
