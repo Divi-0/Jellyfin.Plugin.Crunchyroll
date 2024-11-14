@@ -331,7 +331,7 @@ public class ExtractCommentsCommandHandlerTests
     }
 
     [Fact]
-    public async Task ReturnsFailed_WhenExtractorFails_GivenEpisodeIdAndSlugTitle()
+    public async Task StoresEmptyCommentsList_WhenExtractorFails_GivenEpisodeIdAndSlugTitle()
     {
         //Arrange
         var episodeId = CrunchyrollIdFaker.Generate();
@@ -356,7 +356,7 @@ public class ExtractCommentsCommandHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
-        result.IsFailed.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
 
         await _waybackMachineClient
             .Received(1)
@@ -365,13 +365,13 @@ public class ExtractCommentsCommandHandlerTests
                 Arg.Any<CancellationToken>());
         
         await _htmlCommentsExtractor
-            .Received(1)
+            .Received(3)
             .GetCommentsAsync(Arg.Any<string>(), 
                 Arg.Any<CancellationToken>());
 
         await _commentsSession
-            .DidNotReceive()
-            .InsertComments(Arg.Any<EpisodeComments>());
+            .Received(1)
+            .InsertComments(Arg.Is<EpisodeComments>(x => x.Comments.Count == 0));
     }
 
     [Fact]
@@ -438,7 +438,7 @@ public class ExtractCommentsCommandHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
-        result.IsSuccess.Should().BeFalse();
+        result.IsSuccess.Should().BeTrue();
 
         await _waybackMachineClient
             .Received(1)
@@ -456,6 +456,10 @@ public class ExtractCommentsCommandHandlerTests
                         x.Contains(searchResponse.Timestamp.ToString("yyyyMMddHHmmss"))), 
                     Arg.Any<CancellationToken>());
         }
+        
+        await _commentsSession
+            .Received(1)
+            .InsertComments(Arg.Is<EpisodeComments>(x => x.Comments.Count == 0));
     }
     
     [Fact]
@@ -484,7 +488,7 @@ public class ExtractCommentsCommandHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
-        result.IsSuccess.Should().BeFalse();
+        result.IsSuccess.Should().BeTrue();
 
         await _waybackMachineClient
             .Received(1)
@@ -502,5 +506,9 @@ public class ExtractCommentsCommandHandlerTests
                         x.Contains(searchResponse.Timestamp.ToString("yyyyMMddHHmmss"))), 
                     Arg.Any<CancellationToken>());
         }
+        
+        await _commentsSession
+            .Received(1)
+            .InsertComments(Arg.Is<EpisodeComments>(x => x.Comments.Count == 0));
     }
 }

@@ -333,7 +333,7 @@ public class ExtractReviewsCommandTests
     }
 
     [Fact]
-    public async Task ReturnsFailed_WhenExtractReviewsFails_GivenTitleIdAndSlugTitle()
+    public async Task StoresEmptyReviews_WhenExtractReviewsFails_GivenTitleIdAndSlugTitle()
     {
         //Arrange
         var titleId = _fixture.Create<string>();
@@ -343,7 +343,7 @@ public class ExtractReviewsCommandTests
             .GetReviewsForTitleIdAsync(titleId)
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
         
-        var searchResponse = _fixture.CreateMany<SearchResponse>().ToList();
+        var searchResponse = _fixture.CreateMany<SearchResponse>(1).ToList();
         
         _waybackMachineClient.SearchAsync(
                 Arg.Any<string>(),
@@ -376,8 +376,7 @@ public class ExtractReviewsCommandTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain(x => x.Message == error);
+        result.IsSuccess.Should().BeTrue();
 
         await _waybackMachineClient
             .Received(1)
@@ -385,6 +384,10 @@ public class ExtractReviewsCommandTests
                 Arg.Any<string>(),
                 Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
                 Arg.Any<CancellationToken>());
+        
+        await _addReviewsSession
+            .Received(1)
+            .AddReviewsForTitleIdAsync(titleId, Arg.Is<IReadOnlyList<ReviewItem>>(x => x.Count == 0));
     }
 
     [Fact]

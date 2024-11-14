@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -10,7 +9,6 @@ using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
 using Mediator;
@@ -81,9 +79,7 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
 
             commentsResult = await _extractor.GetCommentsAsync(snapshotUrl, cancellationToken);
 
-            if (commentsResult.IsFailed &&
-                (commentsResult.Errors.First().Message == ExtractCommentsErrorCodes.HtmlExtractorInvalidCrunchyrollCommentsPage 
-                 || commentsResult.Errors.First().Message == ExtractCommentsErrorCodes.HtmlUrlRequestFailed))
+            if (commentsResult.IsFailed)
             {
                 continue;
             }
@@ -91,17 +87,14 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
             break;
         }
 
-        if (commentsResult.IsFailed)
-        {
-            return commentsResult.ToResult();
-        }
+        var comments = commentsResult.ValueOrDefault ?? [];
         
-        await HandleAvatarUris(commentsResult.Value, cancellationToken);
+        await HandleAvatarUris(comments, cancellationToken);
 
         await _session.InsertComments(new EpisodeComments()
         {
             EpisodeId = request.EpisodeId,
-            Comments = commentsResult.Value
+            Comments = comments
         });
         
         return Result.Ok();

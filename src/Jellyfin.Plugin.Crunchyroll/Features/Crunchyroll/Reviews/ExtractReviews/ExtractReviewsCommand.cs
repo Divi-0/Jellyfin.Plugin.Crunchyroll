@@ -95,9 +95,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
 
             reviewsResult = await _htmlReviewsExtractor.GetReviewsAsync(snapshotUrl, cancellationToken);
 
-            if (reviewsResult.IsFailed &&
-                (reviewsResult.Errors.First().Message == ExtractReviewsErrorCodes.HtmlExtractorInvalidCrunchyrollReviewsPage 
-                 || reviewsResult.Errors.First().Message == ExtractReviewsErrorCodes.HtmlUrlRequestFailed))
+            if (reviewsResult.IsFailed)
             {
                 continue;
             }
@@ -105,14 +103,11 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
             break;
         }
 
-        if (reviewsResult.IsFailed)
-        {
-            return reviewsResult.ToResult();
-        }
+        var reviews = reviewsResult.ValueOrDefault ?? [];
         
-        await StoreAvatarImagesAndRemoveWebArchivePrefixFromImageUrl(reviewsResult.Value, cancellationToken);
+        await StoreAvatarImagesAndRemoveWebArchivePrefixFromImageUrl(reviews, cancellationToken);
         
-        await _addReviewsSession.AddReviewsForTitleIdAsync(request.TitleId, reviewsResult.Value);
+        await _addReviewsSession.AddReviewsForTitleIdAsync(request.TitleId, reviews);
 
         return Result.Ok();
     }
