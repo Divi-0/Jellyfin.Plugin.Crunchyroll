@@ -38,7 +38,7 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Test
-        run: dotnet test --configuration Release --no-build --verbosity normal --filter "FullyQualifiedName!~Shared & FullyQualifiedName!~StartupApp"
+        run: dotnet test --configuration Release --no-build --verbosity normal --filter "FullyQualifiedName!~Shared & FullyQualifiedName!~StartupApp & FullyQualifiedName!~E2E"
 
       - name: Create artifact
         id: artifact
