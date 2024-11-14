@@ -75,11 +75,11 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
         
         var currentImage = series.GetImageInfo(imageType, imageIndex: 0);
         
-        if (currentImage is null || 
-            (currentImage.Path == filePath && 
-             currentImage.Type == imageType &&
-             currentImage.Width == imageSource.Width &&
-             currentImage.Height == imageSource.Height))
+        if (currentImage is not null &&
+            currentImage.Path == filePath && 
+            currentImage.Type == imageType &&
+            currentImage.Width == imageSource.Width &&
+            currentImage.Height == imageSource.Height)
         {
             _logger.LogDebug("Image with type {Type} for item with Name {Name} already exists, skipping...", 
                 imageType,

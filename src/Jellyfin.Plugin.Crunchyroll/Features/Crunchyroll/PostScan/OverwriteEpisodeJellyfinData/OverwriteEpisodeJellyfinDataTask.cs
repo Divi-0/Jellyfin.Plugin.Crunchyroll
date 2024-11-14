@@ -132,11 +132,11 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
     private static bool IsImageEqualToCurrentThumbnail(ItemImageInfo? imageInfo, string path, ImageType imageType, 
         TitleMetadata.Entities.Episode crunchyrollEpisode)
     {
-        return imageInfo is null ||
-               (imageInfo.Path == path &&
-                imageInfo.Type == imageType &&
-                imageInfo.Width == crunchyrollEpisode.Thumbnail.Width &&
-                imageInfo.Height == crunchyrollEpisode.Thumbnail.Height);
+        return imageInfo is not null &&
+               imageInfo.Path == path &&
+               imageInfo.Type == imageType &&
+               imageInfo.Width == crunchyrollEpisode.Thumbnail.Width &&
+               imageInfo.Height == crunchyrollEpisode.Thumbnail.Height;
     }
 
     private Result CreateDirectoryIfNotExists(string directoryPath)

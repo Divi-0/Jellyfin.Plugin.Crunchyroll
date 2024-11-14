@@ -397,7 +397,7 @@ public class OverwriteEpisodeJellyfinDataTaskTests
     }
 
     [Fact]
-    public async Task DoesNotUpdateEpisode_WhenThumbnailRequestThrows_GivenEpisodeWithEpisodeId()
+    public async Task UpdatesEpisodeWithoutImages_WhenThumbnailRequestThrows_GivenEpisodeWithEpisodeId()
     {
         //Arrange
         var episode = EpisodeFaker.GenerateWithEpisodeId();
