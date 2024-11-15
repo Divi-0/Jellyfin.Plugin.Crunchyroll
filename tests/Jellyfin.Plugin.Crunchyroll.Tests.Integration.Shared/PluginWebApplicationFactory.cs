@@ -21,6 +21,7 @@ public class PluginWebApplicationFactory : WebApplicationFactory<Program>, IDisp
     public static MockHttpMessageHandler CrunchyrollHttpMessageHandlerMock { get; private set; } = null!;
     public static ILibraryManager LibraryManagerMock { get; private set; } = null!;
     public static IItemRepository ItemRepositoryMock { get; private set; } = null!;
+    public static IMediaSourceManager MediaSourceManagerMock { get; private set; } = null!;
 
     public PluginWebApplicationFactory()
     {
@@ -67,10 +68,13 @@ public class PluginWebApplicationFactory : WebApplicationFactory<Program>, IDisp
             services.AddSingleton<IApplicationPaths>(Substitute.For<IApplicationPaths>());
             LibraryManagerMock = Substitute.For<ILibraryManager>();
             ItemRepositoryMock = Substitute.For<IItemRepository>();
+            MediaSourceManagerMock = Substitute.For<IMediaSourceManager>();
             BaseItem.LibraryManager = LibraryManagerMock;
             BaseItem.ItemRepository = ItemRepositoryMock;
+            BaseItem.MediaSourceManager = MediaSourceManagerMock;
             services.AddSingleton<ILibraryManager>(LibraryManagerMock);
             services.AddSingleton<IItemRepository>(ItemRepositoryMock);
+            services.AddSingleton<IMediaSourceManager>(MediaSourceManagerMock);
 
             var xmlSerializer = Substitute.For<IXmlSerializer>();
             xmlSerializer.DeserializeFromFile(Arg.Is(typeof(PluginConfiguration)), Arg.Any<string>())

@@ -92,13 +92,19 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
         CancellationToken cancellationToken)
     {
         string episodeIdentifier;
+
+        if (IsDecimalRegex().Match(episode.FileNameWithoutExtension).Success)
+        {
+            episode.IndexNumber = null;
+        }
+        
         if (!episode.IndexNumber.HasValue)
         {
-            var match = EpisodeNameFormatRegex().Match(episode.Name);
+            var match = EpisodeNameFormatRegex().Match(episode.FileNameWithoutExtension);
 
             if (!match.Success)
             {
-                var episodeIdByNameResult = await _mediator.Send(new EpisodeIdQueryByName(titleId, seasonId, episode.Name), cancellationToken);
+                var episodeIdByNameResult = await _mediator.Send(new EpisodeIdQueryByName(titleId, seasonId, episode.FileNameWithoutExtension), cancellationToken);
 
                 if (episodeIdByNameResult.IsSuccess)
                 {
@@ -135,6 +141,9 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
             await task.RunAsync(episodeItem, cancellationToken);
         }
     }
+
+    [GeneratedRegex(@"E\d*\.\d*")]
+    private static partial Regex IsDecimalRegex();
 
     [GeneratedRegex(@"E-?([^ -]+)")]
     private static partial Regex EpisodeNameFormatRegex();

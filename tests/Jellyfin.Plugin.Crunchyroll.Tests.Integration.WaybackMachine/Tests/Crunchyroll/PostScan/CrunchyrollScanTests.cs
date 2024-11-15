@@ -10,7 +10,9 @@ using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client.Dto;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
+using MediaBrowser.Model.MediaInfo;
 using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 using WireMock.Client;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine.Tests.Crunchyroll.PostScan;
@@ -25,6 +27,7 @@ public class CrunchyrollScanTests
     private readonly ILibraryManager _libraryManager;
     private readonly IItemRepository _itemRepository;
     private readonly IWireMockAdminApi _wireMockAdminApi;
+    private readonly IMediaSourceManager _mediaSourceManager;
     private readonly PluginConfiguration _config;
 
     public CrunchyrollScanTests(WireMockFixture wireMockFixture, CrunchyrollDatabaseFixture crunchyrollDatabaseFixture)
@@ -38,6 +41,8 @@ public class CrunchyrollScanTests
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILibraryManager>();
         _itemRepository =
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<IItemRepository>();
+        _mediaSourceManager =
+            PluginWebApplicationFactory.Instance.Services.GetRequiredService<IMediaSourceManager>();
         _wireMockAdminApi = wireMockFixture.AdminApiClient;
         _config = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
         _config.LibraryPath = "/mnt/abc";
@@ -86,6 +91,10 @@ public class CrunchyrollScanTests
 
                 foreach (var episode in episodes)
                 {
+                    _mediaSourceManager
+                        .GetPathProtocol(episode.Path)
+                        .Returns(MediaProtocol.File);
+                    
                     var episodeCrunchyrollUrl = GetCrunchyrollUrlForEpisode(episode);
                     var episodeWaybackMachineSearchResponse = await _wireMockAdminApi.MockWaybackMachineSearchResponse(episodeCrunchyrollUrl);
                     var episodeSnapshotUrl = GetSnapshotUrl(episodeWaybackMachineSearchResponse, episodeCrunchyrollUrl);

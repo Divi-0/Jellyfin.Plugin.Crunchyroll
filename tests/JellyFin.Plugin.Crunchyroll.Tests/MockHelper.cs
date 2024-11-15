@@ -8,6 +8,7 @@ public static class MockHelper
 {
     private static readonly object LibraryManackerLock = new object();
     private static readonly object ItemRepositoryLock = new object();
+    private static readonly object MediaSourceManagerLock = new object();
     
     public static ILibraryManager LibraryManager
     {
@@ -27,6 +28,17 @@ public static class MockHelper
             lock (ItemRepositoryLock)
             {
                 return BaseItem.ItemRepository ??= Substitute.For<IItemRepository>();
+            }
+        }
+    }
+
+    public static IMediaSourceManager MediaSourceManager
+    {
+        get
+        {
+            lock (MediaSourceManagerLock)
+            {
+                return BaseItem.MediaSourceManager ??= Substitute.For<IMediaSourceManager>();
             }
         }
     }

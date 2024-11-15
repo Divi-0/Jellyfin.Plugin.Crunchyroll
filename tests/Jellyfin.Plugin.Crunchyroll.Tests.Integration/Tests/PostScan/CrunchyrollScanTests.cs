@@ -1,3 +1,4 @@
+using Bogus;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
@@ -12,6 +13,7 @@ using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.MediaInfo;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using WireMock.Client;
@@ -28,6 +30,7 @@ public class CrunchyrollScanTests
     private readonly ILibraryManager _libraryManager;
     private readonly IWireMockAdminApi _wireMockAdminApi;
     private readonly IItemRepository _itemRepository;
+    private readonly IMediaSourceManager _mediaSourceManager;
     private readonly PluginConfiguration _config;
 
     public CrunchyrollScanTests(WireMockFixture wireMockFixture, CrunchyrollDatabaseFixture databaseFixture)
@@ -41,6 +44,8 @@ public class CrunchyrollScanTests
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILibraryManager>();
         _itemRepository =
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<IItemRepository>();
+        _mediaSourceManager =
+            PluginWebApplicationFactory.Instance.Services.GetRequiredService<IMediaSourceManager>();
         _wireMockAdminApi = wireMockFixture.AdminApiClient;
         _config = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
 
@@ -84,6 +89,14 @@ public class CrunchyrollScanTests
                 var season = seasons.First(x => x.IndexNumber!.Value == seasonResponse.SeasonNumber);
                 seasonResponses.Add(season.Id, seasonResponse);
                 var episodes = _itemRepository.MockGetChildren(season);
+
+                foreach (var episode in episodes)
+                {
+                    _mediaSourceManager
+                        .GetPathProtocol(episode.Path)
+                        .Returns(MediaProtocol.File);
+                }
+                
                 var crunchyrollEpisodesResponse = await _wireMockAdminApi.MockCrunchyrollEpisodesResponse(episodes, 
                     seasonResponse.Id, language, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
 
@@ -177,11 +190,16 @@ public class CrunchyrollScanTests
         var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse([season], series, language);
 
         var episode = EpisodeFaker.Generate(season);
-        episode.Name = "abc";
+        const string episodeName = "abc";
+        episode.Path = $"/{new Faker().Random.Words()}/{episodeName}.mp4";
         episode.IndexNumber = null;
         _itemRepository
             .GetItemList(Arg.Is<InternalItemsQuery>(x => x.ParentId == season.Id))
             .Returns([episode]);
+        
+        _mediaSourceManager
+            .GetPathProtocol(episode.Path)
+            .Returns(MediaProtocol.File);
         
         var episodesResponse = await _wireMockAdminApi.MockCrunchyrollEpisodesResponse([episode], 
             seasonsResponse.Data.First().Id, language, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}",
@@ -192,7 +210,7 @@ public class CrunchyrollScanTests
                     new CrunchyrollEpisodeItem
                     {
                         Id = CrunchyrollIdFaker.Generate(),
-                        Title = "abc",
+                        Title = episodeName,
                         Description = "def",
                         Episode = "",
                         EpisodeNumber = null,

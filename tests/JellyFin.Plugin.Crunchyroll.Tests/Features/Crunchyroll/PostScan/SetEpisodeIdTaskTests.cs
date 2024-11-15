@@ -1,3 +1,4 @@
+using Bogus;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
@@ -8,6 +9,7 @@ using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
+using MediaBrowser.Model.MediaInfo;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
@@ -55,6 +57,10 @@ public class SetEpisodeIdTaskTests
                 x.DtoOptions.Fields.Count != 0))
             .Returns([episode]);
         
+        MockHelper.MediaSourceManager
+            .GetPathProtocol(episode.Path)
+            .Returns(MediaProtocol.File);
+        
         _mediator
             .Send(new EpisodeIdQuery(
                 series.ProviderIds[CrunchyrollExternalKeys.Id], 
@@ -70,6 +76,68 @@ public class SetEpisodeIdTaskTests
         episode.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeSlugTitle, out var episodeSlugTitle).Should().BeTrue();
         episodeId.Should().NotBeEmpty();
         episodeSlugTitle.Should().NotBeEmpty();
+        
+        await _libraryManager
+            .Received(1)
+            .UpdateItemAsync(
+                Arg.Is<BaseItem>(x => x == episode), 
+                Arg.Is<BaseItem>(x => x == episode.DisplayParent), 
+                ItemUpdateType.MetadataEdit, 
+                Arg.Any<CancellationToken>());
+
+        _postSeasonIdSetTasks.Should().AllSatisfy(x =>
+        {
+            x.Received(1).RunAsync(episode, Arg.Any<CancellationToken>());
+        });
+    }
+    
+    [Theory]
+    [InlineData("S01E1.5 - grfes", "1.5")]
+    [InlineData("S06E15.5", "15.5")]
+    public async Task SetsEpisodeIdAndRunsPostTasks_WhenEpisodeHasIndexNumberButNameIncludesDecimal_GivenSeasonWithSeasonId(
+        string episodeName, string episodeIdentifier)
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+        var season = SeasonFaker.GenerateWithSeasonId(series);
+        
+        _libraryManager
+            .GetItemById(series.Id)
+            .Returns(series);
+        
+        var episode = EpisodeFaker.Generate();
+        episode.Name = episodeName;
+        episode.IndexNumber = Random.Shared.Next(1, int.MaxValue);
+        episode.Path = $"/mnt/{new Faker().Random.Words()}/{episodeName}.mp4";
+        
+        _itemRepository
+            .GetItemList(Arg.Is<InternalItemsQuery>(x =>
+                x.ParentId == season.Id &&
+                x.GroupByPresentationUniqueKey == false &&
+                x.DtoOptions.Fields.Count != 0))
+            .Returns([episode]);
+        
+        MockHelper.MediaSourceManager
+            .GetPathProtocol(episode.Path)
+            .Returns(MediaProtocol.File);
+
+        var crunchyrollId = CrunchyrollIdFaker.Generate();
+        var crunchyrollSlugTitle = CrunchyrollSlugFaker.Generate();
+        _mediator
+            .Send(new EpisodeIdQuery(
+                series.ProviderIds[CrunchyrollExternalKeys.Id], 
+                season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                episodeIdentifier))
+            .Returns(new EpisodeIdResult(crunchyrollId, crunchyrollSlugTitle));
+        
+        //Act
+        await _sut.RunAsync(season, CancellationToken.None);
+
+        //Assert
+        episode.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeId, out var episodeId).Should().BeTrue();
+        episode.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeSlugTitle, out var episodeSlugTitle).Should().BeTrue();
+        episodeId.Should().Be(crunchyrollId);
+        episodeSlugTitle.Should().Be(crunchyrollSlugTitle);
         
         await _libraryManager
             .Received(1)
@@ -166,7 +234,7 @@ public class SetEpisodeIdTaskTests
     }
 
     [Fact]
-    public async Task SkipItem_WhenEpisodeHasNoIndexNumberAndWasNotParsableByName_GivenSeasonWithSeasonId()
+    public async Task SkipItem_WhenEpisodeHasNoIndexNumberAndWasNotFoundByName_GivenSeasonWithSeasonId()
     {
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
@@ -178,12 +246,17 @@ public class SetEpisodeIdTaskTests
         
         var episode = EpisodeFaker.Generate();
         episode.IndexNumber = null;
+        episode.Path = $"/mnt/123/{new Faker().Random.Words()}.mp4";
         _itemRepository
             .GetItemList(Arg.Is<InternalItemsQuery>(x =>
                 x.ParentId == season.Id &&
                 x.GroupByPresentationUniqueKey == false &&
                 x.DtoOptions.Fields.Count != 0))
             .Returns([episode]);
+        
+        MockHelper.MediaSourceManager
+            .GetPathProtocol(episode.Path)
+            .Returns(MediaProtocol.File);
 
         _mediator
             .Send(Arg.Any<EpisodeIdQueryByName>(), Arg.Any<CancellationToken>())
@@ -223,12 +296,17 @@ public class SetEpisodeIdTaskTests
         
         var episode = EpisodeFaker.Generate();
         episode.IndexNumber = null;
+        episode.Path = $"/mnt/crunchyroll/{new Faker().Random.Words()}.mp4";
         _itemRepository
             .GetItemList(Arg.Is<InternalItemsQuery>(x =>
                 x.ParentId == season.Id &&
                 x.GroupByPresentationUniqueKey == false &&
                 x.DtoOptions.Fields.Count != 0))
             .Returns([episode]);
+
+        MockHelper.MediaSourceManager
+            .GetPathProtocol(episode.Path)
+            .Returns(MediaProtocol.File);
 
         _mediator
             .Send(Arg.Any<EpisodeIdQueryByName>(), Arg.Any<CancellationToken>())
@@ -268,12 +346,17 @@ public class SetEpisodeIdTaskTests
         
         var episode = EpisodeFaker.Generate();
         episode.IndexNumber = null;
+        episode.Path = $"/mnt/abc/{new Faker().Random.Words()}.mp4";
         _itemRepository
             .GetItemList(Arg.Is<InternalItemsQuery>(x =>
                 x.ParentId == season.Id &&
                 x.GroupByPresentationUniqueKey == false &&
                 x.DtoOptions.Fields.Count != 0))
             .Returns([episode]);
+        
+        MockHelper.MediaSourceManager
+            .GetPathProtocol(episode.Path)
+            .Returns(MediaProtocol.File);
 
         var episodeIdResult = new EpisodeIdResult(CrunchyrollIdFaker.Generate(), CrunchyrollSlugFaker.Generate());
         _mediator
@@ -327,6 +410,10 @@ public class SetEpisodeIdTaskTests
                 x.DtoOptions.Fields.Count != 0))
             .Returns([episode]);
         
+        MockHelper.MediaSourceManager
+            .GetPathProtocol(episode.Path)
+            .Returns(MediaProtocol.File);
+        
         _mediator
             .Send(new EpisodeIdQuery(
                 series.ProviderIds[CrunchyrollExternalKeys.Id], 
@@ -375,6 +462,10 @@ public class SetEpisodeIdTaskTests
                 x.GroupByPresentationUniqueKey == false &&
                 x.DtoOptions.Fields.Count != 0))
             .Returns([episode]);
+        
+        MockHelper.MediaSourceManager
+            .GetPathProtocol(episode.Path)
+            .Returns(MediaProtocol.File);
         
         _mediator
             .Send(new EpisodeIdQuery(
@@ -460,7 +551,7 @@ public class SetEpisodeIdTaskTests
     [InlineData("S13E-SP", "SP")]
     [InlineData("S13E-SP1 - abc", "SP1")]
     [InlineData("S1E6.5 - def", "6.5")]
-    public async Task SetsEpisodeIdAndRunsPostTasks_WhenHasNoIndexNumberButWasParsableFromName_GivenSeasonWithSeasonId(
+    public async Task SetsEpisodeIdAndRunsPostTasks_WhenHasNoIndexNumberButWasFoundByName_GivenSeasonWithSeasonId(
         string episodeFileName, string episodeIdentifier)
     {
         //Arrange
@@ -469,6 +560,7 @@ public class SetEpisodeIdTaskTests
         var episode = EpisodeFaker.Generate();
         episode.Name = $"{episodeFileName} - {episode.Name}";
         episode.IndexNumber = null;
+        episode.Path = $"/mnt/{new Faker().Random.Word()}/{episodeFileName} - {episode.Name}.mp4";
         
         _libraryManager
             .GetItemById(series.Id)
@@ -480,6 +572,10 @@ public class SetEpisodeIdTaskTests
                 x.GroupByPresentationUniqueKey == false &&
                 x.DtoOptions.Fields.Count != 0))
             .Returns([episode]);
+        
+        MockHelper.MediaSourceManager
+            .GetPathProtocol(episode.Path)
+            .Returns(MediaProtocol.File);
 
         var crunchyrollId = CrunchyrollIdFaker.Generate();
         var crunchyrollSlugTitle = CrunchyrollSlugFaker.Generate();
