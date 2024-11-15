@@ -21,13 +21,13 @@ internal static class PostScanServiceExtension
         serviceCollection.AddSingleton<IPostTitleIdSetTask, SetSeasonIdTask>();
         serviceCollection.AddSingleton<IPostTitleIdSetTask, ExtractReviewsTask>();
             
+        serviceCollection.AddOverwriteSeasonJellyfinData();
         serviceCollection.AddSingleton<IPostSeasonIdSetTask, SetEpisodeIdTask>();
         
         serviceCollection.AddSingleton<IPostEpisodeIdSetTask, ExtractCommentsTask>();
 
         serviceCollection.AddOverwriteSeriesJellyfinData();
         serviceCollection.AddOverwriteEpisodeJellyfinData();
-        serviceCollection.AddOverwriteSeasonJellyfinData();
 
         return serviceCollection;
     }

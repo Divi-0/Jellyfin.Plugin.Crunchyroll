@@ -15,6 +15,7 @@ public static class CrunchyrollSeasonsItemExtensions
             Title = item.Title,
             SlugTitle = item.SlugTitle,
             SeasonNumber = item.SeasonNumber,
+            SeasonSequenceNumber = item.SeasonSequenceNumber,
             Episodes = episodes.ToList(),
         };
     }

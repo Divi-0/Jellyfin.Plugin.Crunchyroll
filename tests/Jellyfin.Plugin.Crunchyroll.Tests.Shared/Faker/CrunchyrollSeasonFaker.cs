@@ -13,6 +13,7 @@ public static class CrunchyrollSeasonFaker
             .RuleFor(x => x.Title, _ => title)
             .RuleFor(x => x.SlugTitle, _ => CrunchyrollSlugFaker.Generate(title))
             .RuleFor(x => x.SeasonNumber, f => f.Random.Number())
+            .RuleFor(x => x.SeasonSequenceNumber, f => f.Random.Number())
             .Generate();
     }
 }

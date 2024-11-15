@@ -1,8 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging;
 
@@ -13,13 +15,15 @@ public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
     private readonly ILogger<OverwriteSeasonJellyfinDataTask> _logger;
     private readonly IOverwriteSeasonJellyfinDataSession _session;
     private readonly ILibraryManager _libraryManager;
+    private readonly PluginConfiguration _config;
 
     public OverwriteSeasonJellyfinDataTask(ILogger<OverwriteSeasonJellyfinDataTask> logger,
-        IOverwriteSeasonJellyfinDataSession session, ILibraryManager libraryManager)
+        IOverwriteSeasonJellyfinDataSession session, ILibraryManager libraryManager, PluginConfiguration config)
     {
         _logger = logger;
         _session = session;
         _libraryManager = libraryManager;
+        _config = config;
     }
     
     public async Task RunAsync(BaseItem seasonItem, CancellationToken cancellationToken)
@@ -42,6 +46,8 @@ public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
 
         var crunchyrollSeason = seasonResult.Value;
         seasonItem.Name = crunchyrollSeason.Title;
+        
+        await SetIndexNumberToSequenceNumber((Season)seasonItem, crunchyrollSeason, cancellationToken);
 
         try
         {
@@ -52,6 +58,23 @@ public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
         {
             _logger.LogError(e, "failed to update Season with name {Name}", seasonItem.Name);
             return;
+        }
+    }
+
+    private async Task SetIndexNumberToSequenceNumber(Season season, TitleMetadata.Entities.Season crunchyrollSeason,
+        CancellationToken cancellationToken)
+    {
+        if (!_config.IsOrderSeasonsByCrunchyrollOrderEnabled)
+        {
+            return;
+        }
+
+        season.IndexNumber = crunchyrollSeason.SeasonSequenceNumber;
+
+        foreach (var episode in season.Children)
+        {
+            episode.ParentIndexNumber = crunchyrollSeason.SeasonSequenceNumber;
+            await _libraryManager.UpdateItemAsync(episode, season, ItemUpdateType.MetadataEdit, cancellationToken);
         }
     }
 }

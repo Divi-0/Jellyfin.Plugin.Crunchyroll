@@ -53,6 +53,18 @@
                         Good if you have an Anime-Library and specify only the path to the library here.
                         Keep it empty to scan in all folders</div>
                 </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsOrderSeasonsByCrunchyrollOrderEnabled" name="IsOrderSeasonsByCrunchyrollOrderEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>OrderSeasonsByCrunchyrollOrder</span>
+                    </label>
+                    <div class="fieldDescription">
+                        Feature to order your seasons in the the crunchyroll order. For exmaple, Seasons with 
+                        OADs or movies will be ordered in between season 1 and 2. 
+                        The order depends on your metadata language and the available Crunchyroll seasons in that language. 
+                        Default: enabled
+                    </div>
+                </div>
                 <div>
                     <button is="emby-button" type="submit" class="raised button-submit block emby-button">
                         <span>Save</span>
@@ -77,6 +89,7 @@
                     document.querySelector('#IsWaybackMachineEnabled').checked = config.IsWaybackMachineEnabled;
                     document.querySelector('#LibraryPath').value = config.LibraryPath;
                     document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value = config.WaybackMachineWaitTimeoutInSeconds;
+                    document.querySelector('#IsOrderSeasonsByCrunchyrollOrderEnabled').checked = config.IsOrderSeasonsByCrunchyrollOrderEnabled;
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -92,6 +105,7 @@
                     config.LibraryPath = document.querySelector('#LibraryPath').value;
                     config.WaybackMachineWaitTimeoutInSeconds = document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value;
                     config.IsWaybackMachineEnabled = document.querySelector('#IsWaybackMachineEnabled').checked;
+                    config.IsOrderSeasonsByCrunchyrollOrderEnabled = document.querySelector('#IsOrderSeasonsByCrunchyrollOrderEnabled').checked;
                     ApiClient.updatePluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });

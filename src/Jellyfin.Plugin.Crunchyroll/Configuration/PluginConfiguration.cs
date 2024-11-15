@@ -11,4 +11,5 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool IsWaybackMachineEnabled { get; set; } = true;
     public string LibraryPath { get; set; } = string.Empty;
     public int WaybackMachineWaitTimeoutInSeconds { get; set; } = 180;
+    public bool IsOrderSeasonsByCrunchyrollOrderEnabled { get; set; } = true;
 }

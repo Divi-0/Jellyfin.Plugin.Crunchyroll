@@ -10,4 +10,6 @@ public record CrunchyrollSeasonsItem
     public required string SlugTitle { get; init; }
     [JsonPropertyName("season_number")]
     public required int SeasonNumber { get; init; }
+    [JsonPropertyName("season_sequence_number")]
+    public required int SeasonSequenceNumber { get; init; }
 }

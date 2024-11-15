@@ -574,7 +574,7 @@ public static class WireMockAdminApiExtensions
                 .WithUrl(url))
             .WithResponse(rsp => rsp
                 .WithStatusCode(HttpStatusCode.OK)
-                .WithBody(Crunchyroll.Tests.Integration.Shared.Properties.Resources.CrunchyrollEpisodeHtml
+                .WithBody(Properties.Resources.CrunchyrollEpisodeHtml
                     .Replace("http://web.archive.org", mockedArchiveOrgUrl))
             ));
 
@@ -614,7 +614,8 @@ public static class WireMockAdminApiExtensions
                         Id = CrunchyrollIdFaker.Generate(),
                         Title = title,
                         SlugTitle = CrunchyrollSlugFaker.Generate(title),
-                        SeasonNumber = season.IndexNumber!.Value
+                        SeasonNumber = season.IndexNumber!.Value,
+                        SeasonSequenceNumber = season.IndexNumber!.Value
                     };
                 })
                 .ToList()
