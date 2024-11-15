@@ -117,7 +117,7 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
                 return Result.Fail(ErrorCodes.PreconditionFailed);
             }
             
-            episodeIdentifier = match.Groups[1].Value;
+            episodeIdentifier = match.Groups[1].Value.TrimStart('0');
         }
         else
         {

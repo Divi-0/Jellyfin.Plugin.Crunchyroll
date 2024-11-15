@@ -94,6 +94,7 @@ public class SetEpisodeIdTaskTests
     [Theory]
     [InlineData("S01E1.5 - grfes", "1.5")]
     [InlineData("S06E15.5", "15.5")]
+    [InlineData("S06E0032.9", "32.9")]
     public async Task SetsEpisodeIdAndRunsPostTasks_WhenEpisodeHasIndexNumberButNameIncludesDecimal_GivenSeasonWithSeasonId(
         string episodeName, string episodeIdentifier)
     {
