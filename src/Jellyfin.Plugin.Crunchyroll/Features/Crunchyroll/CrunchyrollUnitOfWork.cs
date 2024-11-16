@@ -297,11 +297,17 @@ public sealed class CrunchyrollUnitOfWork :
                     .Where(x => x.TitleId == titleId)
                     .FirstOrDefault();
 
-                return season?.Seasons
+                var query = season?.Seasons
                     .Where(x => x.SeasonNumber == seasonNumber)
-                    .Skip(duplicateCounter)
-                    .FirstOrDefault()?
-                    .Id;
+                    .Skip(duplicateCounter);
+
+                if (duplicateCounter == 0)
+                {
+                    query = query?
+                        .Where(x => x.Identifier.Contains($"|S{seasonNumber}"));
+                }
+
+                return query?.FirstOrDefault()?.Id;
             });
 
             return ValueTask.FromResult(seasonId);
