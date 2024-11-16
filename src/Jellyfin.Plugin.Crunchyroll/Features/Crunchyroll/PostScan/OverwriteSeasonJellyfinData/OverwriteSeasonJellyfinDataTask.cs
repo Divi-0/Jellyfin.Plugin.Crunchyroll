@@ -70,6 +70,7 @@ public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
         }
 
         season.IndexNumber = crunchyrollSeason.SeasonSequenceNumber;
+        season.PresentationUniqueKey = season.CreatePresentationUniqueKey(); //Create new key to visually split duplicate seasons
 
         foreach (var episode in season.Children)
         {

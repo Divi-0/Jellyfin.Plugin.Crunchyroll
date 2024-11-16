@@ -15,6 +15,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker
                 .RuleFor(x => x.ParentId, parentId)
                 .RuleFor(x => x.SeriesId, parentId)
                 .RuleFor(x => x.Name, f => $"{f.Random.Words()}-{f.Random.Number(9999)}")
+                .RuleFor(x => x.PresentationUniqueKey, new Season().CreatePresentationUniqueKey())
                 .Generate();
         }
         

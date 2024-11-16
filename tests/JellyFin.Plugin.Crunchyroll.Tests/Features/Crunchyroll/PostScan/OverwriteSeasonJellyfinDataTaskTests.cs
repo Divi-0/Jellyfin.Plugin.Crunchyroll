@@ -65,7 +65,7 @@ public class OverwriteSeasonJellyfinDataTaskTests
 
         await _libraryManager
             .Received(1)
-            .UpdateItemAsync(season, season.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+            .UpdateItemAsync(season, null!, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -164,6 +164,8 @@ public class OverwriteSeasonJellyfinDataTaskTests
         var season = SeasonFaker.GenerateWithSeasonId();
         var crunchyrollSeason = CrunchyrollSeasonFaker.Generate(season);
         var episodeChild = EpisodeFaker.Generate(season);
+
+        var oldPresentationKey = season.PresentationUniqueKey;
         
         _config.IsOrderSeasonsByCrunchyrollOrderEnabled = true;
 
@@ -188,6 +190,7 @@ public class OverwriteSeasonJellyfinDataTaskTests
         //Assert
         season.Name.Should().Be(crunchyrollSeason.Title);
         season.IndexNumber.Should().Be(crunchyrollSeason.SeasonSequenceNumber);
+        season.PresentationUniqueKey.Should().NotBe(oldPresentationKey);
 
         await _session
             .Received(1)
@@ -195,7 +198,7 @@ public class OverwriteSeasonJellyfinDataTaskTests
 
         await _libraryManager
             .Received(1)
-            .UpdateItemAsync(season, season.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+            .UpdateItemAsync(season, null!, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
         
         episodeChild.ParentIndexNumber.Should().Be(crunchyrollSeason.SeasonSequenceNumber);
         
