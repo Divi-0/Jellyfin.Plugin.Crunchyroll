@@ -71,7 +71,8 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
             Path.GetDirectoryName(typeof(OverwriteSeriesJellyfinDataTask).Assembly.Location)!,
             "series-images");
         
-        var filePath = Path.Combine(directory, Path.GetFileName(imageSource.Uri));
+        var filePath = Path.Combine(directory, Path.GetFileName(imageSource.Uri))
+            .Replace(".jpe", ".jpeg");
         
         var currentImage = series.GetImageInfo(imageType, imageIndex: 0);
         

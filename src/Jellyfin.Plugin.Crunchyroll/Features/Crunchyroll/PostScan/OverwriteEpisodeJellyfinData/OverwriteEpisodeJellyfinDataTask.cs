@@ -86,7 +86,8 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
             return;
         }
         
-        var filePath = Path.Combine(_thumbnailDirPath, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri));
+        var filePath = Path.Combine(_thumbnailDirPath, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri))
+            .Replace(".jpe", ".jpeg");
         
         var currentThumbImage = episode.GetImageInfo(ImageType.Thumb, imageIndex: 0);
         var currentPrimaryImage = episode.GetImageInfo(ImageType.Primary, imageIndex: 0);

@@ -806,4 +806,64 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .Received(1)
             .UpdateItemAsync(episode, episode.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
     }
+    
+    [Fact]
+    public async Task OverwritesFileExtensionsToJpeg_WhenFileExtensionIsJpe_GivenEpisodeWithEpisodeId()
+    {
+        //Arrange
+        var episode = EpisodeFaker.GenerateWithEpisodeId();
+        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode);
+        crunchyrollEpisode = crunchyrollEpisode with { Thumbnail = new ImageSource
+        {
+            Uri = new Faker().Internet.UrlWithPath(fileExt: "jpe"), 
+            Height = 0, 
+            Width = 0
+        } };
+        
+        var imageBytes = new Faker().Random.Bytes(1024);
+        
+        _libraryManager
+            .GetItemById(episode.ParentId)
+            .Returns((BaseItem?)null);
+
+        _session
+            .GetEpisodeAsync(crunchyrollEpisode.Id)
+            .Returns(crunchyrollEpisode);
+
+        var mockedRequest = _mockHttpMessageHandler
+            .When(crunchyrollEpisode.Thumbnail.Uri)
+            .Respond(new StreamContent(new MemoryStream(imageBytes)));
+
+        //Act
+        await _sut.RunAsync(episode, CancellationToken.None);
+
+        //Assert
+        await _session
+            .Received(1)
+            .GetEpisodeAsync(crunchyrollEpisode.Id);
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1, 
+            "it should try not download the thumbnail");
+        
+        _fileSystem.AllDirectories.Should().Contain(path => path == _directory);
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri))
+            .Replace("jpe", "jpeg");
+        _fileSystem.File.Exists(thumbnailFilePath).Should().BeTrue();
+        
+        var imageInfoPrimary = episode.GetImageInfo(ImageType.Primary, 0);
+        imageInfoPrimary.Should().NotBeNull();
+        imageInfoPrimary.Path.Should().Be(thumbnailFilePath);
+        imageInfoPrimary.Width.Should().Be(crunchyrollEpisode.Thumbnail.Width);
+        imageInfoPrimary.Height.Should().Be(crunchyrollEpisode.Thumbnail.Height);
+        
+        var imageInfoThumb = episode.GetImageInfo(ImageType.Thumb, 0);
+        imageInfoThumb.Should().NotBeNull();
+        imageInfoThumb.Path.Should().Be(thumbnailFilePath);
+        imageInfoThumb.Width.Should().Be(crunchyrollEpisode.Thumbnail.Width);
+        imageInfoThumb.Height.Should().Be(crunchyrollEpisode.Thumbnail.Height);
+        
+        await _libraryManager
+            .Received(1)
+            .UpdateItemAsync(episode, episode.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+    }
 }
