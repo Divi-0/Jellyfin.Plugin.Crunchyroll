@@ -26,6 +26,7 @@ public class CrunchyrollSeasonsItemMappingTests
             Id = CrunchyrollIdFaker.Generate(),
             Title = _faker.Commerce.ProductName(),
             SeasonNumber = _faker.Random.Int(),
+            SeasonDisplayNumber = _faker.Random.Int().ToString(),
             SeasonSequenceNumber = _faker.Random.Int(),
             SlugTitle = CrunchyrollSlugFaker.Generate(),
             Identifier = _faker.Random.Word(),
@@ -37,6 +38,7 @@ public class CrunchyrollSeasonsItemMappingTests
             Title = crunchyrollSeason.Title,
             SeasonNumber = crunchyrollSeason.SeasonNumber,
             SeasonSequenceNumber = crunchyrollSeason.SeasonSequenceNumber,
+            SeasonDisplayNumber = crunchyrollSeason.SeasonDisplayNumber,
             SlugTitle = crunchyrollSeason.SlugTitle,
             Identifier = crunchyrollSeason.Identifier,
             Episodes = []

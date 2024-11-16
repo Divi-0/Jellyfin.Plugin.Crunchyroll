@@ -45,7 +45,10 @@ public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
         }
 
         var crunchyrollSeason = seasonResult.Value;
-        seasonItem.Name = crunchyrollSeason.Title;
+
+        seasonItem.Name = !string.IsNullOrWhiteSpace(crunchyrollSeason.SeasonDisplayNumber) 
+            ? $"S{crunchyrollSeason.SeasonDisplayNumber}: {crunchyrollSeason.Title}" 
+            : crunchyrollSeason.Title;
         
         await SetIndexNumberToSequenceNumber((Season)seasonItem, crunchyrollSeason, cancellationToken);
 

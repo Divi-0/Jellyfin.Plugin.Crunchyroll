@@ -57,6 +57,44 @@ public class OverwriteSeasonJellyfinDataTaskTests
         await _sut.RunAsync(season, CancellationToken.None);
 
         //Assert
+        season.Name.Should().Be($"S{crunchyrollSeason.SeasonDisplayNumber}: {crunchyrollSeason.Title}");
+
+        await _session
+            .Received(1)
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId]);
+
+        await _libraryManager
+            .Received(1)
+            .UpdateItemAsync(season, null!, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task NameDoesNotContainSeasonNumber_WhenSeasonDisplayNumberIsEmpty_GivenSeasonWithSeasonId()
+    {
+        //Arrange
+        var season = SeasonFaker.GenerateWithSeasonId();
+        var crunchyrollSeason = CrunchyrollSeasonFaker.Generate(season);
+        crunchyrollSeason = crunchyrollSeason with { SeasonDisplayNumber = string.Empty };
+
+        _libraryManager
+            .GetItemById(season.ParentId)
+            .Returns((BaseItem?)null);
+        
+        _itemRepository
+            .GetItemList(Arg.Is<InternalItemsQuery>(x =>
+                x.ParentId == season.Id &&
+                x.GroupByPresentationUniqueKey == false &&
+                x.DtoOptions.Fields.Count != 0))
+            .Returns([EpisodeFaker.Generate(season)]);
+
+        _session
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId])
+            .Returns(crunchyrollSeason);
+
+        //Act
+        await _sut.RunAsync(season, CancellationToken.None);
+
+        //Assert
         season.Name.Should().Be(crunchyrollSeason.Title);
 
         await _session
@@ -188,7 +226,7 @@ public class OverwriteSeasonJellyfinDataTaskTests
         await _sut.RunAsync(season, CancellationToken.None);
 
         //Assert
-        season.Name.Should().Be(crunchyrollSeason.Title);
+        season.Name.Should().Be($"S{crunchyrollSeason.SeasonDisplayNumber}: {crunchyrollSeason.Title}");
         season.IndexNumber.Should().Be(crunchyrollSeason.SeasonSequenceNumber);
         season.PresentationUniqueKey.Should().NotBe(oldPresentationKey);
 
@@ -236,7 +274,7 @@ public class OverwriteSeasonJellyfinDataTaskTests
         await _sut.RunAsync(season, CancellationToken.None);
 
         //Assert
-        season.Name.Should().Be(crunchyrollSeason.Title);
+        season.Name.Should().Be($"S{crunchyrollSeason.SeasonDisplayNumber}: {crunchyrollSeason.Title}");
         season.IndexNumber.Should().NotBe(crunchyrollSeason.SeasonSequenceNumber);
 
         await _session

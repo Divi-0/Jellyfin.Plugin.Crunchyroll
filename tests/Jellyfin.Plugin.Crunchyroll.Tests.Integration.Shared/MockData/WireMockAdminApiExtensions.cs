@@ -616,7 +616,8 @@ public static class WireMockAdminApiExtensions
                         SlugTitle = CrunchyrollSlugFaker.Generate(title),
                         SeasonNumber = season.IndexNumber!.Value,
                         SeasonSequenceNumber = season.IndexNumber!.Value,
-                        Identifier = $"{season.DisplayParent.ProviderIds[CrunchyrollExternalKeys.Id]}|S{season.IndexNumber!.Value}"
+                        Identifier = $"{season.DisplayParent.ProviderIds[CrunchyrollExternalKeys.Id]}|S{season.IndexNumber!.Value}",
+                        SeasonDisplayNumber = season.IndexNumber!.Value.ToString()
                     };
                 })
                 .ToList()
