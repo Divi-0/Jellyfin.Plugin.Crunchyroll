@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -21,6 +22,27 @@ public class SeasonIdQueryByNumberHandler : IRequestHandler<SeasonIdQueryByNumbe
     
     public async ValueTask<Result<string?>> Handle(SeasonIdQueryByNumber request, CancellationToken cancellationToken)
     {
-        return await _getSeasonSession.GetSeasonIdByNumberAsync(request.TitleId, request.SeasonNumber, request.DuplicateCounter);
+        var seasonId = await _getSeasonSession
+            .GetSeasonIdByNumberAsync(request.TitleId, request.SeasonNumber, request.DuplicateCounter);
+
+        if (!string.IsNullOrWhiteSpace(seasonId))
+        {
+            return seasonId;
+        }
+
+        var seasons = await _getSeasonSession.GetAllSeasonsAsync(request.TitleId);
+
+        foreach (var season in seasons)
+        {
+            var regex = new Regex($@"S{request.SeasonNumber}(DC)?$");
+            var match = regex.Match(season.Identifier);
+
+            if (match.Success)
+            {
+                return season.Id;
+            }
+        }
+
+        return Result.Ok<string?>(null);
     }
 }

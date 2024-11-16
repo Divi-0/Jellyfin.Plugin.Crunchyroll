@@ -73,7 +73,7 @@ public sealed class CrunchyrollUnitOfWork :
                 ShouldHandle = new PredicateBuilder().Handle<IOException>(),
                 MaxRetryAttempts = 3,
                 Delay = TimeSpan.FromSeconds(1),
-                OnRetry = arg =>
+                OnRetry = _ =>
                 {
                     _logger.LogDebug("Retrying to access db");
                     return ValueTask.CompletedTask;
@@ -312,6 +312,34 @@ public sealed class CrunchyrollUnitOfWork :
         }
     }
 
+    public ValueTask<IReadOnlyList<Season>> GetAllSeasonsAsync(string titleId)
+    {
+        _semaphore.Wait();
+
+        try
+        {
+            var seasons = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var metadataCollection = db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
+
+                var titleMetadata = metadataCollection
+                    .Query()
+                    .Where(x => x.TitleId == titleId)
+                    .FirstOrDefault();
+                
+                return titleMetadata?.Seasons;
+            });
+
+            return ValueTask.FromResult<IReadOnlyList<Season>>(seasons ?? []);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
     public ValueTask<string?> GetSeasonIdByNameAsync(string titleId, string name)
     {
         _semaphore.Wait();
@@ -505,13 +533,13 @@ public sealed class CrunchyrollUnitOfWork :
             });
 
             return episode is null 
-                ? ValueTask.FromResult<Result<Episode>>(Result.Fail(Domain.Constants.ErrorCodes.ItemNotFound)) 
+                ? ValueTask.FromResult<Result<Episode>>(Result.Fail(ErrorCodes.ItemNotFound)) 
                 : ValueTask.FromResult<Result<Episode>>(episode);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Failed to get episode with episodeId {EpisodeId}", episodeId);
-            return ValueTask.FromResult<Result<Episode>>(Result.Fail(Domain.Constants.ErrorCodes.Internal));
+            return ValueTask.FromResult<Result<Episode>>(Result.Fail(ErrorCodes.Internal));
         }
         finally
         {

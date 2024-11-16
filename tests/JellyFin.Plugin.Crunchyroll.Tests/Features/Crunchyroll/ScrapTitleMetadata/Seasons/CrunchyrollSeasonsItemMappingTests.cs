@@ -27,7 +27,8 @@ public class CrunchyrollSeasonsItemMappingTests
             Title = _faker.Commerce.ProductName(),
             SeasonNumber = _faker.Random.Int(),
             SeasonSequenceNumber = _faker.Random.Int(),
-            SlugTitle = CrunchyrollSlugFaker.Generate()
+            SlugTitle = CrunchyrollSlugFaker.Generate(),
+            Identifier = _faker.Random.Word(),
         };
 
         var expectedEntity = new Season
@@ -37,6 +38,7 @@ public class CrunchyrollSeasonsItemMappingTests
             SeasonNumber = crunchyrollSeason.SeasonNumber,
             SeasonSequenceNumber = crunchyrollSeason.SeasonSequenceNumber,
             SlugTitle = crunchyrollSeason.SlugTitle,
+            Identifier = crunchyrollSeason.Identifier,
             Episodes = []
         };
         
