@@ -93,7 +93,7 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
     {
         string episodeIdentifier;
 
-        if (IsDecimalRegex().Match(episode.FileNameWithoutExtension).Success)
+        if (IsDecimalNumberOrNumberWithLetterRegex().Match(episode.FileNameWithoutExtension).Success)
         {
             episode.IndexNumber = null;
         }
@@ -142,8 +142,8 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
         }
     }
 
-    [GeneratedRegex(@"E\d*\.\d*")]
-    private static partial Regex IsDecimalRegex();
+    [GeneratedRegex(@"E\d*\.\d*|E\d*[A-z]")]
+    private static partial Regex IsDecimalNumberOrNumberWithLetterRegex();
 
     [GeneratedRegex(@"E-?([^ -]+)")]
     private static partial Regex EpisodeNameFormatRegex();

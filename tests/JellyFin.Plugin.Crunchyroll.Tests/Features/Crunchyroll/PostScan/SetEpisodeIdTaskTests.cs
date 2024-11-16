@@ -153,6 +153,68 @@ public class SetEpisodeIdTaskTests
             x.Received(1).RunAsync(episode, Arg.Any<CancellationToken>());
         });
     }
+    
+    [Theory]
+    [InlineData("S03E13A", "13A")]
+    [InlineData("S2E52b", "52b")]
+    public async Task SetsEpisodeIdAndRunsPostTasks_WhenEpisodeHasIndexNumberButNameIncludesNumberWithLetter_GivenSeasonWithSeasonId(
+        string episodeName, string episodeIdentifier)
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+        var season = SeasonFaker.GenerateWithSeasonId(series);
+        
+        _libraryManager
+            .GetItemById(series.Id)
+            .Returns(series);
+        
+        var episode = EpisodeFaker.Generate();
+        episode.Name = episodeName;
+        episode.IndexNumber = Random.Shared.Next(1, int.MaxValue);
+        episode.Path = $"/mnt/{new Faker().Random.Words()}/{episodeName}.mp4";
+        
+        _itemRepository
+            .GetItemList(Arg.Is<InternalItemsQuery>(x =>
+                x.ParentId == season.Id &&
+                x.GroupByPresentationUniqueKey == false &&
+                x.DtoOptions.Fields.Count != 0))
+            .Returns([episode]);
+        
+        MockHelper.MediaSourceManager
+            .GetPathProtocol(episode.Path)
+            .Returns(MediaProtocol.File);
+
+        var crunchyrollId = CrunchyrollIdFaker.Generate();
+        var crunchyrollSlugTitle = CrunchyrollSlugFaker.Generate();
+        _mediator
+            .Send(new EpisodeIdQuery(
+                series.ProviderIds[CrunchyrollExternalKeys.Id], 
+                season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                episodeIdentifier))
+            .Returns(new EpisodeIdResult(crunchyrollId, crunchyrollSlugTitle));
+        
+        //Act
+        await _sut.RunAsync(season, CancellationToken.None);
+
+        //Assert
+        episode.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeId, out var episodeId).Should().BeTrue();
+        episode.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeSlugTitle, out var episodeSlugTitle).Should().BeTrue();
+        episodeId.Should().Be(crunchyrollId);
+        episodeSlugTitle.Should().Be(crunchyrollSlugTitle);
+        
+        await _libraryManager
+            .Received(1)
+            .UpdateItemAsync(
+                Arg.Is<BaseItem>(x => x == episode), 
+                Arg.Is<BaseItem>(x => x == episode.DisplayParent), 
+                ItemUpdateType.MetadataEdit, 
+                Arg.Any<CancellationToken>());
+
+        _postSeasonIdSetTasks.Should().AllSatisfy(x =>
+        {
+            x.Received(1).RunAsync(episode, Arg.Any<CancellationToken>());
+        });
+    }
 
     [Fact]
     public async Task IgnoresItem_WhenNoTitleIdFound_GivenSeasonWithSeriesWithoutTitleId()
