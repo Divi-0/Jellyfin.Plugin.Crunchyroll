@@ -556,5 +556,61 @@ public class SetSeasonIdTaskTests
             });
         }
     }
+    
+    [Fact]
+    public async Task SkipsItem_WhenItemHasNoFileNameWithoutExtension_GivenItemWithUniqueName()
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+        var season = SeasonFaker.Generate(series);
+        season.Path = null;
+
+        _libraryManager
+            .GetItemById(series.Id)
+            .Returns(series);
+        
+        _mediaSourceManager
+            .GetPathProtocol(season.Path)
+            .Returns(MediaProtocol.File);
+        
+        _itemRepository
+            .GetItemList(Arg.Is<InternalItemsQuery>(x =>
+                x.ParentId == series.Id &&
+                x.GroupByPresentationUniqueKey == false &&
+                x.DtoOptions.Fields.Count != 0))
+            .Returns([season]);
+
+        //Act
+        await _sut.RunAsync(series, CancellationToken.None);
+
+        //Assert
+        var child = series.Children.First();
+
+        await _mediator
+            .DidNotReceive()
+            .Send(Arg.Any<SeasonIdQueryByName>(), Arg.Any<CancellationToken>());
+
+        await _mediator
+            .DidNotReceive()
+            .Send(Arg.Any<SeasonIdQueryByNumber>(), Arg.Any<CancellationToken>());
+
+        await _libraryManager
+            .DidNotReceive()
+            .UpdateItemAsync(
+                Arg.Is<BaseItem>(x => x == child), 
+                Arg.Is<BaseItem>(x => x == series), 
+                ItemUpdateType.MetadataEdit, 
+                Arg.Any<CancellationToken>());
+
+        child.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeasonId, out _).Should().BeFalse();
+
+        foreach (var seasonItem in series.Children)
+        {
+            _postSeasonIdSetTasks.Should().AllSatisfy(x =>
+            {
+                x.DidNotReceive().RunAsync(seasonItem, Arg.Any<CancellationToken>());
+            });
+        }
+    }
 }
 

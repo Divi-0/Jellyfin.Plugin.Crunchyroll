@@ -50,6 +50,12 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
     private async Task<Result> SetIdForSeason(BaseItem seriesItem, string? titleId, BaseItem season, 
         Dictionary<int, int> seasonNumberDuplicateCounters, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrEmpty(season.FileNameWithoutExtension))
+        {
+            _logger.LogDebug("Season {Name} has no folder name, Skipping...", season.Name);
+            return Result.Fail(Domain.Constants.ErrorCodes.NotAllowed);
+        }
+        
         if (string.IsNullOrWhiteSpace(titleId))
         {
             _logger.LogDebug("TitleId for item with name {Name} is not set, skipping season id task...", seriesItem.FileNameWithoutExtension);
