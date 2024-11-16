@@ -52,7 +52,7 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
     {
         if (string.IsNullOrWhiteSpace(titleId))
         {
-            _logger.LogDebug("TitleId for item with name {Name} is not set, skipping season id task...", seriesItem.Name);
+            _logger.LogDebug("TitleId for item with name {Name} is not set, skipping season id task...", seriesItem.FileNameWithoutExtension);
             return Result.Fail(Domain.Constants.ErrorCodes.ProviderIdNotSet);
         }
                 
@@ -61,7 +61,7 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
 
         if (hasSeasonId)
         {
-            _logger.LogDebug("SeasonId for season with name {Name} is already set, skipping...", season.Name);
+            _logger.LogDebug("SeasonId for season with name {Name} is already set, skipping...", season.FileNameWithoutExtension);
             return Result.Ok();
         }
 
@@ -72,7 +72,7 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
 
             if (seasonIdResult.IsFailed)
             {
-                _logger.LogDebug("SeasonIdQuery failed. Skipping season with name {Name}", season.Name);
+                _logger.LogDebug("SeasonIdQuery failed. Skipping season with name {Name}", season.FileNameWithoutExtension);
                 return seasonIdResult.ToResult();
             }
 
@@ -80,7 +80,7 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
             {
                 if (!season.IndexNumber.HasValue)
                 {
-                    _logger.LogError("Item with name '{Name}' has no IndexNumber. Skipping...", season.Name);
+                    _logger.LogError("Item with name '{Name}' has no IndexNumber. Skipping...", season.FileNameWithoutExtension);
                     return Result.Fail(Domain.Constants.ErrorCodes.Internal);
                 }
                 
@@ -92,7 +92,7 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
 
             if (seasonIdResult.IsFailed)
             {
-                _logger.LogDebug("SeasonIdQuery failed. Skipping season with name {Name}", season.Name);
+                _logger.LogDebug("SeasonIdQuery failed. Skipping season with name {Name}", season.FileNameWithoutExtension);
                 return seasonIdResult.ToResult();
             }
 
@@ -102,14 +102,14 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Unknown error on setting season id for {Name}", season.Name);
+            _logger.LogError(e, "Unknown error on setting season id for {Name}", season.FileNameWithoutExtension);
             return Result.Fail(Domain.Constants.ErrorCodes.Internal);
         }
     }
 
     private async Task<Result<string?>> GetSeasonIdByName(string titleId, BaseItem season, CancellationToken cancellationToken)
     {
-        var byNameQuery = new SeasonIdQueryByName(titleId, season.Name);
+        var byNameQuery = new SeasonIdQueryByName(titleId, season.FileNameWithoutExtension);
         return await _mediator.Send(byNameQuery, cancellationToken);
     }
 
