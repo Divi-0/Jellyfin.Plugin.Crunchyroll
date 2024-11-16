@@ -44,13 +44,13 @@ public class SetTitleIdTask : IPostScanTask
     {
         if (item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? id) && !string.IsNullOrWhiteSpace(id))
         {
-            _logger.LogDebug("TitleId for Item with {Name} is already set", item.Name);
+            _logger.LogDebug("TitleId for Item {Name} is already set", item.FileNameWithoutExtension);
             return Result.Ok();
         }
 
         try
         {
-            var titleIdResult = await _mediator.Send(new TitleIdQuery(item.Name), cancellationToken);
+            var titleIdResult = await _mediator.Send(new TitleIdQuery(item.FileNameWithoutExtension), cancellationToken);
 
             if (titleIdResult.IsFailed)
             {
@@ -66,7 +66,7 @@ public class SetTitleIdTask : IPostScanTask
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Unknown error on getting crunchyroll TitleId for {Name}", item.Name);
+            _logger.LogError(e, "Unknown error on getting crunchyroll TitleId for {Name}", item.FileNameWithoutExtension);
             return Result.Fail(ErrorCodes.UnknownError);
         }
     }

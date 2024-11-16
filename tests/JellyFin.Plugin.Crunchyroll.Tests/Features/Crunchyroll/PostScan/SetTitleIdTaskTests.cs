@@ -7,6 +7,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.MediaInfo;
 using Mediator;
 using Microsoft.Extensions.Logging;
 using NSubstitute.ExceptionExtensions;
@@ -20,6 +21,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
         private readonly IMediator _mediator;
         private readonly IPostTitleIdSetTask[] _postTitleIdSetTasks;
         private readonly ILibraryManager _libraryManager;
+        private readonly IMediaSourceManager _mediaSourceManager;
 
         public SetTitleIdTaskTests()
         {
@@ -30,6 +32,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
                 .ToArray();
             var logger = Substitute.For<ILogger<SetTitleIdTask>>();
             _libraryManager = MockHelper.LibraryManager;
+            _mediaSourceManager = MockHelper.MediaSourceManager;
 
             _sut = new SetTitleIdTask(_mediator, _postTitleIdSetTasks, logger, _libraryManager);
         }
@@ -43,7 +46,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             var item = SeriesFaker.Generate();
 
             _mediator
-                .Send(Arg.Is<TitleIdQuery>(x => x.Title == item.Name), Arg.Any<CancellationToken>())
+                .Send(Arg.Is<TitleIdQuery>(x => x.Title == item.FileNameWithoutExtension), Arg.Any<CancellationToken>())
                 .Returns(Result.Ok<SearchResponse?>(new SearchResponse
                 {
                     Id = crunchrollId,
@@ -58,6 +61,10 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
                 .GetItemById(item.DisplayParentId)
                 .Returns(SeriesFaker.Generate());
 
+            _mediaSourceManager
+                .GetPathProtocol(item.Path)
+                .Returns(MediaProtocol.File);
+
             //Act
             await _sut.RunAsync(item, CancellationToken.None);
 
@@ -65,7 +72,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             await _mediator
                 .Received(1)
                 .Send(Arg.Is<TitleIdQuery>(x => 
-                    x.Title == item.Name),
+                    x.Title == item.FileNameWithoutExtension),
                     Arg.Any<CancellationToken>());
             
             await _libraryManager
@@ -105,6 +112,10 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             _libraryManager
                 .GetItemById(item.DisplayParentId)
                 .Returns(SeriesFaker.Generate());
+            
+            _mediaSourceManager
+                .GetPathProtocol(item.Path)
+                .Returns(MediaProtocol.File);
 
             //Act
             await _sut.RunAsync(item, CancellationToken.None);
@@ -124,6 +135,10 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             //Arrange
             var item = SeriesFaker.Generate();
             item.ProviderIds.Add(CrunchyrollExternalKeys.Id, CrunchyrollIdFaker.Generate());
+            
+            _mediaSourceManager
+                .GetPathProtocol(item.Path)
+                .Returns(MediaProtocol.File);
 
             //Act
             await _sut.RunAsync(item, CancellationToken.None);
@@ -154,6 +169,10 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
         {
             //Arrange
             var item = SeriesFaker.Generate();
+            
+            _mediaSourceManager
+                .GetPathProtocol(item.Path)
+                .Returns(MediaProtocol.File);
 
             _mediator
                 .Send(Arg.Any<TitleIdQuery>(), Arg.Any<CancellationToken>())
@@ -177,7 +196,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             await _mediator
                 .Received(1)
                 .Send(Arg.Is<TitleIdQuery>(x =>
-                    x.Title == item.Name),
+                    x.Title == item.FileNameWithoutExtension),
                     Arg.Any<CancellationToken>());
 
             await _libraryManager
@@ -202,6 +221,10 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             _libraryManager
                 .UpdateItemAsync(Arg.Any<BaseItem>(), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
                 .Returns(Task.CompletedTask);
+            
+            _mediaSourceManager
+                .GetPathProtocol(item.Path)
+                .Returns(MediaProtocol.File);
 
             //Act
             await _sut.RunAsync(item, CancellationToken.None);
@@ -217,7 +240,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             await _mediator
                 .Received(1)
                 .Send(Arg.Is<TitleIdQuery>(x =>
-                    x.Title == item.Name),
+                    x.Title == item.FileNameWithoutExtension),
                     Arg.Any<CancellationToken>());
             
             await _libraryManager
@@ -238,6 +261,10 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             MockHelper.LibraryManager
                 .GetItemById(series.Id)
                 .Returns(series);
+            
+            _mediaSourceManager
+                .GetPathProtocol(series.Path)
+                .Returns(MediaProtocol.File);
 
             _mediator
                 .Send(Arg.Any<TitleIdQuery>(), Arg.Any<CancellationToken>())
@@ -258,7 +285,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             await _mediator
                 .Received(1)
                 .Send(Arg.Is<TitleIdQuery>(x =>
-                    x.Title == series.Name),
+                    x.Title == series.FileNameWithoutExtension),
                     Arg.Any<CancellationToken>());
             
             await _libraryManager

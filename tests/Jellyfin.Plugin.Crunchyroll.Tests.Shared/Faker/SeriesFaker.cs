@@ -7,9 +7,12 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker
     {
         public static Series Generate()
         {
+            var faker = new Bogus.Faker();
+            var name = $"{faker.Random.Words()}-{faker.Random.Number(9999)}";
             var series = new Bogus.Faker<Series>()
                 .RuleFor(x => x.Id, Guid.NewGuid())
-                .RuleFor(x => x.Name, f => $"{f.Random.Words()}-{f.Random.Number(9999)}")
+                .RuleFor(x => x.Name, name)
+                .RuleFor(x => x.Path, f => $"videos/{f.Random.Words()}/{name}")
                 .Generate();
 
             return series;
