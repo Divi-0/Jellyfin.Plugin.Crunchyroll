@@ -38,7 +38,7 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
     
     public async Task RunAsync(BaseItem seriesItem, CancellationToken cancellationToken)
     {
-        var hasTitleId = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out var titleId) &&
+        var hasTitleId = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out var titleId) &&
                     !string.IsNullOrWhiteSpace(titleId);
         
         if (!hasTitleId)

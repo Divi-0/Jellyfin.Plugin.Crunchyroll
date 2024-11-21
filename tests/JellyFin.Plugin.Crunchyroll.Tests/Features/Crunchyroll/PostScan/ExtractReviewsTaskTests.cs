@@ -32,8 +32,8 @@ public class ExtractReviewsTaskTests
     {
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
-        var titleId = series.ProviderIds[CrunchyrollExternalKeys.Id];
-        var slugTitle = series.ProviderIds[CrunchyrollExternalKeys.SlugTitle];
+        var titleId = series.ProviderIds[CrunchyrollExternalKeys.SeriesId];
+        var slugTitle = series.ProviderIds[CrunchyrollExternalKeys.SeriesSlugTitle];
         
         _mediator
             .Send(new ExtractReviewsCommand { TitleId = titleId, SlugTitle = slugTitle }, 

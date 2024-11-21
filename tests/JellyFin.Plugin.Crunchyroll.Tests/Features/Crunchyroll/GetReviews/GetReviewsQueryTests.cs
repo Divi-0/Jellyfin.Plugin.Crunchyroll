@@ -52,7 +52,7 @@ public class GetReviewsQueryTests
         _libraryManager.MockRetrieveItem(id, providerId);
         
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         var reviewsResponse = _fixture.Create<ReviewsResponse>();
@@ -69,7 +69,7 @@ public class GetReviewsQueryTests
         
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
 
         _libraryManager
             .Received(1)
@@ -142,7 +142,7 @@ public class GetReviewsQueryTests
         _libraryManager.MockRetrieveItem(id, providerId);
 
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
         var errorCode = "999";
@@ -160,7 +160,7 @@ public class GetReviewsQueryTests
         
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
     }
     
     [Fact]
@@ -217,7 +217,7 @@ public class GetReviewsQueryTests
         
         await _loginService
             .DidNotReceive()
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
     }
     
     [Fact]
@@ -278,7 +278,7 @@ public class GetReviewsQueryTests
         
         var errorCode = "999";
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Fail(errorCode));
         
         //Act
@@ -295,7 +295,7 @@ public class GetReviewsQueryTests
 
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         
         await _crunchyrollGetReviewsClient
             .DidNotReceive()

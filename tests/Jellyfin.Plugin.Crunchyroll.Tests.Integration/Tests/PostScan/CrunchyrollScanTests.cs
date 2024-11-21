@@ -114,13 +114,13 @@ public class CrunchyrollScanTests
         //Assert
         seriesItems.Should().AllSatisfy(series =>
         {
-            series.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.Id);
-            series.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SlugTitle);
-            series.ProviderIds[CrunchyrollExternalKeys.Id].Should().NotBeEmpty();
-            series.ProviderIds[CrunchyrollExternalKeys.SlugTitle].Should().NotBeEmpty();
+            series.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesId);
+            series.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesSlugTitle);
+            series.ProviderIds[CrunchyrollExternalKeys.SeriesId].Should().NotBeEmpty();
+            series.ProviderIds[CrunchyrollExternalKeys.SeriesSlugTitle].Should().NotBeEmpty();
             
             DatabaseMockHelper.ShouldHaveMetadata(_databaseFixture.DbFilePath, 
-                series.ProviderIds[CrunchyrollExternalKeys.Id],
+                series.ProviderIds[CrunchyrollExternalKeys.SeriesId],
                 seriesResponses[series.Id]);
             
             series.Name.Should().Be(seriesResponses[series.Id].Title);
@@ -216,7 +216,10 @@ public class CrunchyrollScanTests
                         EpisodeNumber = null,
                         SequenceNumber = 0,
                         SlugTitle = CrunchyrollSlugFaker.Generate("abc"),
-                        Images = new CrunchyrollEpisodeImages()
+                        Images = new CrunchyrollEpisodeImages(),
+                        SeasonId = CrunchyrollIdFaker.Generate(),
+                        SeriesId = CrunchyrollIdFaker.Generate(),
+                        SeriesSlugTitle= CrunchyrollSlugFaker.Generate()
                     }
                 }
             });

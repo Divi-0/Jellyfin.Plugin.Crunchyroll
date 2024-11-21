@@ -45,7 +45,7 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
             return Result.Fail(GetReviewsErrorCodes.ItemNotFound);
         }
 
-        if (!item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? cruncyrollId) 
+        if (!item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out string? cruncyrollId) 
             || string.IsNullOrWhiteSpace(cruncyrollId))
         {
             return Result.Fail(GetReviewsErrorCodes.ItemHasNoProviderId);
@@ -79,7 +79,7 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
         }
         else
         {
-            var loginResult = await _loginService.LoginAnonymously(cancellationToken);
+            var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);
             return loginResult.IsFailed ? 
                 loginResult :
                 await _client.GetReviewsAsync(titleId, pageNumber, pageSize, cancellationToken);

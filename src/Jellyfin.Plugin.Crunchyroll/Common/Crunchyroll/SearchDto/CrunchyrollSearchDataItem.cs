@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
 
-namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId.Client;
+namespace Jellyfin.Plugin.Crunchyroll.Common.Crunchyroll.SearchDto;
 
 public record CrunchyrollSearchDataItem
 {
@@ -8,4 +9,6 @@ public record CrunchyrollSearchDataItem
     public string Title { get; init; } = string.Empty;
     [JsonPropertyName("slug_title")]
     public string SlugTitle { get; init; } = string.Empty;
+    [JsonPropertyName("episode_metadata")]
+    public CrunchyrollEpisodeItem? EpisodeMetadata { get; init; }
 }

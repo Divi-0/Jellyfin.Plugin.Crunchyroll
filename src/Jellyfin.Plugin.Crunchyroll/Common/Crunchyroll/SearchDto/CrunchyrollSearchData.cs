@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId.Client;
 
-namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId.Client;
+namespace Jellyfin.Plugin.Crunchyroll.Common.Crunchyroll.SearchDto;
 
 public record CrunchyrollSearchData
 {

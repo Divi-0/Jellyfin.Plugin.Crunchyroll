@@ -6,11 +6,8 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId.Client;
 
 public interface ICrunchyrollTitleIdClient
 {
-    /// <summary>
-    /// 
-    /// </summary>
     /// <param name="title">Title of the series/movie</param>
     /// <param name="cancellationToken">CancellationToken</param>
-    /// <returns>TitleId of the matching series/movie</returns>
+    /// <returns>TitleId of the matching series</returns>
     public Task<Result<SearchResponse?>> GetTitleIdAsync(string title, CancellationToken cancellationToken);
 }

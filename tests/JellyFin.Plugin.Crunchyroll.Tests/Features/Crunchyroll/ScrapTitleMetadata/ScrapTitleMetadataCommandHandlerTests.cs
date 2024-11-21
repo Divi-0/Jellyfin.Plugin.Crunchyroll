@@ -48,7 +48,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         var titleId = _fixture.Create<string>();
 
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         var seasonsResponse = _fixture.Create<CrunchyrollSeasonsResponse>();
@@ -125,7 +125,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         
         await _crunchyrollSeasonsClient
             .Received(1)
@@ -187,7 +187,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         var titleId = _fixture.Create<string>();
         
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
         var error = _fixture.Create<string>();
@@ -205,7 +205,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
 
         await _crunchyrollSeasonsClient
             .Received(1)
@@ -219,7 +219,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         var titleId = _fixture.Create<string>();
 
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         var seasonsResponse = _fixture.Create<CrunchyrollSeasonsResponse>();
@@ -250,7 +250,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
 
         await _crunchyrollSeasonsClient
             .Received(1)
@@ -273,7 +273,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         var titleId = _fixture.Create<string>();
         
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
         var seasonsResponse = _fixture.Create<CrunchyrollSeasonsResponse>();
@@ -312,7 +312,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
 
         foreach (var season in seasonsResponse.Data)
         {
@@ -342,7 +342,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var error = _fixture.Create<string>();
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Fail(error));
         
         //Act
@@ -355,7 +355,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
     }
     
     [Fact]
@@ -365,7 +365,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         var titleId = _fixture.Create<string>();
 
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
@@ -411,7 +411,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         
         await _crunchyrollSeasonsClient
             .Received(1)
@@ -448,7 +448,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         var titleId = _fixture.Create<string>();
 
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
@@ -502,7 +502,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         
         await _crunchyrollSeasonsClient
             .Received(1)
@@ -545,7 +545,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         var titleId = _fixture.Create<string>();
 
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
@@ -634,7 +634,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         
         await _crunchyrollSeasonsClient
             .Received(1)
@@ -671,7 +671,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         var titleId = _fixture.Create<string>();
 
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
@@ -736,7 +736,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         
         await _crunchyrollSeasonsClient
             .Received(1)
@@ -779,7 +779,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         var titleId = _fixture.Create<string>();
 
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
@@ -827,7 +827,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         
         await _crunchyrollSeasonsClient
             .Received(1)
@@ -863,7 +863,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         var titleId = _fixture.Create<string>();
 
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
@@ -914,7 +914,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         
         await _crunchyrollSeasonsClient
             .Received(1)
@@ -946,7 +946,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         var titleId = _fixture.Create<string>();
 
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Create<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>();
@@ -975,7 +975,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         
         await _crunchyrollSeasonsClient
             .Received(1)

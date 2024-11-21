@@ -102,7 +102,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         
         await _getTitleMetadata
             .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.Id]);
+            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
 
         await _crunchyrollSeriesClient
             .Received(1)
@@ -201,7 +201,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         
         await _getTitleMetadata
             .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.Id]);
+            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
 
         await _crunchyrollSeriesClient
             .DidNotReceive()
@@ -248,7 +248,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         //Assert
         await _getTitleMetadata
             .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.Id]);
+            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
 
         await _crunchyrollSeriesClient
             .DidNotReceive()
@@ -344,7 +344,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         
         await _getTitleMetadata
             .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.Id]);
+            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
 
         await _crunchyrollSeriesClient
             .Received(1)
@@ -426,7 +426,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         
         await _getTitleMetadata
             .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.Id]);
+            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
 
         await _crunchyrollSeriesClient
             .Received(1)
@@ -520,7 +520,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         
         await _getTitleMetadata
             .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.Id]);
+            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
 
         await _crunchyrollSeriesClient
             .Received(1)
@@ -604,7 +604,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         
         await _getTitleMetadata
             .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.Id]);
+            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
 
         await _crunchyrollSeriesClient
             .Received(1)

@@ -6,5 +6,5 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 
 public interface ILoginService
 {
-    public ValueTask<Result> LoginAnonymously(CancellationToken cancellationToken);
+    public ValueTask<Result> LoginAnonymouslyAsync(CancellationToken cancellationToken);
 }

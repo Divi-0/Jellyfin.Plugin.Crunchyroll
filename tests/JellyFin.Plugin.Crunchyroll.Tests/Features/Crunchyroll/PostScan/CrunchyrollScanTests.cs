@@ -12,7 +12,7 @@ public class CrunchyrollScanTests
 {
     private readonly CrunchyrollScan _sut;
     private readonly ILibraryManager _libraryManager;
-    private readonly IPostScanTask[] _postScanTasks;
+    private readonly IPostSeriesScanTask[] _postScanTasks;
     private readonly PluginConfiguration _config;
 
     public CrunchyrollScanTests()
@@ -21,7 +21,7 @@ public class CrunchyrollScanTests
         _libraryManager = MockHelper.LibraryManager;
         _postScanTasks = Enumerable.Range(0, Random.Shared.Next(1, 10))
             .Select(_ => 
-                Substitute.For<IPostScanTask>())
+                Substitute.For<IPostSeriesScanTask>())
             .ToArray();
 
         _config = new PluginConfiguration();

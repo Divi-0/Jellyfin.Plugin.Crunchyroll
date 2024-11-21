@@ -29,10 +29,10 @@ public class ExtractReviewsTask : IPostTitleIdSetTask
             return;
         }
         
-        var hasId = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? id) &&
+        var hasId = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out string? id) &&
                     !string.IsNullOrWhiteSpace(id);
 
-        var hasSlugTitle = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SlugTitle, out string? slugTitle) &&
+        var hasSlugTitle = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesSlugTitle, out string? slugTitle) &&
                            !string.IsNullOrWhiteSpace(slugTitle);
 
         if (!hasId || !hasSlugTitle)

@@ -25,7 +25,7 @@ public static class LibraryManagerMockHelper
             {
                 ProviderIds = new Dictionary<string, string>
                 {
-                    { CrunchyrollExternalKeys.Id, providerId }
+                    { CrunchyrollExternalKeys.SeriesId, providerId }
                 }
             });
 
@@ -67,7 +67,7 @@ public static class LibraryManagerMockHelper
             {
                 ProviderIds = new Dictionary<string, string>
                 {
-                    { CrunchyrollExternalKeys.Id, providerId }
+                    { CrunchyrollExternalKeys.SeriesId, providerId }
                 }
             });
 

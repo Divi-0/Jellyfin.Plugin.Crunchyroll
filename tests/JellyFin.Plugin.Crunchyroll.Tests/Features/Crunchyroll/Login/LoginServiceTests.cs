@@ -45,7 +45,7 @@ public class LoginServiceTests
             .Returns(Result.Ok(authResponse));
 
         //Act
-        var result = await _sut.LoginAnonymously(CancellationToken.None);
+        var result = await _sut.LoginAnonymouslyAsync(CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();
@@ -73,7 +73,7 @@ public class LoginServiceTests
             .Returns(Result.Fail(errorMessage));
 
         //Act
-        var result = await _sut.LoginAnonymously(CancellationToken.None);
+        var result = await _sut.LoginAnonymouslyAsync(CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -97,7 +97,7 @@ public class LoginServiceTests
             .Returns(Guid.NewGuid().ToString());
 
         //Act
-        var result = await _sut.LoginAnonymously(CancellationToken.None);
+        var result = await _sut.LoginAnonymouslyAsync(CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();

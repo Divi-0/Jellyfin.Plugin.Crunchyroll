@@ -40,7 +40,7 @@ public class CrunchyrollCommentsTests
                 {
                     ProviderIds = new Dictionary<string, string>
                     {
-                        { CrunchyrollExternalKeys.Id, titleId }
+                        { CrunchyrollExternalKeys.SeriesId, titleId }
                     }
                 });
 

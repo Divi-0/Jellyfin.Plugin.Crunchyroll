@@ -42,7 +42,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
     
     public async ValueTask<Result> Handle(ScrapTitleMetadataCommand request, CancellationToken cancellationToken)
     {
-        var loginResult = await _loginService.LoginAnonymously(cancellationToken);
+        var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);
 
         if (loginResult.IsFailed)
         {

@@ -22,7 +22,7 @@ public class TitleIdQueryHandler : IRequestHandler<TitleIdQuery, Result<SearchRe
 
     public async ValueTask<Result<SearchResponse?>> Handle(TitleIdQuery request, CancellationToken cancellationToken)
     {
-        var loginResult = await _loginService.LoginAnonymously(cancellationToken);
+        var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);
 
         if (loginResult.IsFailed)
         {

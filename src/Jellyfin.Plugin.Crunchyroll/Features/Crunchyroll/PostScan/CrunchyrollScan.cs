@@ -19,11 +19,11 @@ public class CrunchyrollScan : ILibraryPostScanTask
 {
     private readonly ILogger<CrunchyrollScan> _logger;
     private readonly ILibraryManager _libraryManager;
-    private readonly IEnumerable<IPostScanTask>? _postScanTasks;
+    private readonly IEnumerable<IPostSeriesScanTask>? _postScanTasks;
     private readonly PluginConfiguration _config;
 
     public CrunchyrollScan(ILogger<CrunchyrollScan> logger, ILibraryManager libraryManager, 
-        IEnumerable<IPostScanTask> postScanTasks, PluginConfiguration? config = null)
+        IEnumerable<IPostSeriesScanTask> postScanTasks, PluginConfiguration? config = null)
     {
         _logger = logger;
         _libraryManager = libraryManager;
@@ -31,7 +31,7 @@ public class CrunchyrollScan : ILibraryPostScanTask
         var scanTasks = postScanTasks.ToArray();
         _postScanTasks = scanTasks.Length != 0 ? 
             scanTasks : 
-            CrunchyrollPlugin.Instance!.ServiceProvider.GetServices<IPostScanTask>();
+            CrunchyrollPlugin.Instance!.ServiceProvider.GetServices<IPostSeriesScanTask>();
         _config = config ?? CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
     }
 

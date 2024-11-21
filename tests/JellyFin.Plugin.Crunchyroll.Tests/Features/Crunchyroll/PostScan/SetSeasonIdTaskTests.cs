@@ -65,7 +65,7 @@ public class SetSeasonIdTaskTests
 
         var crunchyrollSeasonId = CrunchyrollIdFaker.Generate();
         _mediator
-            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], season.FileNameWithoutExtension), 
+            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], season.FileNameWithoutExtension), 
                 Arg.Any<CancellationToken>())
             .Returns(crunchyrollSeasonId);
 
@@ -77,7 +77,7 @@ public class SetSeasonIdTaskTests
 
         await _mediator
             .Received(1)
-            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], child.FileNameWithoutExtension),
+            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], child.FileNameWithoutExtension),
                 Arg.Any<CancellationToken>());
 
         await _libraryManager
@@ -123,7 +123,7 @@ public class SetSeasonIdTaskTests
             .Returns(MediaProtocol.File);
         
         _mediator
-            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], season.FileNameWithoutExtension), 
+            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], season.FileNameWithoutExtension), 
                 Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
 
@@ -135,7 +135,7 @@ public class SetSeasonIdTaskTests
 
         await _mediator
             .Received(1)
-            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], child.FileNameWithoutExtension),
+            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], child.FileNameWithoutExtension),
                 Arg.Any<CancellationToken>());
 
         await _libraryManager
@@ -282,14 +282,14 @@ public class SetSeasonIdTaskTests
         }
 
         _mediator
-            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[0].FileNameWithoutExtension), 
+            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], seasons[0].FileNameWithoutExtension), 
                 Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
 
         for (int i = 1; i < seasons.Count - 1; i++)
         {
             _mediator
-                .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[i].FileNameWithoutExtension), 
+                .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], seasons[i].FileNameWithoutExtension), 
                     Arg.Any<CancellationToken>())
                 .Returns(CrunchyrollIdFaker.Generate());
         }
@@ -307,7 +307,7 @@ public class SetSeasonIdTaskTests
         //Assert
         await _mediator
             .Received(1)
-            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[0].FileNameWithoutExtension),
+            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], seasons[0].FileNameWithoutExtension),
                 Arg.Any<CancellationToken>());
         
         await _libraryManager
@@ -329,7 +329,7 @@ public class SetSeasonIdTaskTests
             
             await _mediator
                 .Received(1)
-                .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], season.FileNameWithoutExtension),
+                .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], season.FileNameWithoutExtension),
                     Arg.Any<CancellationToken>());
             
             await _libraryManager
@@ -368,19 +368,19 @@ public class SetSeasonIdTaskTests
         }
 
         _mediator
-            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[0].FileNameWithoutExtension), 
+            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], seasons[0].FileNameWithoutExtension), 
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok<string?>(null));            
         
         _mediator
-            .Send(new SeasonIdQueryByNumber(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[0].IndexNumber!.Value, 0), 
+            .Send(new SeasonIdQueryByNumber(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], seasons[0].IndexNumber!.Value, 0), 
                 Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
 
         for (int i = 1; i < seasons.Count - 1; i++)
         {
             _mediator
-                .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[i].FileNameWithoutExtension), 
+                .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], seasons[i].FileNameWithoutExtension), 
                     Arg.Any<CancellationToken>())
                 .Returns(CrunchyrollIdFaker.Generate());
         }
@@ -403,7 +403,7 @@ public class SetSeasonIdTaskTests
         
         await _mediator
             .Received(1)
-            .Send(new SeasonIdQueryByNumber(series.ProviderIds[CrunchyrollExternalKeys.Id], seasons[0].IndexNumber!.Value, 0),
+            .Send(new SeasonIdQueryByNumber(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], seasons[0].IndexNumber!.Value, 0),
                 Arg.Any<CancellationToken>());
         
         await _libraryManager
@@ -425,7 +425,7 @@ public class SetSeasonIdTaskTests
             
             await _mediator
                 .Received(1)
-                .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], season.FileNameWithoutExtension),
+                .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], season.FileNameWithoutExtension),
                     Arg.Any<CancellationToken>());
             
             await _libraryManager
@@ -461,7 +461,7 @@ public class SetSeasonIdTaskTests
             .Returns(MediaProtocol.File);
 
         _mediator
-            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], season.FileNameWithoutExtension),
+            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], season.FileNameWithoutExtension),
                 Arg.Any<CancellationToken>())
             .ThrowsAsync(new Exception());
         
@@ -519,7 +519,7 @@ public class SetSeasonIdTaskTests
             .Returns([season]);
         
         _mediator
-            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], season.FileNameWithoutExtension), 
+            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], season.FileNameWithoutExtension), 
                 Arg.Any<CancellationToken>())
             .Returns((string?)null);
 
@@ -531,7 +531,7 @@ public class SetSeasonIdTaskTests
 
         await _mediator
             .Received(1)
-            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.Id], child.FileNameWithoutExtension),
+            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], child.FileNameWithoutExtension),
                 Arg.Any<CancellationToken>());
 
         await _mediator

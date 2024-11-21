@@ -12,7 +12,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 
-public class SetTitleIdTask : IPostScanTask
+public class SetTitleIdTask : IPostSeriesScanTask
 {
     private readonly IMediator _mediator;
     private readonly IEnumerable<IPostTitleIdSetTask> _postTitleIdSetTasks;
@@ -42,7 +42,7 @@ public class SetTitleIdTask : IPostScanTask
 
     private async Task<Result> SetTitleId(BaseItem item, CancellationToken cancellationToken)
     {
-        if (item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? id) && !string.IsNullOrWhiteSpace(id))
+        if (item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out string? id) && !string.IsNullOrWhiteSpace(id))
         {
             _logger.LogDebug("TitleId for Item {Name} is already set", item.FileNameWithoutExtension);
             return Result.Ok();
@@ -57,8 +57,8 @@ public class SetTitleIdTask : IPostScanTask
                 return Result.Ok();
             }
 
-            item.ProviderIds[CrunchyrollExternalKeys.Id] = titleIdResult.Value?.Id ?? string.Empty;
-            item.ProviderIds[CrunchyrollExternalKeys.SlugTitle] = titleIdResult.Value?.SlugTitle ?? string.Empty;
+            item.ProviderIds[CrunchyrollExternalKeys.SeriesId] = titleIdResult.Value?.Id ?? string.Empty;
+            item.ProviderIds[CrunchyrollExternalKeys.SeriesSlugTitle] = titleIdResult.Value?.SlugTitle ?? string.Empty;
 
             await _libraryManager.UpdateItemAsync(item, item.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
 

@@ -15,4 +15,10 @@ public record CrunchyrollEpisodeItem
     public required int? EpisodeNumber { get; init; }
     [JsonPropertyName("sequence_number")]
     public required double SequenceNumber { get; init; }
+    [JsonPropertyName("season_id")]
+    public required string SeasonId { get; init; }
+    [JsonPropertyName("series_id")]
+    public required string SeriesId { get; init; }
+    [JsonPropertyName("series_slug_title")]
+    public required string SeriesSlugTitle { get; init; }
 }

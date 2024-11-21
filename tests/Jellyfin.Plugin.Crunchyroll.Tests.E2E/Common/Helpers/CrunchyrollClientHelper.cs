@@ -26,21 +26,21 @@ public static class CrunchyrollClientHelper
     public static async Task<ICrunchyrollSeriesClient> GetSeriesClientAsync()
     {
         var loginService = Services.GetRequiredService<ILoginService>();
-        await loginService.LoginAnonymously(CancellationToken.None);
+        await loginService.LoginAnonymouslyAsync(CancellationToken.None);
         return Services.GetRequiredService<ICrunchyrollSeriesClient>();
     }
     
     public static async Task<ICrunchyrollSeasonsClient> GetSeasonsClientAsync()
     {
         var loginService = Services.GetRequiredService<ILoginService>();
-        await loginService.LoginAnonymously(CancellationToken.None);
+        await loginService.LoginAnonymouslyAsync(CancellationToken.None);
         return Services.GetRequiredService<ICrunchyrollSeasonsClient>();
     }
     
     public static async Task<ICrunchyrollEpisodesClient> GetEpisodesClientAsync()
     {
         var loginService = Services.GetRequiredService<ILoginService>();
-        await loginService.LoginAnonymously(CancellationToken.None);
+        await loginService.LoginAnonymouslyAsync(CancellationToken.None);
         return Services.GetRequiredService<ICrunchyrollEpisodesClient>();
     }
 }

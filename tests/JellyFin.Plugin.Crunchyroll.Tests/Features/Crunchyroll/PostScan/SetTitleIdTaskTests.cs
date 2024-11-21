@@ -83,8 +83,8 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
                     ItemUpdateType.MetadataEdit, 
                     Arg.Any<CancellationToken>());
             
-            item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out var actualCrunchyrollId).Should().BeTrue();
-            item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SlugTitle, out var actualCrunchyrollSlugTitle).Should().BeTrue();
+            item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out var actualCrunchyrollId).Should().BeTrue();
+            item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesSlugTitle, out var actualCrunchyrollSlugTitle).Should().BeTrue();
             actualCrunchyrollId.Should().Be(crunchrollId);
             actualCrunchyrollSlugTitle.Should().Be(crunchrollSlugTitle);
         }
@@ -134,7 +134,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
         {
             //Arrange
             var item = SeriesFaker.Generate();
-            item.ProviderIds.Add(CrunchyrollExternalKeys.Id, CrunchyrollIdFaker.Generate());
+            item.ProviderIds.Add(CrunchyrollExternalKeys.SeriesId, CrunchyrollIdFaker.Generate());
             
             _mediaSourceManager
                 .GetPathProtocol(item.Path)
@@ -296,8 +296,8 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
                     ItemUpdateType.MetadataEdit, 
                     Arg.Any<CancellationToken>());
             
-            series.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out var actualCrunchyrollId).Should().BeTrue();
-            series.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SlugTitle, out var actualCrunchyrollSlugTitle).Should().BeTrue();
+            series.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out var actualCrunchyrollId).Should().BeTrue();
+            series.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesSlugTitle, out var actualCrunchyrollSlugTitle).Should().BeTrue();
             actualCrunchyrollId.Should().Be(string.Empty);
             actualCrunchyrollSlugTitle.Should().Be(string.Empty);
         }

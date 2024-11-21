@@ -21,10 +21,10 @@ public class ScrapTitleMetadataTask : IPostTitleIdSetTask
     
     public async Task RunAsync(BaseItem seriesItem, CancellationToken cancellationToken)
     {
-        var hasId = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out var id) &&
+        var hasId = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out var id) &&
                     !string.IsNullOrWhiteSpace(id);
 
-        var hasSlugTitle = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SlugTitle, out var slugTitle) &&
+        var hasSlugTitle = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesSlugTitle, out var slugTitle) &&
                            !string.IsNullOrWhiteSpace(slugTitle);
 
         if (!hasId || !hasSlugTitle)

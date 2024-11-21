@@ -3,6 +3,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeasonJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeriesJellyfinData;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetMovieEpisodeId;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
@@ -15,7 +16,7 @@ internal static class PostScanServiceExtension
         serviceCollection.AddScoped<IFile>(serviceProvider => serviceProvider.GetRequiredService<IFileSystem>().File);
         serviceCollection.AddScoped<IDirectory>(serviceProvider => serviceProvider.GetRequiredService<IFileSystem>().Directory);
         
-        serviceCollection.AddSingleton<IPostScanTask, SetTitleIdTask>();
+        serviceCollection.AddSingleton<IPostSeriesScanTask, SetTitleIdTask>();
             
         serviceCollection.AddSingleton<IPostTitleIdSetTask, ScrapTitleMetadataTask>();
         serviceCollection.AddSingleton<IPostTitleIdSetTask, SetSeasonIdTask>();
@@ -28,6 +29,7 @@ internal static class PostScanServiceExtension
 
         serviceCollection.AddOverwriteSeriesJellyfinData();
         serviceCollection.AddOverwriteEpisodeJellyfinData();
+        serviceCollection.AddSetMovieEpisodeId();
 
         return serviceCollection;
     }

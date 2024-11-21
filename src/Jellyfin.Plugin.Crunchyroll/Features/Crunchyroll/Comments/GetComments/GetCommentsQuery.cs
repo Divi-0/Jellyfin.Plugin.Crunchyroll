@@ -69,7 +69,7 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, Result<
     private async ValueTask<Result<CommentsResponse>> GetCommentsFromApi(string episodeId, int pageSize, int pageNumber, 
         CancellationToken cancellationToken)
     {
-        var loginResult = await _loginService.LoginAnonymously(cancellationToken);
+        var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);
 
         if (loginResult.IsFailed)
         {

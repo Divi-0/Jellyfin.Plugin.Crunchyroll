@@ -115,7 +115,7 @@ public class CrunchyrollScanTests
         //Assert
         itemList.Should().AllSatisfy(series =>
         {
-            DatabaseMockHelper.ShouldHaveReviews(_crunchyrollDatabaseFixture.DbFilePath, series.ProviderIds[CrunchyrollExternalKeys.Id]);
+            DatabaseMockHelper.ShouldHaveReviews(_crunchyrollDatabaseFixture.DbFilePath, series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
 
             series.Children.Should().AllSatisfy(season =>
             {
@@ -137,8 +137,8 @@ public class CrunchyrollScanTests
         var crunchyrollUrl = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
                 "series",
-                series.ProviderIds[CrunchyrollExternalKeys.Id],
-                series.ProviderIds[CrunchyrollExternalKeys.SlugTitle])
+                series.ProviderIds[CrunchyrollExternalKeys.SeriesId],
+                series.ProviderIds[CrunchyrollExternalKeys.SeriesSlugTitle])
             .Replace('\\', '/');
         return crunchyrollUrl;
     }

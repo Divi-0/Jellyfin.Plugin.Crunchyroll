@@ -59,7 +59,7 @@ public class GetCommentsQueryTests
             .Returns(episode);
             
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
         _crunchyrollClient
@@ -76,7 +76,7 @@ public class GetCommentsQueryTests
             
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         
         await _session
             .DidNotReceive()
@@ -100,7 +100,7 @@ public class GetCommentsQueryTests
             
         var error = Guid.NewGuid().ToString();
         _loginService
-            .LoginAnonymously(Arg.Any<CancellationToken>())
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Fail(error));
 
         //Act
@@ -113,7 +113,7 @@ public class GetCommentsQueryTests
             
         await _loginService
             .Received(1)
-            .LoginAnonymously(Arg.Any<CancellationToken>());
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
 
         await _crunchyrollClient
             .DidNotReceive()

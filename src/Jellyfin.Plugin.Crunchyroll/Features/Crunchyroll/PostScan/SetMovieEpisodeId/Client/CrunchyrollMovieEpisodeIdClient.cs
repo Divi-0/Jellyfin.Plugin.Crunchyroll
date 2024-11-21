@@ -3,27 +3,27 @@ using System.Globalization;
 using System.Net.Http;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Common.Crunchyroll.SearchDto;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
-using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
-namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId.Client;
+namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetMovieEpisodeId.Client;
 
-public class CrunchyrollTitleIdClient : ICrunchyrollTitleIdClient
+public class CrunchyrollMovieEpisodeIdClient : ICrunchyrollMovieEpisodeIdClient
 {
     private readonly HttpClient _httpClient;
     private readonly PluginConfiguration _pluginConfiguration;
-    private readonly ILogger<CrunchyrollTitleIdClient> _logger;
+    private readonly ILogger<CrunchyrollMovieEpisodeIdClient> _logger;
     private readonly ICrunchyrollSessionRepository _crunchyrollSessionRepository;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
-    public CrunchyrollTitleIdClient(HttpClient httpClient, PluginConfiguration pluginConfiguration, ILogger<CrunchyrollTitleIdClient> logger,
+    public CrunchyrollMovieEpisodeIdClient(HttpClient httpClient, PluginConfiguration pluginConfiguration, ILogger<CrunchyrollMovieEpisodeIdClient> logger,
         ICrunchyrollSessionRepository crunchyrollSessionRepository)
     {
         _httpClient = httpClient;
@@ -40,22 +40,21 @@ public class CrunchyrollTitleIdClient : ICrunchyrollTitleIdClient
         };
     }
     
-    /// <inheritdoc />
-    public async Task<Result<SearchResponse?>> GetTitleIdAsync(string title, CancellationToken cancellationToken)
+    public async Task<Result<SearchResponse?>> SearchTitleIdAsync(string name, CancellationToken cancellationToken)
     {
-        _logger.LogDebug("Fetching titleId for {Title}", title);
+        _logger.LogDebug("Fetching episode id for {Name}", name);
         
-        var urlEncodedTitle = UrlEncoder.Default.Encode(title);
+        var urlEncodedName = UrlEncoder.Default.Encode(name);
 
         var locacle = new CultureInfo(_pluginConfiguration.CrunchyrollLanguage).Name;
         var path =
-            $"content/v2/discover/search?q={urlEncodedTitle}&n=6&type=series,movie_listing&ratings=true&locale={locacle}";
+            $"content/v2/discover/search?q={urlEncodedName}&n=6&type=episode&ratings=true&locale={locacle}";
 
         var bearerToken = await _crunchyrollSessionRepository.GetAsync(cancellationToken);
 
         if (string.IsNullOrWhiteSpace(bearerToken))
         {
-            return Result.Fail(ErrorCodes.CrunchyrollSessionMissing);
+            return Result.Fail(Domain.Constants.ErrorCodes.CrunchyrollSessionMissing);
         }
 
         var requestMessage = new HttpRequestMessage()
@@ -70,7 +69,7 @@ public class CrunchyrollTitleIdClient : ICrunchyrollTitleIdClient
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Crunchyroll search failed");
-            return Result.Fail(ErrorCodes.CrunchyrollSearchFailed);
+            return Result.Fail(Domain.Constants.ErrorCodes.CrunchyrollSearchFailed);
         }
 
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -78,25 +77,28 @@ public class CrunchyrollTitleIdClient : ICrunchyrollTitleIdClient
 
         if (crunchyrollSearchResponse is null)
         {
-            return Result.Fail(ErrorCodes.CrunchyrollSearchContentIncompatible);
+            return Result.Fail(Domain.Constants.ErrorCodes.CrunchyrollSearchContentIncompatible);
         }
         
         foreach (var searchData in crunchyrollSearchResponse.Data)
         {
             foreach (var item in searchData.Items)
             {
-                if (item.Title.Equals(title, StringComparison.OrdinalIgnoreCase))
+                var regex = new Regex(name.Replace(" ", ".*"));
+                if (regex.IsMatch(item.Title) && item.EpisodeMetadata is not null)
                 {
                     return new SearchResponse()
                     {
-                        Id = item.Id,
-                        SlugTitle = item.SlugTitle
+                        SeriesId = item.EpisodeMetadata.SeriesId,
+                        SeriesSlugTitle = item.EpisodeMetadata.SeriesSlugTitle,
+                        EpisodeId = item.Id,
+                        EpisodeSlugTitle = item.SlugTitle
                     };
                 }
             }
         }
         
-        _logger.LogDebug("No title id for {Title} was found. response {@Response}", title, crunchyrollSearchResponse);
+        _logger.LogDebug("No episode id movie with name {Name} was found. response {@Response}", name, crunchyrollSearchResponse);
         
         return Result.Ok<SearchResponse?>(null);
     }

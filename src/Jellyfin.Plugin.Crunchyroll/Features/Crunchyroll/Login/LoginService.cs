@@ -21,7 +21,7 @@ public class LoginService : ILoginService
         _crunchyrollSessionRepository = crunchyrollSessionRepository;
     }
     
-    public async ValueTask<Result> LoginAnonymously(CancellationToken cancellationToken)
+    public async ValueTask<Result> LoginAnonymouslyAsync(CancellationToken cancellationToken)
     {
         var currentSession = await _crunchyrollSessionRepository.GetAsync(cancellationToken);
 

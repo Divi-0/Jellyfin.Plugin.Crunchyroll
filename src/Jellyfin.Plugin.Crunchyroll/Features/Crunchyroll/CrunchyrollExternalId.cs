@@ -8,8 +8,8 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 
 public static class CrunchyrollExternalKeys
 {
-    public const string Id = "CrunchyrollPlugin.Crunchyroll.Id";
-    public const string SlugTitle = "CrunchyrollPlugin.Crunchyroll.SlugTitle";
+    public const string SeriesId = "CrunchyrollPlugin.Crunchyroll.Id";
+    public const string SeriesSlugTitle = "CrunchyrollPlugin.Crunchyroll.SlugTitle";
     public const string SeasonId = "CrunchyrollPlugin.Crunchyroll.Season.Id";
     public const string EpisodeId = "CrunchyrollPlugin.Crunchyroll.Episode.Id";
     public const string EpisodeSlugTitle = "CrunchyrollPlugin.Crunchyroll.Episode.SlugTitle";
@@ -20,7 +20,7 @@ public class CrunchyrollExternalId : IExternalId
 {
     public string ProviderName => "Crunchyroll";
 
-    public string Key => CrunchyrollExternalKeys.Id;
+    public string Key => CrunchyrollExternalKeys.SeriesId;
     
     public ExternalIdMediaType? Type => ExternalIdMediaType.Series;
     
@@ -36,7 +36,7 @@ public class CrunchyrollExternalSlugTitle : IExternalId
 {
     public string ProviderName => "Crunchyroll";
 
-    public string Key => CrunchyrollExternalKeys.SlugTitle;
+    public string Key => CrunchyrollExternalKeys.SeriesSlugTitle;
     
     public ExternalIdMediaType? Type => ExternalIdMediaType.Series;
     

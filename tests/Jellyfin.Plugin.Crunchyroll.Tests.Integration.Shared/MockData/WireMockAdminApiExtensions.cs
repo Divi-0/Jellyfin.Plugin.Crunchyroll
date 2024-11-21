@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using AutoFixture;
 using Bogus;
+using Jellyfin.Plugin.Crunchyroll.Common.Crunchyroll.SearchDto;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Fixture;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
@@ -616,14 +617,14 @@ public static class WireMockAdminApiExtensions
                         SlugTitle = CrunchyrollSlugFaker.Generate(title),
                         SeasonNumber = season.IndexNumber!.Value,
                         SeasonSequenceNumber = season.IndexNumber!.Value,
-                        Identifier = $"{season.DisplayParent.ProviderIds[CrunchyrollExternalKeys.Id]}|S{season.IndexNumber!.Value}",
+                        Identifier = $"{season.DisplayParent.ProviderIds[CrunchyrollExternalKeys.SeriesId]}|S{season.IndexNumber!.Value}",
                         SeasonDisplayNumber = season.IndexNumber!.Value.ToString()
                     };
                 })
                 .ToList()
         };
 
-        var titleId = series.ProviderIds[CrunchyrollExternalKeys.Id];
+        var titleId = series.ProviderIds[CrunchyrollExternalKeys.SeriesId];
         
         var builder = wireMockAdminApi.GetMappingBuilder();
         builder.Given(m => m
@@ -762,6 +763,9 @@ public static class WireMockAdminApiExtensions
                         }]]
                     },
                     SequenceNumber = episode.IndexNumber!.Value,
+                    SeasonId = CrunchyrollIdFaker.Generate(),
+                    SeriesId = CrunchyrollIdFaker.Generate(),
+                    SeriesSlugTitle= CrunchyrollSlugFaker.Generate()
                 };
                 return item;
             }).ToList()
@@ -836,7 +840,7 @@ public static class WireMockAdminApiExtensions
         var crunchyrollUrl =
             mockedCrunchyrollUrl.Last() == '/' ? mockedCrunchyrollUrl[..^1] : mockedCrunchyrollUrl;
 
-        var titleId = series.ProviderIds[CrunchyrollExternalKeys.Id];
+        var titleId = series.ProviderIds[CrunchyrollExternalKeys.SeriesId];
         var fakeTitle = $"{new Faker().Random.Words()}-{Random.Shared.Next(9999)}";
         var seriesMetadataResponse = new CrunchyrollSeriesContentItem
         {

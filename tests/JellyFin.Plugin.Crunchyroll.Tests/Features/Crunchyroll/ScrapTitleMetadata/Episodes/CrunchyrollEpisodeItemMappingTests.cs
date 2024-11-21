@@ -40,7 +40,10 @@ public class CrunchyrollEpisodeItemMappingTests
                     Type = "thumbnail"
                 }]]
             },
-            SequenceNumber = 123.4
+            SequenceNumber = 123.4,
+            SeasonId = CrunchyrollIdFaker.Generate(),
+            SeriesId = CrunchyrollIdFaker.Generate(),
+            SeriesSlugTitle= CrunchyrollSlugFaker.Generate()
         };
 
         //Act
@@ -89,7 +92,10 @@ public class CrunchyrollEpisodeItemMappingTests
                     Type = "thumbnail"
                 }]]
             },
-            SequenceNumber = 123.4
+            SequenceNumber = 123.4,
+            SeasonId = CrunchyrollIdFaker.Generate(),
+            SeriesId = CrunchyrollIdFaker.Generate(),
+            SeriesSlugTitle= CrunchyrollSlugFaker.Generate()
         };
 
         //Act
@@ -128,7 +134,10 @@ public class CrunchyrollEpisodeItemMappingTests
             Episode = string.Empty,
             EpisodeNumber = 5,
             Images = new CrunchyrollEpisodeImages(),
-            SequenceNumber = 123.4
+            SequenceNumber = 123.4,
+            SeasonId = CrunchyrollIdFaker.Generate(),
+            SeriesId = CrunchyrollIdFaker.Generate(),
+            SeriesSlugTitle= CrunchyrollSlugFaker.Generate()
         };
 
         //Act

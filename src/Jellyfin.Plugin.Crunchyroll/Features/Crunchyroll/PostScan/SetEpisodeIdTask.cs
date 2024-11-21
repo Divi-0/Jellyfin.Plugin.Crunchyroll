@@ -30,7 +30,7 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
     
     public async Task RunAsync(BaseItem seasonItem, CancellationToken cancellationToken)
     {
-        var hasTitleId = seasonItem.DisplayParent.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out var titleId) &&
+        var hasTitleId = seasonItem.DisplayParent.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out var titleId) &&
                           !string.IsNullOrWhiteSpace(titleId);
         
         var hasSeasonId = seasonItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeasonId, out var seasonId) &&

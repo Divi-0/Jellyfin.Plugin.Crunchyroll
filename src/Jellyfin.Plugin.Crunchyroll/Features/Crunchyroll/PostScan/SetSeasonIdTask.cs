@@ -30,7 +30,7 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
 
     public async Task RunAsync(BaseItem seriesItem, CancellationToken cancellationToken)
     {
-        seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.Id, out string? titleId);
+        seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out string? titleId);
 
         //Some seasons on crunchyroll like One Piece have duplicate SeasonNumbers
         var seasonNumberDuplicateCounters = new Dictionary<int, int>();

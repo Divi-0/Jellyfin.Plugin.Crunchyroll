@@ -56,7 +56,7 @@ public static class LibraryManagerMock
             {
                 ProviderIds = new Dictionary<string, string>
                 {
-                    { CrunchyrollExternalKeys.Id, providerId }
+                    { CrunchyrollExternalKeys.SeriesId, providerId }
                 }
             });
 

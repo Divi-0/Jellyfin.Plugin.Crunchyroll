@@ -27,7 +27,7 @@ public class ScrapTitleMetadataTaskTests
     {
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
-        var titleId = series.ProviderIds[CrunchyrollExternalKeys.Id];
+        var titleId = series.ProviderIds[CrunchyrollExternalKeys.SeriesId];
         
         _mediator
             .Send(new ScrapTitleMetadataCommand { TitleId = titleId }, 

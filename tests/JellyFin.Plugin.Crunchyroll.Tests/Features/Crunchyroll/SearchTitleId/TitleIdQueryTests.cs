@@ -35,7 +35,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
             var slutTitle = _fixture.Create<string>();
             
             _loginService
-                .LoginAnonymously(Arg.Any<CancellationToken>())
+                .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
                 .Returns(Result.Ok());
 
             _crunchyrollClientMock
@@ -57,7 +57,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
 
             await _loginService
                 .Received(1)
-                .LoginAnonymously(Arg.Any<CancellationToken>());
+                .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -68,7 +68,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
             const string errorcode = "error";
 
             _loginService
-                .LoginAnonymously(Arg.Any<CancellationToken>())
+                .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
                 .Returns(Result.Ok());
 
             _crunchyrollClientMock
@@ -85,7 +85,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
             
             await _loginService
                 .Received(1)
-                .LoginAnonymously(Arg.Any<CancellationToken>());
+                .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -96,7 +96,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
             const string errorcode = "error123";
 
             _loginService
-                .LoginAnonymously(Arg.Any<CancellationToken>())
+                .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
                 .Returns(Result.Fail(errorcode));
 
             //Act
@@ -109,7 +109,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
             
             await _loginService
                 .Received(1)
-                .LoginAnonymously(Arg.Any<CancellationToken>());
+                .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
 
             await _crunchyrollClientMock
                 .DidNotReceive()
