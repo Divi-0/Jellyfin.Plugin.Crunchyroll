@@ -12,7 +12,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.E2E.Pages;
 public static class SeriesPage
 {
     /// <returns>Series details page</returns>
-    public static async Task<IPage> SeriesShouldHaveDataFromCrunchyrollAsync(this IPage page, string jellyfinUrl, 
+    public static async Task<IPage> SeriesShouldHaveDataFromCrunchyrollAsync(this IPage page, IBrowser browser, string jellyfinUrl, 
         string seriesCrunchyrollId, CultureInfo language, int expectedReviewsCount)
     {
         var seriesClient = await CrunchyrollClientHelper.GetSeriesClientAsync();
@@ -23,6 +23,8 @@ public static class SeriesPage
         await page.GoToSeriesPageAsync(jellyfinUrl, seriesMetadata.Title);
         await page.SeriesShouldHaveMetadataAsync(seriesMetadata);
         await page.SeriesShouldHaveReviewsAsync(expectedReviewsCount);
+        
+        await page.ShouldHaveSeasonsWithMetadataAsync(seriesCrunchyrollId, browser);
 
         return page;
     }

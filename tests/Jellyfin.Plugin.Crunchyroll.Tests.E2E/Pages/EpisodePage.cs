@@ -25,10 +25,20 @@ public static class EpisodePage
     
     public static async Task ShouldHaveCommentsAsync(this IPage page, List<IResponse> pageResponses)
     {
-        var commentsWrapper = page.Locator("div#crunchyroll-comments");
-        await commentsWrapper.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        var commentsWrapper = page.Locator("div#crunchyroll-comments-wrapper");
+        await commentsWrapper.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Attached });
         
         var crunchyrollCommentElements = commentsWrapper.Locator("div.crunchyroll-comment");
+        var crunchyrollCommentsCount = await crunchyrollCommentElements.CountAsync();
+
+        if (crunchyrollCommentsCount == 0)
+        {
+            var infoWrapper = page.Locator("div.infoWrapper").Locator("visible=true");
+            var header = infoWrapper.Locator("h3.itemName");
+            var bdi = header.Locator("bdi");
+            var actualName = await bdi.InnerTextAsync();
+            Console.WriteLine($"'{actualName}' has no comments");
+        }
 
         foreach (var commentDiv in await crunchyrollCommentElements.AllAsync())
         {

@@ -70,7 +70,7 @@ public static class SeasonPage
         {
             var responses = new List<IResponse>();
             var episodePage = await browser.NewPageAsync();
-            episodePage.Response += (sender, e) =>
+            episodePage.Response += (_, e) =>
             {
                 responses.Add(e);
             };

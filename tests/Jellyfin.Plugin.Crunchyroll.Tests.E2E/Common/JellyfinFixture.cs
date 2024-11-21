@@ -41,7 +41,7 @@ public sealed class JellyfinFixture : IAsyncLifetime
         
         try
         {
-            Directory.Delete(_localVideoPath, true);
+            //Directory.Delete(_localVideoPath, true);
         }
         catch
         {

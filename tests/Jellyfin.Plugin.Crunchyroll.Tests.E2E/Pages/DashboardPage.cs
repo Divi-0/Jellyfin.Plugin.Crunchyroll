@@ -40,17 +40,8 @@ public static class DashboardPage
         await dashboardActionsContainer.WaitForAsync(new LocatorWaitForOptions() { State = WaitForSelectorState.Visible });
         await dashboardActionsContainer.Locator("button#btnRestartServer").ClickAsync();
 
-        var allDeleteButtons = await page.Locator(".button-delete").AllAsync();
-
-        foreach (var deleteButton in allDeleteButtons)
-        {
-            //Find visibile delete button to restart the server
-            if (await deleteButton.IsVisibleAsync())
-            {
-                await deleteButton.ClickAsync();
-                break;
-            }
-        }
+        var deleteButton = page.Locator(".button-delete").Locator("visible=true");
+        await deleteButton.ClickAsync();
 
         IResponse response;
         do

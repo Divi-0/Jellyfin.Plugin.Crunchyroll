@@ -6,7 +6,15 @@ public static class CreateVideoFolderHelper
     {
         Directory.CreateDirectory(basePath);
         
-        CreateOnePieceFolder(basePath);
+        //CreateOnePieceFolder(basePath);
+        CreateSwordArtOnlineFolder(basePath);
+        CreateAttackOnTitan(basePath);
+        CreateThatTimeIGotReincarnatedAsASlime(basePath);
+        CreateBlueExorcist(basePath);
+        CreateJoJosBizarreAdventure(basePath);
+        CreateRurouniKenshin(basePath);
+        CreateCardfightVanguardOverDress(basePath);
+        CreateLaidBackCamp(basePath);
     }
 
     private static DirectoryInfo CreateSeasonsFolderWithEpisodes(string seriesPath, int seasonNumber, int nextEpisodeNumber, 
@@ -19,7 +27,7 @@ public static class CreateVideoFolderHelper
         
         for (; currentEpisodeNumber <= totalEpisodes; currentEpisodeNumber++)
         {
-            File.WriteAllBytesAsync(Path.Combine(seasonDirectory.FullName, $"S{seasonNumber}E{currentEpisodeNumber:0000}.mp4"), []);
+            File.WriteAllBytesAsync(Path.Combine(seasonDirectory.FullName, $"S{seasonNumber:00}E{currentEpisodeNumber:0000}.mp4"), []);
         }
 
         return seasonDirectory;
@@ -61,7 +69,7 @@ public static class CreateVideoFolderHelper
         File.WriteAllBytesAsync(Path.Combine(seasonThirteenDir.FullName, "S13E-SP11 - A Very Special Feature! Momonosuke's Road to Becoming a Great Shogun.mp4"), []);
         
         var seasonFourteenDir = 
-            CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 14, nextEpisodeNumber: 1089, episodeCount: 39);
+            CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 14, nextEpisodeNumber: 1089, episodeCount: 33);
         
         File.WriteAllBytesAsync(Path.Combine(seasonFourteenDir.FullName, "S14E-SP12 - A Project to Fully Enjoy! ‘Surgeon of Death’ Trafalgar Law.mp4"), []);
         File.WriteAllBytesAsync(Path.Combine(seasonFourteenDir.FullName, "S14E-SP13 - The Log of the Rivalry! The Straw Hats vs. Cipher Pol.mp4"), []);
@@ -75,5 +83,236 @@ public static class CreateVideoFolderHelper
         var onePieceFishManIslandSagaSeasonDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "One Piece Log Fish-Man Island Saga (Current)"));
         File.WriteAllBytesAsync(Path.Combine(onePieceFishManIslandSagaSeasonDirectory.FullName, "E-FMI1 - Abc.mp4"), []);
         File.WriteAllBytesAsync(Path.Combine(onePieceFishManIslandSagaSeasonDirectory.FullName, "E-FMI2 - Def.mp4"), []);
+    }
+    
+    private static void CreateSwordArtOnlineFolder(string basePath)
+    {
+        var seriesDirectory = Directory.CreateDirectory(Path.Combine(basePath, "Sword Art Online"));
+        
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 1, nextEpisodeNumber: 1, episodeCount: 25);
+        var seasonTwoDirectory = CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 2, nextEpisodeNumber: 1, episodeCount: 24);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoDirectory.FullName, "S02E14.5.mp4"), []);
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 3, nextEpisodeNumber: 1, episodeCount: 24);
+            
+        var alicizationWarOfUnderworldDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "Alicization War of Underworld"));
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E01.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E02.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E03.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E04.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E05.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E06.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E07.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E08.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E09.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E10.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E11.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E12.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E13.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E14.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E15.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E16.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E17.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E18.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E19.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E20.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E21.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E22.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(alicizationWarOfUnderworldDirectory.FullName, "E23.mp4"), []);
+            
+        var movieOrdinalScaleDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "Sword Art Online the Movie -Ordinal Scale-"));
+        File.WriteAllBytesAsync(Path.Combine(movieOrdinalScaleDirectory.FullName, "Ordinal Scale.mp4"), []);
+            
+        var movieAriaOfAStarlessNightDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "Sword Art Online the Movie -Progressive- Aria of a Starless Night"));
+        File.WriteAllBytesAsync(Path.Combine(movieAriaOfAStarlessNightDirectory.FullName, "Sword Art Online the Movie -Progressive- Aria of a Starless Night.mp4"), []);
+            
+        var movieScherzoOfDeepNightDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "Sword Art Online the Movie -Progressive- Scherzo of Deep Night"));
+        File.WriteAllBytesAsync(Path.Combine(movieScherzoOfDeepNightDirectory.FullName, "Sword Art Online the Movie -Progressive- Scherzo.mp4"), []);
+    }
+    
+    private static void CreateAttackOnTitan(string basePath)
+    {
+        var seriesDirectory = Directory.CreateDirectory(Path.Combine(basePath, "Attack on Titan"));
+        
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 2, nextEpisodeNumber: 26, episodeCount: 12);
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 3, nextEpisodeNumber: 38, episodeCount: 22);
+        var seasonFourDirectory = CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 4, nextEpisodeNumber: 60, episodeCount: 28);
+        File.WriteAllBytesAsync(Path.Combine(seasonFourDirectory.FullName, "S04E-SP1.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonFourDirectory.FullName, "S04E-SP2.mp4"), []);
+        
+        var oadsDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "Attack on Titan OADs"));
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E01.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E02.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E03.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E04.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E05.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E06.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E07.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E08.mp4"), []);
+    }
+    
+    private static void CreateThatTimeIGotReincarnatedAsASlime(string basePath)
+    {
+        var seriesDirectory = Directory.CreateDirectory(Path.Combine(basePath, "That Time I Got Reincarnated As A Slime"));
+        
+        var seasonOneDirectory = CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 1, nextEpisodeNumber: 1, episodeCount: 24);
+        File.WriteAllBytesAsync(Path.Combine(seasonOneDirectory.FullName, "S01E0024.5.mp4"), []);
+        
+        var seasonTwoDirectory = CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 2, nextEpisodeNumber: 25, episodeCount: 24);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoDirectory.FullName, "S02E0024.9.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoDirectory.FullName, "S02E0036.5.mp4"), []);
+        
+        var seasonThreeDirectory = CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 3, nextEpisodeNumber: 49, episodeCount: 24);
+        File.WriteAllBytesAsync(Path.Combine(seasonThreeDirectory.FullName, "S03E0048.5.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonThreeDirectory.FullName, "S03E0065.5.mp4"), []);
+        
+        var oadsDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "That Time I Got Reincarnated as a Slime OAD"));
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E01.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E02.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E03.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E04.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(oadsDirectory.FullName, "E05.mp4"), []);
+        
+        var movieDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "That Time I Got Reincarnated as a Slime the Movie Scarlet Bond"));
+        File.WriteAllBytesAsync(Path.Combine(movieDirectory.FullName, "That Time I Got Reincarnated as a Slime the Movie Scarlet Bond.mp4"), []);
+        
+        var visionsOfColeusDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "That Time I Got Reincarnated as a Slime Visions of Coleus"));
+        File.WriteAllBytesAsync(Path.Combine(visionsOfColeusDirectory.FullName, "E01.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(visionsOfColeusDirectory.FullName, "E02.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(visionsOfColeusDirectory.FullName, "E03.mp4"), []);
+    }
+    
+    private static void CreateBlueExorcist(string basePath)
+    {
+        var seriesDirectory = Directory.CreateDirectory(Path.Combine(basePath, "Blue Exorcist"));
+        
+        var shimaneIlluminatiSagaDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "Season 3 - Shimane Illuminati Saga"));
+        File.WriteAllBytesAsync(Path.Combine(shimaneIlluminatiSagaDirectory.FullName, "S03E01.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(shimaneIlluminatiSagaDirectory.FullName, "S03E02.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(shimaneIlluminatiSagaDirectory.FullName, "S03E03.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(shimaneIlluminatiSagaDirectory.FullName, "S03E04.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(shimaneIlluminatiSagaDirectory.FullName, "S03E05.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(shimaneIlluminatiSagaDirectory.FullName, "S03E06.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(shimaneIlluminatiSagaDirectory.FullName, "S03E07.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(shimaneIlluminatiSagaDirectory.FullName, "S03E08.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(shimaneIlluminatiSagaDirectory.FullName, "S03E09.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(shimaneIlluminatiSagaDirectory.FullName, "S03E10.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(shimaneIlluminatiSagaDirectory.FullName, "S03E11.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(shimaneIlluminatiSagaDirectory.FullName, "S03E12.mp4"), []);
+        
+        var beyondTheSnowSagaDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "Season 3 - Beyond the Snow Saga"));
+        File.WriteAllBytesAsync(Path.Combine(beyondTheSnowSagaDirectory.FullName, "S03E01.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(beyondTheSnowSagaDirectory.FullName, "S03E02.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(beyondTheSnowSagaDirectory.FullName, "S03E03.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(beyondTheSnowSagaDirectory.FullName, "S03E04.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(beyondTheSnowSagaDirectory.FullName, "S03E05.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(beyondTheSnowSagaDirectory.FullName, "S03E06.mp4"), []);
+    }
+    
+    private static void CreateJoJosBizarreAdventure(string basePath)
+    {
+        var seriesDirectory = Directory.CreateDirectory(Path.Combine(basePath, "JoJo's Bizarre Adventure"));
+        
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 1, nextEpisodeNumber: 1, episodeCount: 26);
+        var seasonOneReEditedDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "Season 1 - Re-Edited"));
+        File.WriteAllBytesAsync(Path.Combine(seasonOneReEditedDirectory.FullName, "S01E01.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonOneReEditedDirectory.FullName, "S01E02.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonOneReEditedDirectory.FullName, "S01E03.mp4"), []);
+        
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 2, nextEpisodeNumber: 1, episodeCount: 24);
+        var seasonTwoPartTwoDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "Season 2 - Battle in Egypt"));
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E25.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E26.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E27.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E28.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E29.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E30.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E31.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E32.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E33.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E34.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E35.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E36.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E37.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E38.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E39.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E40.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E41.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E42.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E43.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E44.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E45.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E46.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E47.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E48.mp4"), []);
+        
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 3, nextEpisodeNumber: 1, episodeCount: 39);
+        var seasonFourDirectory = CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 4, nextEpisodeNumber: 1, episodeCount: 39);
+        File.WriteAllBytesAsync(Path.Combine(seasonFourDirectory.FullName, "S04E0013.5.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonFourDirectory.FullName, "S04E0021.5.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonFourDirectory.FullName, "S04E0028.5.mp4"), []);
+    }
+    
+    private static void CreateRurouniKenshin(string basePath)
+    {
+        var seriesDirectory = Directory.CreateDirectory(Path.Combine(basePath, "Rurouni Kenshin"));
+        
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 1, nextEpisodeNumber: 1, episodeCount: 24);
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 2, nextEpisodeNumber: 25, episodeCount: 7);
+    }
+    
+    private static void CreateCardfightVanguardOverDress(string basePath)
+    {
+        var seriesDirectory = Directory.CreateDirectory(Path.Combine(basePath, "CARDFIGHT!! VANGUARD overDress"));
+        
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 1, nextEpisodeNumber: 1, episodeCount: 25);
+
+        var willDressSeasonOneDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "Season 1 - CARDFIGHT!! VANGUARD will+Dress"));
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E01.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E02.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E03.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E04.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E05.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E06.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E07.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E08.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E09.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E10.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E11.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E12.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(willDressSeasonOneDirectory.FullName, "E13.mp4"), []);
+        
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 2, nextEpisodeNumber: 1, episodeCount: 13);
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 3, nextEpisodeNumber: 1, episodeCount: 13);
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 4, nextEpisodeNumber: 1, episodeCount: 13);
+        
+        var divinezSeasonTwoDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "CARDFIGHT!! VANGUARD Divinez Season 2"));
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E01.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E02.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E03.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E04.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E05.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E06.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E07.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E08.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E09.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E10.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E11.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E12.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(divinezSeasonTwoDirectory.FullName, "E13.mp4"), []);
+    }
+    
+    private static void CreateLaidBackCamp(string basePath)
+    {
+        var seriesDirectory = Directory.CreateDirectory(Path.Combine(basePath, "Laid-Back Camp"));
+        
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 1, nextEpisodeNumber: 1, episodeCount: 12);
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 2, nextEpisodeNumber: 1, episodeCount: 13);
+        var seasonThreeDirectory = CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 3, nextEpisodeNumber: 1, episodeCount: 12);
+        File.WriteAllBytesAsync(Path.Combine(seasonThreeDirectory.FullName, "S03E13A.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonThreeDirectory.FullName, "S03E13B.mp4"), []);
+        File.WriteAllBytesAsync(Path.Combine(seasonThreeDirectory.FullName, "S03E13C.mp4"), []);
+        
+        var movieDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "Laid-Back Camp Movie"));
+        File.WriteAllBytesAsync(Path.Combine(movieDirectory.FullName, "Laid-Back Camp Movie.mp4"), []);
     }
 }

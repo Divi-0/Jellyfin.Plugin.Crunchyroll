@@ -173,6 +173,7 @@ function getReviewsHtml(reviews){
 
 function getCommentsHtml(comments){
     let commentsWrapper = document.createElement("div");
+    commentsWrapper.id = "crunchyroll-comments-wrapper"
     commentsWrapper.style.marginBottom = ".5rem";
     
     commentsWrapper.innerHTML = `
