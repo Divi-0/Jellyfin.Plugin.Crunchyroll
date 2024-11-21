@@ -30,7 +30,7 @@ public class RunScanTests
             await page.StartLibraryScan(_jellyfinFixture.Url);
 
             //One Piece
-            await page.SeriesShouldHaveDataFromCrunchyrollAsync(_browser, _jellyfinFixture.Url, "GRMG8ZQZR", 5);
+            await page.SeriesShouldHaveDataFromCrunchyrollAsync(_jellyfinFixture.Url, "GRMG8ZQZR", 5);
         }
         catch(Exception)
         {
