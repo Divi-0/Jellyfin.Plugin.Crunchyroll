@@ -3,6 +3,9 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.MediaInfo;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
@@ -13,29 +16,47 @@ public class ScrapTitleMetadataTaskTests
     private readonly ScrapTitleMetadataTask _sut;
 
     private readonly IMediator _mediator;
+    private readonly IMediaSourceManager _mediaSourceManager;
     
     public ScrapTitleMetadataTaskTests()
     {
         _mediator = Substitute.For<IMediator>();
+        _mediaSourceManager = MockHelper.MediaSourceManager;
         var logger = Substitute.For<ILogger<ScrapTitleMetadataTask>>();
         
         _sut = new ScrapTitleMetadataTask(_mediator, logger);
     }
 
-    [Fact]
-    public async Task CallsMediatorCommand_WhenSuccessful_GivenSeriesWithTitleId()
+    public static IEnumerable<object[]> RandomSeriesAndMovieWithIds()
+    {
+        yield return [SeriesFaker.GenerateWithTitleId()];
+        yield return [MovieFaker.GenerateWithCrunchyrollIds()];
+    }
+
+    public static IEnumerable<object[]> RandomSeriesAndMovieWithoutIds()
+    {
+        yield return [SeriesFaker.Generate()];
+        yield return [MovieFaker.Generate()];
+    }
+
+    [Theory]
+    [MemberData(nameof(RandomSeriesAndMovieWithIds))]
+    public async Task CallsMediatorCommand_WhenSuccessful_GivenSeriesWithTitleId(BaseItem baseItem)
     {
         //Arrange
-        var series = SeriesFaker.GenerateWithTitleId();
-        var titleId = series.ProviderIds[CrunchyrollExternalKeys.SeriesId];
-        
+        var titleId = baseItem.ProviderIds[CrunchyrollExternalKeys.SeriesId];
+         
         _mediator
             .Send(new ScrapTitleMetadataCommand { TitleId = titleId }, 
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
+        _mediaSourceManager
+            .GetPathProtocol(baseItem.Path)
+            .Returns(MediaProtocol.File);
+        
         //Act
-        await _sut.RunAsync(series, CancellationToken.None);
+        await _sut.RunAsync(baseItem, CancellationToken.None);
 
         //Assert
         await _mediator
@@ -44,14 +65,17 @@ public class ScrapTitleMetadataTaskTests
                 Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task DoesNotCallMediatorCommand_WhenSeriesHasNoTitleId_GivenSeriesWithNoTitleId()
+    [Theory]
+    [MemberData(nameof(RandomSeriesAndMovieWithoutIds))]
+    public async Task DoesNotCallMediatorCommand_WhenSeriesHasNoTitleId_GivenSeriesWithNoTitleId(BaseItem baseItem)
     {
         //Arrange
-        var series = SeriesFaker.Generate();
+        _mediaSourceManager
+            .GetPathProtocol(baseItem.Path)
+            .Returns(MediaProtocol.File);
         
         //Act
-        await _sut.RunAsync(series, CancellationToken.None);
+        await _sut.RunAsync(baseItem, CancellationToken.None);
 
         //Assert
         await _mediator
@@ -59,14 +83,17 @@ public class ScrapTitleMetadataTaskTests
             .Send(Arg.Any<ScrapTitleMetadataCommand>(), Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task DoesNotCallMediatorCommand_WhenSeriesHasNoSlugTitle_GivenSeriesWithNoSlugTitle()
+    [Theory]
+    [MemberData(nameof(RandomSeriesAndMovieWithoutIds))]
+    public async Task DoesNotCallMediatorCommand_WhenSeriesHasNoSlugTitle_GivenSeriesWithNoSlugTitle(BaseItem baseItem)
     {
         //Arrange
-        var series = SeriesFaker.Generate();
+        _mediaSourceManager
+            .GetPathProtocol(baseItem.Path)
+            .Returns(MediaProtocol.File);
         
         //Act
-        await _sut.RunAsync(series, CancellationToken.None);
+        await _sut.RunAsync(baseItem, CancellationToken.None);
 
         //Assert
         await _mediator

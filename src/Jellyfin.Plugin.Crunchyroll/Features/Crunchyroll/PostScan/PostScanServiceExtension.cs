@@ -30,6 +30,8 @@ internal static class PostScanServiceExtension
         serviceCollection.AddOverwriteSeriesJellyfinData();
         serviceCollection.AddOverwriteEpisodeJellyfinData();
         serviceCollection.AddSetMovieEpisodeId();
+        
+        serviceCollection.AddSingleton<IPostMovieIdSetTask, ScrapTitleMetadataTask>();
 
         return serviceCollection;
     }

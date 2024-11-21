@@ -16,15 +16,15 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan.SetMov
 public class SetMovieEpisodeIdTaskTests
 {
     private readonly SetMovieEpisodeIdTask _sut;
-    private readonly IPostEpisodeIdSetTask[] _postEpisodeIdSetTasks;
+    private readonly IPostMovieIdSetTask[] _postMovieIdSetTasks;
     private readonly ICrunchyrollMovieEpisodeIdClient _client;
     private readonly ILoginService _loginService;
     private readonly IMediaSourceManager _mediaSourceManager;
 
     public SetMovieEpisodeIdTaskTests()
     {
-        _postEpisodeIdSetTasks = Enumerable.Range(0, Random.Shared.Next(1, 10))
-            .Select(_ => Substitute.For<IPostEpisodeIdSetTask>())
+        _postMovieIdSetTasks = Enumerable.Range(0, Random.Shared.Next(1, 10))
+            .Select(_ => Substitute.For<IPostMovieIdSetTask>())
             .ToArray();
         
         var logger = Substitute.For<ILogger<SetMovieEpisodeIdTask>>();
@@ -32,7 +32,7 @@ public class SetMovieEpisodeIdTaskTests
         _loginService = Substitute.For<ILoginService>();
         _mediaSourceManager = MockHelper.MediaSourceManager;
         
-        _sut = new SetMovieEpisodeIdTask(logger, _postEpisodeIdSetTasks, _client, _loginService);
+        _sut = new SetMovieEpisodeIdTask(logger, _postMovieIdSetTasks, _client, _loginService);
     }
     
     [Fact]
@@ -68,7 +68,7 @@ public class SetMovieEpisodeIdTaskTests
         
         //Assert
 
-        foreach (var task in _postEpisodeIdSetTasks)
+        foreach (var task in _postMovieIdSetTasks)
         {
             await task
                 .Received(1)
@@ -99,7 +99,7 @@ public class SetMovieEpisodeIdTaskTests
         
         //Assert
 
-        foreach (var task in _postEpisodeIdSetTasks)
+        foreach (var task in _postMovieIdSetTasks)
         {
             await task
                 .Received(1)
@@ -130,7 +130,7 @@ public class SetMovieEpisodeIdTaskTests
         
         //Assert
 
-        foreach (var task in _postEpisodeIdSetTasks)
+        foreach (var task in _postMovieIdSetTasks)
         {
             await task
                 .DidNotReceive()
@@ -161,7 +161,7 @@ public class SetMovieEpisodeIdTaskTests
         movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.EpisodeId);
         movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
 
-        foreach (var task in _postEpisodeIdSetTasks)
+        foreach (var task in _postMovieIdSetTasks)
         {
             await task
                 .DidNotReceive()
@@ -184,7 +184,7 @@ public class SetMovieEpisodeIdTaskTests
         series.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.EpisodeId);
         series.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
 
-        foreach (var task in _postEpisodeIdSetTasks)
+        foreach (var task in _postMovieIdSetTasks)
         {
             await task
                 .DidNotReceive()

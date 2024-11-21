@@ -3,12 +3,13 @@ using System.Threading.Tasks;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 
-public class ScrapTitleMetadataTask : IPostTitleIdSetTask
+public class ScrapTitleMetadataTask : IPostTitleIdSetTask, IPostMovieIdSetTask
 {
     private readonly IMediator _mediator;
     private readonly ILogger<ScrapTitleMetadataTask> _logger;
@@ -30,7 +31,7 @@ public class ScrapTitleMetadataTask : IPostTitleIdSetTask
         if (!hasId || !hasSlugTitle)
         {
             //if item has no id or slugTitle, skip this item
-            _logger.LogDebug("No crunchyroll ids found on series item {Name}. Skipping...", seriesItem.Name);
+            _logger.LogDebug("No crunchyroll ids found on item {Name}. Skipping...", seriesItem.FileNameWithoutExtension);
             return;
         }
 
@@ -39,4 +40,7 @@ public class ScrapTitleMetadataTask : IPostTitleIdSetTask
             TitleId = id!
         }, cancellationToken);
     }
+
+    public async Task RunAsync(Movie movie, CancellationToken cancellationToken)
+        => await RunAsync(seriesItem: movie, cancellationToken);
 }

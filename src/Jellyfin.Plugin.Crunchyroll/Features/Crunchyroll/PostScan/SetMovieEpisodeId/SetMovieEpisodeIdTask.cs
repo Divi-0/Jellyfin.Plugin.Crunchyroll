@@ -14,15 +14,15 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetMovieEpis
 public class SetMovieEpisodeIdTask : IPostMovieScanTask
 {
     private readonly ILogger<SetMovieEpisodeIdTask> _logger;
-    private readonly IEnumerable<IPostEpisodeIdSetTask> _postEpisodeIdSetTasks;
+    private readonly IEnumerable<IPostMovieIdSetTask> _postmovieIdSetTasks;
     private readonly ICrunchyrollMovieEpisodeIdClient _client;
     private readonly ILoginService _loginService;
 
-    public SetMovieEpisodeIdTask(ILogger<SetMovieEpisodeIdTask> logger, IEnumerable<IPostEpisodeIdSetTask> postEpisodeIdSetTasks,
+    public SetMovieEpisodeIdTask(ILogger<SetMovieEpisodeIdTask> logger, IEnumerable<IPostMovieIdSetTask> postmovieIdSetTasks,
         ICrunchyrollMovieEpisodeIdClient client, ILoginService loginService)
     {
         _logger = logger;
-        _postEpisodeIdSetTasks = postEpisodeIdSetTasks;
+        _postmovieIdSetTasks = postmovieIdSetTasks;
         _client = client;
         _loginService = loginService;
     }
@@ -73,7 +73,7 @@ public class SetMovieEpisodeIdTask : IPostMovieScanTask
 
     private async Task RunPostTasksAsync(Movie movie, CancellationToken cancellationToken)
     {
-        foreach (var task in _postEpisodeIdSetTasks)
+        foreach (var task in _postmovieIdSetTasks)
         {
             await task.RunAsync(movie, cancellationToken);
         }
