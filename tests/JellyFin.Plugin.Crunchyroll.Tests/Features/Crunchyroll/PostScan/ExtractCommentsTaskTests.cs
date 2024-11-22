@@ -4,6 +4,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
+using MediaBrowser.Controller.Entities;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
@@ -25,13 +26,25 @@ public class ExtractCommentsTaskTests
         _sut = new ExtractCommentsTask(_mediator, _config, logger);
     }
     
-    [Fact]
-    public async Task CallsMediatorCommand_WhenSuccessful_GivenEpisodeWithIdAndSlugTitle()
+    public static IEnumerable<object[]> RandomEpisodeAndMovieWithIds()
+    {
+        yield return [EpisodeFaker.GenerateWithEpisodeId()];
+        yield return [MovieFaker.GenerateWithCrunchyrollIds()];
+    }
+
+    public static IEnumerable<object[]> RandomEpisodeAndMovieWithoutIds()
+    {
+        yield return [EpisodeFaker.Generate()];
+        yield return [MovieFaker.Generate()];
+    }
+    
+    [Theory]
+    [MemberData(nameof(RandomEpisodeAndMovieWithIds))]
+    public async Task CallsMediatorCommand_WhenSuccessful_GivenEpisodeWithIdAndSlugTitle(BaseItem baseItem)
     {
         //Arrange
-        var series = EpisodeFaker.GenerateWithEpisodeId();
-        var episodeId = series.ProviderIds[CrunchyrollExternalKeys.EpisodeId];
-        var slugTitle = series.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle];
+        var episodeId = baseItem.ProviderIds[CrunchyrollExternalKeys.EpisodeId];
+        var slugTitle = baseItem.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle];
         
         _mediator
             .Send(new ExtractCommentsCommand(episodeId, slugTitle), 
@@ -39,7 +52,7 @@ public class ExtractCommentsTaskTests
             .Returns(Result.Ok());
         
         //Act
-        await _sut.RunAsync(series, CancellationToken.None);
+        await _sut.RunAsync(baseItem, CancellationToken.None);
 
         //Assert
         await _mediator
@@ -48,14 +61,14 @@ public class ExtractCommentsTaskTests
                 Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task DoesNotCallMediatorCommand_WhenEpisodeHasNoTitleId_GivenEpisodeWithNoTitleId()
+    [Theory]
+    [MemberData(nameof(RandomEpisodeAndMovieWithoutIds))]
+    public async Task DoesNotCallMediatorCommand_WhenEpisodeHasNoTitleId_GivenEpisodeWithNoTitleId(BaseItem baseItem)
     {
         //Arrange
-        var series = EpisodeFaker.Generate();
         
         //Act
-        await _sut.RunAsync(series, CancellationToken.None);
+        await _sut.RunAsync(baseItem, CancellationToken.None);
 
         //Assert
         await _mediator
@@ -63,14 +76,14 @@ public class ExtractCommentsTaskTests
             .Send(Arg.Any<ExtractCommentsCommand>(), Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task DoesNotCallMediatorCommand_WhenEpisodeHasNoSlugTitle_GivenEpisodeWithNoSlugTitle()
+    [Theory]
+    [MemberData(nameof(RandomEpisodeAndMovieWithoutIds))]
+    public async Task DoesNotCallMediatorCommand_WhenEpisodeHasNoSlugTitle_GivenEpisodeWithNoSlugTitle(BaseItem baseItem)
     {
         //Arrange
-        var series = EpisodeFaker.Generate();
         
         //Act
-        await _sut.RunAsync(series, CancellationToken.None);
+        await _sut.RunAsync(baseItem, CancellationToken.None);
 
         //Assert
         await _mediator
@@ -78,16 +91,15 @@ public class ExtractCommentsTaskTests
             .Send(Arg.Any<ExtractCommentsCommand>(), Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task DoesNotCallMediatorCommand_WhenWaybackMachineIsDisabled_GivenEpisodeWithTitleId()
+    [Theory]
+    [MemberData(nameof(RandomEpisodeAndMovieWithIds))]
+    public async Task DoesNotCallMediatorCommand_WhenWaybackMachineIsDisabled_GivenEpisodeWithTitleId(BaseItem baseItem)
     {
         //Arrange
-        var series = EpisodeFaker.GenerateWithEpisodeId();
-        
         _config.IsWaybackMachineEnabled = false;
         
         //Act
-        await _sut.RunAsync(series, CancellationToken.None);
+        await _sut.RunAsync(baseItem, CancellationToken.None);
 
         //Assert
         await _mediator
