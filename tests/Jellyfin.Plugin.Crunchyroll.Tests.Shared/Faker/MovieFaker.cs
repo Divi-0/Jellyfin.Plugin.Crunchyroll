@@ -13,6 +13,7 @@ public class MovieFaker
             .RuleFor(x => x.Id, Guid.NewGuid())
             .RuleFor(x => x.Name, name)
             .RuleFor(x => x.Path, f => $"videos/{f.Random.Words()}/{name}.mp4")
+            .RuleFor(x => x.ParentId, Guid.NewGuid)
             .Generate();
 
         return movie;

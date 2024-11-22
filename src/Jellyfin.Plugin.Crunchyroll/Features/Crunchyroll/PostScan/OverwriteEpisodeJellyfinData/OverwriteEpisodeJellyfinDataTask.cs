@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
@@ -17,26 +18,19 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpi
 
 public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
 {
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<OverwriteEpisodeJellyfinDataTask> _logger;
     private readonly ILibraryManager _libraryManager;
     private readonly IOverwriteEpisodeJellyfinDataTaskSession _session;
-    private readonly IFile _file;
-    private readonly IDirectory _directory;
-    
-    private readonly string _thumbnailDirPath = Path.Combine(
-        Path.GetDirectoryName(typeof(OverwriteEpisodeJellyfinDataTask).Assembly.Location)!, 
-        "episode-thumbnails");
+    private readonly ISetEpisodeThumbnail _setEpisodeThumbnail;
 
-    public OverwriteEpisodeJellyfinDataTask(IHttpClientFactory httpClientFactory, ILogger<OverwriteEpisodeJellyfinDataTask> logger,
-        ILibraryManager libraryManager, IOverwriteEpisodeJellyfinDataTaskSession session, IFile file, IDirectory directory)
+    public OverwriteEpisodeJellyfinDataTask(ILogger<OverwriteEpisodeJellyfinDataTask> logger,
+        ILibraryManager libraryManager, IOverwriteEpisodeJellyfinDataTaskSession session,
+        ISetEpisodeThumbnail setEpisodeThumbnail)
     {
-        _httpClientFactory = httpClientFactory;
         _logger = logger;
         _libraryManager = libraryManager;
         _session = session;
-        _file = file;
-        _directory = directory;
+        _setEpisodeThumbnail = setEpisodeThumbnail;
     }
     
     public async Task RunAsync(BaseItem episodeItem, CancellationToken cancellationToken)
@@ -50,13 +44,6 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
             return;
         }
 
-        var createDirectoryResult = CreateDirectoryIfNotExists(_thumbnailDirPath);
-
-        if (createDirectoryResult.IsFailed)
-        {
-            return;
-        }
-
         var crunchyrollEpisodeResult = await _session.GetEpisodeAsync(episodeId!);
 
         if (crunchyrollEpisodeResult.IsFailed)
@@ -65,7 +52,8 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         }
 
         var crunchyrollEpisode = crunchyrollEpisodeResult.Value;
-        await GetAndSetThumbnail((Episode)episodeItem, crunchyrollEpisode, cancellationToken);
+        _ = await _setEpisodeThumbnail
+            .GetAndSetThumbnailAsync((Episode)episodeItem, crunchyrollEpisode.Thumbnail, cancellationToken);
 
         episodeItem.Name = crunchyrollEpisode.Title;
         episodeItem.Overview = crunchyrollEpisode.Description;
@@ -76,124 +64,6 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         }
         
         await _libraryManager.UpdateItemAsync(episodeItem, episodeItem.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
-    }
-
-    private async Task GetAndSetThumbnail(Episode episode, TitleMetadata.Entities.Episode crunchyrollEpisode,
-        CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(crunchyrollEpisode.Thumbnail.Uri))
-        {
-            return;
-        }
-        
-        var filePath = Path.Combine(_thumbnailDirPath, Path.GetFileName(crunchyrollEpisode.Thumbnail.Uri))
-            .Replace(".jpe", ".jpeg");
-        
-        var currentThumbImage = episode.GetImageInfo(ImageType.Thumb, imageIndex: 0);
-        var currentPrimaryImage = episode.GetImageInfo(ImageType.Primary, imageIndex: 0);
-        
-        if (IsImageEqualToCurrentThumbnail(currentThumbImage, filePath, ImageType.Thumb, crunchyrollEpisode) && 
-            IsImageEqualToCurrentThumbnail(currentPrimaryImage, filePath, ImageType.Primary, crunchyrollEpisode))
-        {
-            _logger.LogDebug("Image with type {Type} for item with Name {Name} already exists, skipping...", 
-                ImageType.Thumb,
-                episode.Name);
-            return;
-        }
-        
-        var imageStreamResult = await GetThumbnailImageStreamAsync(crunchyrollEpisode.Thumbnail.Uri, cancellationToken);
-
-        if (imageStreamResult.IsSuccess)
-        {
-            var createImageResult = await CreateFileAsync(filePath, imageStreamResult.Value, cancellationToken);
-
-            if (createImageResult.IsFailed)
-            {
-                return;
-            }
-            
-            episode.SetImage(new ItemImageInfo()
-            {
-                Path = filePath,
-                Type = ImageType.Thumb,
-                Width = crunchyrollEpisode.Thumbnail.Width,
-                Height = crunchyrollEpisode.Thumbnail.Height
-            }, 0);
-            
-            episode.SetImage(new ItemImageInfo()
-            {
-                Path = filePath,
-                Type = ImageType.Primary,
-                Width = crunchyrollEpisode.Thumbnail.Width,
-                Height = crunchyrollEpisode.Thumbnail.Height
-            }, 0);
-        }
-    }
-
-    private static bool IsImageEqualToCurrentThumbnail(ItemImageInfo? imageInfo, string path, ImageType imageType, 
-        TitleMetadata.Entities.Episode crunchyrollEpisode)
-    {
-        return imageInfo is not null &&
-               imageInfo.Path == path &&
-               imageInfo.Type == imageType &&
-               imageInfo.Width == crunchyrollEpisode.Thumbnail.Width &&
-               imageInfo.Height == crunchyrollEpisode.Thumbnail.Height;
-    }
-
-    private Result CreateDirectoryIfNotExists(string directoryPath)
-    {
-        try
-        {
-            if (!_directory.Exists(_thumbnailDirPath))
-            {
-                _directory.CreateDirectory(_thumbnailDirPath);
-            }
-
-            return Result.Ok();
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to create directory {Path}", directoryPath);
-            return Result.Fail(Domain.Constants.ErrorCodes.Internal);
-        }
-    }
-
-    private async Task<Result> CreateFileAsync(string filePath, Stream imageStream, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await using var fileStream = _file.Create(filePath);
-            await imageStream.CopyToAsync(fileStream, cancellationToken);
-            
-            return Result.Ok();
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to create file with filePath {Path}", filePath);
-            return Result.Fail(Domain.Constants.ErrorCodes.Internal);
-        }
-    }
-
-    private async Task<Result<Stream>> GetThumbnailImageStreamAsync(string url, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync(url, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogError("Failed to get image for url {Url}", url);
-                return Result.Fail(ErrorCodes.HttpRequestFailed);
-            }
-        
-            return await response.Content.ReadAsStreamAsync(cancellationToken);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to get image for url {Url}", url);
-            return Result.Fail(ErrorCodes.HttpRequestFailed);
-        }
     }
 
     private static void SetIndexNumberAndName(Episode episode, TitleMetadata.Entities.Episode crunchyrollEpisode)

@@ -3,6 +3,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId;
@@ -30,6 +31,7 @@ public static class CrunchyrollServiceExtension
         serviceCollection.AddCrunchyrollGetSeasonId();
         serviceCollection.AddCrunchyrollGetEpisodeId();
         serviceCollection.AddCrunchyrollPostScanTasks();
+        serviceCollection.AddSetEpisodeThumbnail();
         
         return serviceCollection;
     }

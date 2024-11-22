@@ -13,6 +13,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.GetComments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteMovieJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeasonJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
@@ -40,7 +41,8 @@ public sealed class CrunchyrollUnitOfWork :
     IGetCommentsSession,
     IOverwriteEpisodeJellyfinDataTaskSession,
     IOverwriteSeasonJellyfinDataSession,
-    IAddAvatarSession
+    IAddAvatarSession,
+    IOverwriteMovieJellyfinDataUnitOfWork
 {
     private readonly ILogger<CrunchyrollUnitOfWork> _logger;
     private readonly string _connectionString;
@@ -581,6 +583,35 @@ public sealed class CrunchyrollUnitOfWork :
         {
             _logger.LogError(e, "Failed to get season with seasonId {SeasonId}", seasonId);
             return ValueTask.FromResult<Result<Season>>(Result.Fail(Domain.Constants.ErrorCodes.Internal));
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public ValueTask<Result<TitleMetadata.Entities.TitleMetadata?>> GetTitleMetadataAsync(string seriesId, CancellationToken cancellationToken)
+    {
+        _semaphore.Wait(cancellationToken);
+
+        try
+        {
+            var metadata = _resiliencePipeline.Execute(() =>
+            {
+                using var db = new LiteDatabase(_connectionString);
+
+                var metadataCollection =
+                    db.GetCollection<TitleMetadata.Entities.TitleMetadata>(TitleMetadataCollectionName);
+
+                return metadataCollection.FindOne(x => x.TitleId == seriesId);
+            });
+
+            return ValueTask.FromResult(Result.Ok<TitleMetadata.Entities.TitleMetadata?>(metadata));
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to get title metadata for seriesId {SeriesId}", seriesId);
+            return ValueTask.FromResult<Result<TitleMetadata.Entities.TitleMetadata?>>(Result.Fail(ErrorCodes.Internal));
         }
         finally
         {
