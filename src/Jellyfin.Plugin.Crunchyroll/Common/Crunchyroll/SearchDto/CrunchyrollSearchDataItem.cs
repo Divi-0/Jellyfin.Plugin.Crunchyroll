@@ -10,5 +10,20 @@ public record CrunchyrollSearchDataItem
     [JsonPropertyName("slug_title")]
     public string SlugTitle { get; init; } = string.Empty;
     [JsonPropertyName("episode_metadata")]
-    public CrunchyrollEpisodeItem? EpisodeMetadata { get; init; }
+    public CrunchyrollSearchDataEpisodeMetadata? EpisodeMetadata { get; init; }
+}
+
+public record CrunchyrollSearchDataEpisodeMetadata
+{
+    public required string Episode { get; init; }
+    [JsonPropertyName("episode_number")]
+    public required int? EpisodeNumber { get; init; }
+    [JsonPropertyName("sequence_number")]
+    public required double SequenceNumber { get; init; }
+    [JsonPropertyName("season_id")]
+    public required string SeasonId { get; init; }
+    [JsonPropertyName("series_id")]
+    public required string SeriesId { get; init; }
+    [JsonPropertyName("series_slug_title")]
+    public required string SeriesSlugTitle { get; init; }
 }

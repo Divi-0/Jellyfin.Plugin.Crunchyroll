@@ -19,6 +19,8 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTi
 public record ScrapTitleMetadataCommand : IRequest<Result>
 {
     public required string TitleId { get; init; }
+    public string? MovieEpisodeId { get; init; }
+    public string? MovieSeasonId { get; init; }
 }
 
 public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetadataCommand, Result>
@@ -59,16 +61,11 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         var crunchyrollSeasons = seasonsResult.Value.Data;
         
         var titleMetadata = await _unitOfWork.GetTitleMetadataAsync(request.TitleId);
-        
-        var parallelOptions = new ParallelOptions
-        {
-            CancellationToken = cancellationToken
-        };
 
         var seasonEpisodesDictionary = new ConcurrentDictionary<string, List<Episode>>();
-        await Parallel.ForEachAsync(crunchyrollSeasons, parallelOptions, async (season, token) =>
+        await Parallel.ForEachAsync(crunchyrollSeasons, cancellationToken, async (season, _) =>
         {
-            var episodesResult =  await _episodesClient.GetEpisodesAsync(season.Id, token);
+            var episodesResult =  await _episodesClient.GetEpisodesAsync(season.Id, cancellationToken);
             
             seasonEpisodesDictionary[season.Id] = episodesResult.IsFailed ? 
                 Array.Empty<Episode>().ToList() : 
@@ -117,6 +114,12 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
             ApplyNewSeriesMetadataToTitleMetadata(titleMetadata, seriesMetadataResult.Value);
             ApplyNewSeasonsToExistingSeasons(titleMetadata, seasons);
             ApplyNewEpisodesToExistingEpisodes(titleMetadata, seasonEpisodesDictionary);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.MovieEpisodeId) 
+            && !string.IsNullOrWhiteSpace(request.MovieSeasonId))
+        {
+            await HandleMovieAsync(request.MovieEpisodeId!, request.MovieSeasonId, titleMetadata, cancellationToken);
         }
         
         await _unitOfWork.AddOrUpdateTitleMetadata(titleMetadata);
@@ -171,5 +174,60 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
             Width = crunchyrollPosterWide.Width,
             Height = crunchyrollPosterWide.Height,
         };
+    }
+
+    private async Task HandleMovieAsync(string episodeId, string seasonId, Entities.TitleMetadata titleMetadata, 
+        CancellationToken cancellationToken)
+    {
+        var isEpisodeAlreadyScraped = titleMetadata.Seasons
+            .SelectMany(x => x.Episodes)
+            .Any(x => x.Id == episodeId);
+        
+        if (isEpisodeAlreadyScraped)
+        {
+            return;
+        }
+
+        var episodeResult = await _episodesClient.GetEpisodeAsync(episodeId, cancellationToken);
+
+        if (episodeResult.IsFailed)
+        {
+            return;
+        }
+
+        var season = titleMetadata.Seasons.FirstOrDefault(x => x.Id == seasonId);
+
+        if (season is null)
+        {
+            season = new Season()
+            {
+                Id = seasonId,
+                Title = episodeResult.Value.EpisodeMetadata.SeasonTitle,
+                Identifier = string.Empty,
+                SeasonNumber = episodeResult.Value.EpisodeMetadata.SeasonNumber,
+                SeasonSequenceNumber = episodeResult.Value.EpisodeMetadata.SeasonSequenceNumber,
+                SlugTitle = episodeResult.Value.EpisodeMetadata.SeriesSlugTitle,
+                SeasonDisplayNumber = episodeResult.Value.EpisodeMetadata.SeasonDisplayNumber,
+                Episodes = []
+            };
+            
+            titleMetadata.Seasons.Add(season);
+        }
+        
+        season.Episodes.Add(new Episode
+        {
+            Id = episodeId,
+            Title = episodeResult.Value.Title,
+            Description = episodeResult.Value.Description,
+            Thumbnail = new ImageSource
+            {
+                Uri = episodeResult.Value.Images.Thumbnail.First().Last().Source,
+                Height = episodeResult.Value.Images.Thumbnail.First().Last().Height,
+                Width = episodeResult.Value.Images.Thumbnail.First().Last().Width
+            },
+            EpisodeNumber = episodeResult.Value.EpisodeMetadata!.Episode,
+            SequenceNumber = episodeResult.Value.EpisodeMetadata!.SequenceNumber,
+            SlugTitle = episodeResult.Value.SlugTitle
+        });
     }
 }

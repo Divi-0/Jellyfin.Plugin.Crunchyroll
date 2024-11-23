@@ -55,7 +55,13 @@ public class OverwriteMovieJellyfinDataTask : IPostMovieIdSetTask
 
         var crunchyrollMovieEpisode = titleMetadataResult.Value.Seasons
             .SelectMany(x => x.Episodes)
-            .First(x => x.Id == episodeId);
+            .FirstOrDefault(x => x.Id == episodeId);
+
+        if (crunchyrollMovieEpisode is null)
+        {
+            _logger.LogError("No episode found for episode with id {EpisodeId} and seriesId {SeriesId}", episodeId, seriesId);
+            return;
+        }
 
         movie.Name = crunchyrollMovieEpisode.Title;
         movie.Overview = crunchyrollMovieEpisode.Description;

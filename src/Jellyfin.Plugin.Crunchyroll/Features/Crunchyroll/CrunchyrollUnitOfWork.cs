@@ -104,7 +104,7 @@ public sealed class CrunchyrollUnitOfWork :
                     Reviews = reviews,
                 };
 
-                reviewsCollection.Insert(entity);
+                reviewsCollection.Upsert(entity);
                 reviewsCollection.EnsureIndex(x => x.TitleId, true);
             });
             
@@ -456,7 +456,7 @@ public sealed class CrunchyrollUnitOfWork :
 
                 var commentsCollection = db.GetCollection<EpisodeComments>(CommentsCollectionName);
 
-                commentsCollection.Insert(comments);
+                commentsCollection.Upsert(comments);
                 commentsCollection.EnsureIndex(x => x.EpisodeId, true);
             });
 

@@ -35,9 +35,13 @@ public class ScrapTitleMetadataTask : IPostTitleIdSetTask, IPostMovieIdSetTask
             return;
         }
 
-        _ = await _mediator.Send(new ScrapTitleMetadataCommand()
+        var hasEpisodeId = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeId, out var episodeId);
+        var hasSeasonId = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeasonId, out var seasonId);
+        _ = await _mediator.Send(new ScrapTitleMetadataCommand
         {
-            TitleId = id!
+            TitleId = id!,
+            MovieEpisodeId = hasEpisodeId ? episodeId : null,
+            MovieSeasonId = hasSeasonId ? seasonId : null
         }, cancellationToken);
     }
 

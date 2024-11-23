@@ -19,19 +19,27 @@ public class CrunchyrollScan : ILibraryPostScanTask
 {
     private readonly ILogger<CrunchyrollScan> _logger;
     private readonly ILibraryManager _libraryManager;
-    private readonly IEnumerable<IPostSeriesScanTask>? _postScanTasks;
+    private readonly IEnumerable<IPostSeriesScanTask>? _postSeriesScanTasks;
+    private readonly IEnumerable<IPostMovieScanTask>? _postMovieScanTasks;
     private readonly PluginConfiguration _config;
 
     public CrunchyrollScan(ILogger<CrunchyrollScan> logger, ILibraryManager libraryManager, 
-        IEnumerable<IPostSeriesScanTask> postScanTasks, PluginConfiguration? config = null)
+        IEnumerable<IPostSeriesScanTask> postSeriesScanTasks, IEnumerable<IPostMovieScanTask> postMovieScanTasks, 
+        PluginConfiguration? config = null)
     {
         _logger = logger;
         _libraryManager = libraryManager;
         
-        var scanTasks = postScanTasks.ToArray();
-        _postScanTasks = scanTasks.Length != 0 ? 
-            scanTasks : 
-            CrunchyrollPlugin.Instance!.ServiceProvider.GetServices<IPostSeriesScanTask>();
+        var seriesScanTasks = postSeriesScanTasks.ToArray();
+        _postSeriesScanTasks = seriesScanTasks.Length != 0 
+            ? seriesScanTasks 
+            : CrunchyrollPlugin.Instance!.ServiceProvider.GetServices<IPostSeriesScanTask>();
+        
+        var movieScanTasks = postMovieScanTasks.ToArray();
+        _postMovieScanTasks = movieScanTasks.Length != 0 
+            ? movieScanTasks 
+            : CrunchyrollPlugin.Instance!.ServiceProvider.GetServices<IPostMovieScanTask>();
+        
         _config = config ?? CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
     }
 
@@ -60,15 +68,15 @@ public class CrunchyrollScan : ILibraryPostScanTask
         var allItems = _libraryManager.GetItemList(new InternalItemsQuery()
             {                                                                                                                                                                                                                      
                 TopParentIds = topParentId.HasValue ? [topParentId.Value] : []
-            }).Where(x => x is Series or Movie).ToList();
+            });
 
         var percent = 0.0;
 
-        foreach (var item in allItems)
+        foreach (var item in allItems.Where(x => x is Series))
         {
             try
             {
-                foreach (var postScanTask in _postScanTasks ?? [])
+                foreach (var postScanTask in _postSeriesScanTasks ?? [])
                 {
                     await postScanTask.RunAsync(item, cancellationToken);
                 }
@@ -83,6 +91,14 @@ public class CrunchyrollScan : ILibraryPostScanTask
                 progress.Report(percent);
             }
         }
+
+        await Parallel.ForEachAsync(allItems.Where(x => x is Movie), cancellationToken, async (movie, _) =>
+        {
+            foreach (var postScanTask in _postMovieScanTasks ?? [])
+            {
+                await postScanTask.RunAsync(movie, cancellationToken);
+            }
+        });
 
         var elapsedTime = Stopwatch.GetElapsedTime(startTimestamp);
         _logger.LogInformation("CrunchyrollScan took {ElapsedTime}", elapsedTime.ToString("g"));

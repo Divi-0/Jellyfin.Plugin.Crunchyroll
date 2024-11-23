@@ -44,6 +44,7 @@ public class SetMovieEpisodeIdTaskTests
         var crunchyrollSeriesSlug = CrunchyrollSlugFaker.Generate();
         var crunchyrollEpisodeId = CrunchyrollIdFaker.Generate();
         var crunchyrollEpisodeSlug = CrunchyrollSlugFaker.Generate();
+        var crunchyrollSeasonId = CrunchyrollSlugFaker.Generate();
 
         _loginService
             .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
@@ -60,13 +61,31 @@ public class SetMovieEpisodeIdTaskTests
                 EpisodeId = crunchyrollEpisodeId,
                 EpisodeSlugTitle = crunchyrollEpisodeSlug,
                 SeriesId = crunchyrollSeriesId,
-                SeriesSlugTitle = crunchyrollSeriesSlug
+                SeriesSlugTitle = crunchyrollSeriesSlug,
+                SeasonId = crunchyrollSeasonId
             }));
 
         //Act
         await _sut.RunAsync(movie, CancellationToken.None);
         
         //Assert
+        movie.ProviderIds.Should().Contain(x =>
+            x.Key == CrunchyrollExternalKeys.SeriesId &&
+            x.Value == crunchyrollSeriesId);
+        movie.ProviderIds.Should().Contain(x =>
+            x.Key == CrunchyrollExternalKeys.SeriesSlugTitle &&
+            x.Value == crunchyrollSeriesSlug);
+        
+        movie.ProviderIds.Should().Contain(x =>
+            x.Key == CrunchyrollExternalKeys.EpisodeId &&
+            x.Value == crunchyrollEpisodeId);
+        movie.ProviderIds.Should().Contain(x =>
+            x.Key == CrunchyrollExternalKeys.EpisodeSlugTitle &&
+            x.Value == crunchyrollEpisodeSlug);
+        
+        movie.ProviderIds.Should().Contain(x =>
+            x.Key == CrunchyrollExternalKeys.SeasonId &&
+            x.Value == crunchyrollSeasonId);
 
         foreach (var task in _postMovieIdSetTasks)
         {
@@ -98,6 +117,23 @@ public class SetMovieEpisodeIdTaskTests
         await _sut.RunAsync(movie, CancellationToken.None);
         
         //Assert
+        movie.ProviderIds.Should().Contain(x =>
+            x.Key == CrunchyrollExternalKeys.SeriesId &&
+            x.Value == string.Empty);
+        movie.ProviderIds.Should().Contain(x =>
+            x.Key == CrunchyrollExternalKeys.SeriesSlugTitle &&
+            x.Value == string.Empty);
+        
+        movie.ProviderIds.Should().Contain(x =>
+            x.Key == CrunchyrollExternalKeys.EpisodeId &&
+            x.Value == string.Empty);
+        movie.ProviderIds.Should().Contain(x =>
+            x.Key == CrunchyrollExternalKeys.EpisodeSlugTitle &&
+            x.Value == string.Empty);
+        
+        movie.ProviderIds.Should().Contain(x =>
+            x.Key == CrunchyrollExternalKeys.SeasonId &&
+            x.Value == string.Empty);
 
         foreach (var task in _postMovieIdSetTasks)
         {
@@ -129,6 +165,11 @@ public class SetMovieEpisodeIdTaskTests
         await _sut.RunAsync(movie, CancellationToken.None);
         
         //Assert
+        movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.SeriesId);
+        movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.SeriesSlugTitle);
+        movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.EpisodeId);
+        movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
+        movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.SeasonId);
 
         foreach (var task in _postMovieIdSetTasks)
         {

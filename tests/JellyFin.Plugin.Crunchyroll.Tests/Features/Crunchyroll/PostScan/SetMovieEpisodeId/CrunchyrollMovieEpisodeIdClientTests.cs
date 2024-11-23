@@ -8,7 +8,6 @@ using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetMovieEpisodeId.Client;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Microsoft.Extensions.Logging;
 using RichardSzalay.MockHttp;
@@ -60,21 +59,17 @@ public class CrunchyrollMovieEpisodeIdClientTests
         var crunchyrollepisodeId = CrunchyrollIdFaker.Generate();
         var crunchyrollSeriesId = CrunchyrollIdFaker.Generate();
         var crunchyrollSeriesSlugTitle = CrunchyrollSlugFaker.Generate();
-        searchDataItems.Add(new CrunchyrollSearchDataItem()
+        var crunchyrollSeasonId = CrunchyrollIdFaker.Generate();
+        searchDataItems.Add(new CrunchyrollSearchDataItem
         {
             Id = crunchyrollepisodeId,
             Title = name,
             SlugTitle = CrunchyrollSlugFaker.Generate(name),
-            EpisodeMetadata = new CrunchyrollEpisodeItem
+            EpisodeMetadata = new CrunchyrollSearchDataEpisodeMetadata()
             {
-                Id = crunchyrollepisodeId,
-                Description = "",
                 Episode = "",
-                Images = new CrunchyrollEpisodeImages(),
-                Title = name,
-                SlugTitle = CrunchyrollSlugFaker.Generate(name),
                 EpisodeNumber = 0,
-                SeasonId = CrunchyrollIdFaker.Generate(),
+                SeasonId = crunchyrollSeasonId,
                 SequenceNumber = 0,
                 SeriesId = crunchyrollSeriesId,
                 SeriesSlugTitle = crunchyrollSeriesSlugTitle
@@ -107,7 +102,8 @@ public class CrunchyrollMovieEpisodeIdClientTests
             SeriesId = crunchyrollSeriesId,
             SeriesSlugTitle = crunchyrollSeriesSlugTitle,
             EpisodeId = crunchyrollepisodeId,
-            EpisodeSlugTitle = CrunchyrollSlugFaker.Generate(name)
+            EpisodeSlugTitle = CrunchyrollSlugFaker.Generate(name),
+            SeasonId = crunchyrollSeasonId
         };
 
         searchResponseResult.Value!.Should().BeEquivalentTo(expectedSearchResponse);

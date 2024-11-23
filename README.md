@@ -15,7 +15,7 @@ A guide can be found in the [Wiki](../../wiki/Installation)
 Install the dotnet 8 sdk and run `dotnet build` 
 (To copy the binaries automatically to the local plugins folder add the following code as post-build-event (windows only)
 ```
-if $(ConfigurationName) == Debug-Copy (
+if $(ConfigurationName) == Debug (
  xcopy /y "$(TargetDir)*.*" "%localAppData%/jellyfin/plugins/Crunchyroll"
 )
 ```

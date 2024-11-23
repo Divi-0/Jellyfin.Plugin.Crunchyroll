@@ -87,12 +87,13 @@ public class CrunchyrollMovieEpisodeIdClient : ICrunchyrollMovieEpisodeIdClient
                 var regex = new Regex(name.Replace(" ", ".*"));
                 if (regex.IsMatch(item.Title) && item.EpisodeMetadata is not null)
                 {
-                    return new SearchResponse()
+                    return new SearchResponse
                     {
                         SeriesId = item.EpisodeMetadata.SeriesId,
                         SeriesSlugTitle = item.EpisodeMetadata.SeriesSlugTitle,
+                        SeasonId = item.EpisodeMetadata.SeasonId,
                         EpisodeId = item.Id,
-                        EpisodeSlugTitle = item.SlugTitle
+                        EpisodeSlugTitle = item.SlugTitle,
                     };
                 }
             }

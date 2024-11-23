@@ -4,6 +4,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.MediaInfo;
 using Mediator;
@@ -45,11 +46,6 @@ public class ScrapTitleMetadataTaskTests
     {
         //Arrange
         var titleId = baseItem.ProviderIds[CrunchyrollExternalKeys.SeriesId];
-         
-        _mediator
-            .Send(new ScrapTitleMetadataCommand { TitleId = titleId }, 
-                Arg.Any<CancellationToken>())
-            .Returns(Result.Ok());
         
         _mediaSourceManager
             .GetPathProtocol(baseItem.Path)
@@ -61,7 +57,12 @@ public class ScrapTitleMetadataTaskTests
         //Assert
         await _mediator
             .Received(1)
-            .Send(new ScrapTitleMetadataCommand { TitleId = titleId },
+            .Send(new ScrapTitleMetadataCommand
+                {
+                    TitleId = titleId, 
+                    MovieSeasonId = baseItem is Movie ? baseItem.ProviderIds[CrunchyrollExternalKeys.SeasonId] : null,
+                    MovieEpisodeId = baseItem is Movie ? baseItem.ProviderIds[CrunchyrollExternalKeys.EpisodeId] : null
+                },
                 Arg.Any<CancellationToken>());
     }
 

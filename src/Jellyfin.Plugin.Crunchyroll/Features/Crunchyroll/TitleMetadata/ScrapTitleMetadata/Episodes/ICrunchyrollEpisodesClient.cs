@@ -8,4 +8,5 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTi
 public interface ICrunchyrollEpisodesClient
 {
     public Task<Result<CrunchyrollEpisodesResponse>> GetEpisodesAsync(string seasonId, CancellationToken cancellationToken);
+    public Task<Result<CrunchyrollEpisodeDataItem>> GetEpisodeAsync(string episodeId, CancellationToken cancellationToken);
 }

@@ -179,4 +179,37 @@ public class OverwriteMovieJellyfinDataTaskTests
             .DidNotReceive()
             .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
+    
+    
+
+    [Fact]
+    public async Task SkipsMovie_WhenEpisodeIdCanNotBeFound_GivenMovieWithIds()
+    {
+        //Arrange
+        var movie = MovieFaker.GenerateWithCrunchyrollIds();
+        var episode = CrunchyrollEpisodeFaker.Generate();
+        var season = CrunchyrollSeasonFaker.Generate();
+        season.Episodes.Add(episode);
+        var titleMetadata = CrunchyrollTitleMetadataFaker.Generate(movie, [season]);
+        
+        _libraryManager
+            .GetItemById(movie.ParentId)
+            .Returns((BaseItem?)null);
+
+        _unitOfWork
+            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(titleMetadata);
+
+        //Act
+        await _sut.RunAsync(movie, CancellationToken.None);
+
+        //Assert
+        await _setEpisodeThumbnail
+            .DidNotReceive()
+            .GetAndSetThumbnailAsync(movie, episode.Thumbnail, Arg.Any<CancellationToken>());
+        
+        await _libraryManager
+            .DidNotReceive()
+            .UpdateItemAsync(movie, movie.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+    }
 }

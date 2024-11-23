@@ -68,6 +68,8 @@ public class SetMovieEpisodeIdTask : IPostMovieScanTask
         movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId] = searchResponseResult.Value?.EpisodeId ?? string.Empty;
         movie.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle] = searchResponseResult.Value?.EpisodeSlugTitle ?? string.Empty;
         
+        movie.ProviderIds[CrunchyrollExternalKeys.SeasonId] = searchResponseResult.Value?.SeasonId ?? string.Empty;
+        
         return Result.Ok();
     }
 
