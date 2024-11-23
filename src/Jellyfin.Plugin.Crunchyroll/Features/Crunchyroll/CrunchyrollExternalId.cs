@@ -1,3 +1,4 @@
+using System.Globalization;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Providers;
@@ -24,7 +25,9 @@ public class CrunchyrollExternalId : IExternalId
     
     public ExternalIdMediaType? Type => ExternalIdMediaType.Series;
     
-    public string? UrlFormatString => $"https://www.crunchyroll.com/{CrunchyrollPlugin.Instance!.Configuration.CrunchyrollLanguage}/series/{0}";
+    public string? UrlFormatString => "https://www.crunchyroll.com/" +
+                                      $"{new CultureInfo(CrunchyrollPlugin.Instance!.Configuration.CrunchyrollLanguage).TwoLetterISOLanguageName}" +
+                                      "/series/{0}";
     
     public bool Supports(IHasProviderIds item)
     {
