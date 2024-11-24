@@ -1,3 +1,4 @@
+using System.Globalization;
 using Bogus;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
@@ -16,6 +17,7 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.MediaInfo;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
+using NSubstitute.ClearExtensions;
 using WireMock.Client;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Tests.PostScan;
@@ -51,6 +53,10 @@ public class CrunchyrollScanTests
 
         _config.IsWaybackMachineEnabled = false;
         _config.LibraryPath = "/mnt/whatever";
+        
+        _libraryManager.ClearSubstitute();
+        _itemRepository.ClearSubstitute();
+        _mediaSourceManager.ClearSubstitute();
     }
 
     [Fact]
@@ -71,8 +77,8 @@ public class CrunchyrollScanTests
         var seasonResponses = new Dictionary<Guid, CrunchyrollSeasonsItem>();
         foreach (var series in seriesItems)
         {
-            var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series, language, 
-                $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+            var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], 
+                language, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
             seriesResponses.Add(series.Id, seriesResponse);
             
             await _wireMockAdminApi.MockCrunchyrollImagePosterResponse(
@@ -82,7 +88,7 @@ public class CrunchyrollScanTests
                 seriesResponse.Images.PosterWide.First().Last().Source);
             
             var seasons = _itemRepository.MockGetChildren(series);
-            var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(seasons, series, language);
+            var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(seasons, series.ProviderIds[CrunchyrollExternalKeys.SeriesId], language);
 
             foreach (var seasonResponse in seasonsResponse.Data)
             {
@@ -138,7 +144,7 @@ public class CrunchyrollScanTests
                 season.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeasonId);
                 season.ProviderIds[CrunchyrollExternalKeys.SeasonId].Should().NotBeEmpty();
 
-                season.Name.Should().Be(seasonResponses[season.Id].Title);
+                season.Name.Should().Be($"S{seasonResponses[season.Id].SeasonDisplayNumber}: {seasonResponses[season.Id].Title}");
                 
                 foreach (var episode in ((Season)season).Children)
                 {
@@ -174,7 +180,7 @@ public class CrunchyrollScanTests
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
         
-        var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series, language, 
+        var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], language, 
             $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
         
         await _wireMockAdminApi.MockCrunchyrollImagePosterResponse(
@@ -187,7 +193,7 @@ public class CrunchyrollScanTests
         _itemRepository
             .GetItemList(Arg.Is<InternalItemsQuery>(x => x.ParentId == series.Id))
             .Returns([season]);
-        var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse([season], series, language);
+        var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse([season], series.ProviderIds[CrunchyrollExternalKeys.SeriesId], language);
 
         var episode = EpisodeFaker.Generate(season);
         const string episodeName = "abc";
@@ -234,5 +240,64 @@ public class CrunchyrollScanTests
         
         episode.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
         episode.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle].Should().Be(episodesResponse.Data.First().SlugTitle);
+    }
+
+    [Fact]
+    public async Task SetsCrunchyrollIdsForMovie_WhenMovieFound_GivenSeriesWithTitleIdAndChildren()
+    {
+        //Arrange
+        var language = _config.CrunchyrollLanguage;
+        var movie = MovieFaker.Generate();
+        var seasonId = CrunchyrollIdFaker.Generate();
+        var episodeId = CrunchyrollIdFaker.Generate();
+        var seriesId = CrunchyrollIdFaker.Generate();
+        _libraryManager.MockCrunchyrollTitleIdScanMovies(_config.LibraryPath, [movie]);
+        
+        await _wireMockAdminApi.MockRootPageAsync();
+        await _wireMockAdminApi.MockAnonymousAuthAsync();
+        
+        _mediaSourceManager
+            .GetPathProtocol(movie.Path)
+            .Returns(MediaProtocol.File);
+
+        await _wireMockAdminApi.MockCrunchyrollSearchResponseForMovie(
+            movie.FileNameWithoutExtension,
+            new CultureInfo(_config.CrunchyrollLanguage).Name,
+            episodeId,
+            seasonId,
+            seriesId);
+        
+        var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(seriesId, language, 
+            $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+
+        var season = SeasonFaker.GenerateWithSeasonId();
+        var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse([season], seriesId, language);
+        var episode = EpisodeFaker.GenerateWithEpisodeId();
+        _ = await _wireMockAdminApi.MockCrunchyrollEpisodesResponse([episode], seasonsResponse.Data.First().Id, language,
+            $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+        
+        var episodeResponse = await _wireMockAdminApi.MockCrunchyrollGetEpisodeResponse(episodeId, seasonId, seriesId, 
+            language, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+        
+        await _wireMockAdminApi.MockCrunchyrollImagePosterResponse(
+            episodeResponse.Data.First().Images.Thumbnail.First().Last().Source);
+        
+        //Act
+        var progress = new Progress<double>();
+        await _crunchyrollScan.Run(progress, CancellationToken.None);
+        
+        //Assert
+        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesId);
+        movie.ProviderIds[CrunchyrollExternalKeys.SeriesId].Should().Be(seriesId);
+        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesSlugTitle);
+        
+        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeId);
+        movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId].Should().Be(episodeId);
+        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
+        
+        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeasonId);
+        movie.ProviderIds[CrunchyrollExternalKeys.SeasonId].Should().Be(seasonId);
+        
+        DatabaseMockHelper.ShouldHaveMetadata(_databaseFixture.DbFilePath, seriesId, seriesResponse);
     }
 }

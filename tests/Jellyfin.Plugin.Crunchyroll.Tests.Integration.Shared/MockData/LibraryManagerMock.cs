@@ -1,6 +1,7 @@
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using NSubstitute;
@@ -14,6 +15,36 @@ public static class LibraryManagerMock
     {
         var itemList = items?.ToList() ?? Enumerable.Range(0, Random.Shared.Next(1, 10))
             .Select(_ => SeriesFaker.Generate())
+            .ToList();
+        
+        var topParentId = Guid.NewGuid();
+        libraryManager
+            .GetItemIds(Arg.Is<InternalItemsQuery>(x => x.Path == libraryPath))
+            .Returns([topParentId]);
+
+        libraryManager
+            .GetItemList(Arg.Is<InternalItemsQuery>(x => x.TopParentIds.Contains(topParentId)))
+            .Returns(itemList.ToList<BaseItem>());
+
+        foreach (var item in itemList)
+        {
+            libraryManager
+                .GetItemById(item.Id)
+                .Returns(item);
+            
+            libraryManager
+                .UpdateItemAsync(item, item.DisplayParent, Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
+                .Returns(Task.CompletedTask);
+        }
+
+        return itemList;
+    }
+    
+    public static List<Movie> MockCrunchyrollTitleIdScanMovies(this ILibraryManager libraryManager,
+        string libraryPath, List<Movie>? items = null)
+    {
+        var itemList = items?.ToList() ?? Enumerable.Range(0, Random.Shared.Next(1, 10))
+            .Select(_ => MovieFaker.Generate())
             .ToList();
         
         var topParentId = Guid.NewGuid();

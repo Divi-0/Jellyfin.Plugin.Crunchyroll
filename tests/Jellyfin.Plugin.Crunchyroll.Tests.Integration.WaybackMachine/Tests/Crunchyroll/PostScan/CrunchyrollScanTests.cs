@@ -1,8 +1,8 @@
+using System.Globalization;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
-using Jellyfin.Plugin.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
@@ -13,6 +13,7 @@ using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.MediaInfo;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
+using NSubstitute.ClearExtensions;
 using WireMock.Client;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine.Tests.Crunchyroll.PostScan;
@@ -46,6 +47,10 @@ public class CrunchyrollScanTests
         _wireMockAdminApi = wireMockFixture.AdminApiClient;
         _config = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
         _config.LibraryPath = "/mnt/abc";
+        
+        _libraryManager.ClearSubstitute();
+        _itemRepository.ClearSubstitute();
+        _mediaSourceManager.ClearSubstitute();
     }
 
     [Fact]
@@ -76,11 +81,11 @@ public class CrunchyrollScanTests
         
         foreach (var series in itemList)
         {
-            await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series, language, 
+            await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], language, 
                 $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
             
             var seasons = _itemRepository.MockGetChildren(series, isSeasonIdSet: true);
-            var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(seasons, series, language);
+            var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(seasons, series.ProviderIds[CrunchyrollExternalKeys.SeriesId], language);
 
             foreach (var seasonResponse in seasonsResponse.Data)
             {
@@ -95,14 +100,16 @@ public class CrunchyrollScanTests
                         .GetPathProtocol(episode.Path)
                         .Returns(MediaProtocol.File);
                     
-                    var episodeCrunchyrollUrl = GetCrunchyrollUrlForEpisode(episode);
+                    var episodeCrunchyrollUrl = GetCrunchyrollUrlForEpisode(episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId],
+                        episode.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle]);
                     var episodeWaybackMachineSearchResponse = await _wireMockAdminApi.MockWaybackMachineSearchResponse(episodeCrunchyrollUrl);
                     var episodeSnapshotUrl = GetSnapshotUrl(episodeWaybackMachineSearchResponse, episodeCrunchyrollUrl);
                     await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollCommentsHtml(episodeSnapshotUrl, _config.ArchiveOrgUrl);
                 }
             }
             
-            var crunchyrollUrl = GetCrunchyrollUrlForTitle(series);
+            var crunchyrollUrl = GetCrunchyrollUrlForTitle(series.ProviderIds[CrunchyrollExternalKeys.SeriesId],
+                series.ProviderIds[CrunchyrollExternalKeys.SeriesSlugTitle]);
             var waybackMachineSearchResponse = await _wireMockAdminApi.MockWaybackMachineSearchResponse(crunchyrollUrl);
             var snapshotUrl = GetSnapshotUrl(waybackMachineSearchResponse, crunchyrollUrl);
             await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(snapshotUrl, _config.ArchiveOrgUrl);
@@ -131,25 +138,100 @@ public class CrunchyrollScanTests
             DatabaseMockHelper.ShouldHaveAvatarUri(_crunchyrollDatabaseFixture.DbFilePath, x);
         });
     }
+    
+    [Fact]
+    public async Task SetsCrunchyrollIdsForMovie_WhenMovieFound_GivenSeriesWithTitleIdAndChildren()
+    {
+        //Arrange
+        var language = _config.CrunchyrollLanguage;
+        var movie = MovieFaker.Generate();
+        var seasonId = CrunchyrollIdFaker.Generate();
+        var episodeId = CrunchyrollIdFaker.Generate();
+        var seriesId = CrunchyrollIdFaker.Generate();
+        _libraryManager.MockCrunchyrollTitleIdScanMovies(_config.LibraryPath, [movie]);
+        
+        await _wireMockAdminApi.MockRootPageAsync();
+        await _wireMockAdminApi.MockAnonymousAuthAsync();
+        
+        _mediaSourceManager
+            .GetPathProtocol(movie.Path)
+            .Returns(MediaProtocol.File);
 
-    private string GetCrunchyrollUrlForTitle(Series series)
+        var searchResponse = await _wireMockAdminApi.MockCrunchyrollSearchResponseForMovie(
+            movie.FileNameWithoutExtension,
+            new CultureInfo(_config.CrunchyrollLanguage).Name,
+            episodeId,
+            seasonId,
+            seriesId);
+        
+        var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(seriesId, language, 
+            $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+
+        var season = SeasonFaker.GenerateWithSeasonId();
+        var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse([season], seriesId, language);
+        var episode = EpisodeFaker.GenerateWithEpisodeId();
+        _ = await _wireMockAdminApi.MockCrunchyrollEpisodesResponse([episode], seasonsResponse.Data.First().Id, language,
+            $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+        
+        var episodeResponse = await _wireMockAdminApi.MockCrunchyrollGetEpisodeResponse(episodeId, seasonId, seriesId, 
+            language, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+        
+        await _wireMockAdminApi.MockCrunchyrollImagePosterResponse(
+            episodeResponse.Data.First().Images.Thumbnail.First().Last().Source);
+        
+        _mediaSourceManager
+            .GetPathProtocol(episode.Path)
+            .Returns(MediaProtocol.File);
+                    
+        var episodeCrunchyrollUrl = GetCrunchyrollUrlForEpisode(episodeId, searchResponse.Data.Last().Items.Last().SlugTitle);
+        var episodeWaybackMachineSearchResponse = await _wireMockAdminApi.MockWaybackMachineSearchResponse(episodeCrunchyrollUrl);
+        var episodeSnapshotUrl = GetSnapshotUrl(episodeWaybackMachineSearchResponse, episodeCrunchyrollUrl);
+        await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollCommentsHtml(episodeSnapshotUrl, _config.ArchiveOrgUrl);
+        
+        var crunchyrollUrl = GetCrunchyrollUrlForTitle(seriesId, searchResponse.Data.Last().Items.Last().EpisodeMetadata!.SeriesSlugTitle);
+        var waybackMachineSearchResponse = await _wireMockAdminApi.MockWaybackMachineSearchResponse(crunchyrollUrl);
+        var snapshotUrl = GetSnapshotUrl(waybackMachineSearchResponse, crunchyrollUrl);
+        await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(snapshotUrl, _config.ArchiveOrgUrl);
+        
+        //Act
+        var progress = new Progress<double>();
+        await _crunchyrollScan.Run(progress, CancellationToken.None);
+        
+        //Assert
+        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesId);
+        movie.ProviderIds[CrunchyrollExternalKeys.SeriesId].Should().Be(seriesId);
+        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesSlugTitle);
+        
+        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeId);
+        movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId].Should().Be(episodeId);
+        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
+        
+        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeasonId);
+        movie.ProviderIds[CrunchyrollExternalKeys.SeasonId].Should().Be(seasonId);
+        
+        DatabaseMockHelper.ShouldHaveMetadata(_crunchyrollDatabaseFixture.DbFilePath, seriesId, seriesResponse);
+        DatabaseMockHelper.ShouldHaveReviews(_crunchyrollDatabaseFixture.DbFilePath, seriesId);
+        DatabaseMockHelper.ShouldHaveComments(_crunchyrollDatabaseFixture.DbFilePath, episodeId);
+    }
+
+    private string GetCrunchyrollUrlForTitle(string seriesId, string seriesSlugTitle)
     {
         var crunchyrollUrl = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
                 "series",
-                series.ProviderIds[CrunchyrollExternalKeys.SeriesId],
-                series.ProviderIds[CrunchyrollExternalKeys.SeriesSlugTitle])
+                seriesId,
+                seriesSlugTitle)
             .Replace('\\', '/');
         return crunchyrollUrl;
     }
 
-    private string GetCrunchyrollUrlForEpisode(Episode episode)
+    private string GetCrunchyrollUrlForEpisode(string episodeId, string episodeSlugTitle)
     {
         var crunchyrollUrl = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
                 "watch",
-                episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId],
-                episode.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle])
+                episodeId,
+                episodeSlugTitle)
             .Replace('\\', '/');
         return crunchyrollUrl;
     }
