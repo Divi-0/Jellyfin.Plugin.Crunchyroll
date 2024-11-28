@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
@@ -47,7 +48,7 @@ public class ExtractCommentsTaskTests
         var slugTitle = baseItem.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle];
         
         _mediator
-            .Send(new ExtractCommentsCommand(episodeId, slugTitle), 
+            .Send(new ExtractCommentsCommand(episodeId, slugTitle, new CultureInfo("en-US")), 
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
@@ -57,7 +58,7 @@ public class ExtractCommentsTaskTests
         //Assert
         await _mediator
             .Received(1)
-            .Send(new ExtractCommentsCommand(episodeId, slugTitle),
+            .Send(new ExtractCommentsCommand(episodeId, slugTitle, new CultureInfo("en-US")),
                 Arg.Any<CancellationToken>());
     }
 

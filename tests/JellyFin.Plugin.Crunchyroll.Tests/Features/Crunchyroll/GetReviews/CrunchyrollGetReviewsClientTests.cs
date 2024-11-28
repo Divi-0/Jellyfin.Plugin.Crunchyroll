@@ -47,7 +47,7 @@ public class CrunchyrollGetReviewsClientTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var language = new CultureInfo(_configuration.CrunchyrollLanguage);
+        var language = new CultureInfo("en-US");
         const int pageNumber = 1;
         const int pageSize = 10;
         var bearerToken = _fixture.Create<string>();
@@ -60,7 +60,7 @@ public class CrunchyrollGetReviewsClientTests
         _mockHttpMessageHandler.MockCrunchyrollReviewsResponse(titleId, language, pageNumber, pageSize, bearerToken, response);
         
         //Act
-        var result = await _sut.GetReviewsAsync(titleId, pageNumber, pageSize, CancellationToken.None);
+        var result = await _sut.GetReviewsAsync(titleId, pageNumber, pageSize, language, CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();
@@ -72,7 +72,7 @@ public class CrunchyrollGetReviewsClientTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var language = new CultureInfo(_configuration.CrunchyrollLanguage);
+        var language = new CultureInfo("en-US");
         const int pageNumber = 1;
         const int pageSize = 10;
         var bearerToken = _fixture.Create<string>();
@@ -88,7 +88,7 @@ public class CrunchyrollGetReviewsClientTests
         _mockHttpMessageHandler.MockCrunchyrollReviewsResponse(titleId, language, pageNumber, pageSize, bearerToken, response);
         
         //Act
-        var result = await _sut.GetReviewsAsync(titleId, pageNumber, pageSize, CancellationToken.None);
+        var result = await _sut.GetReviewsAsync(titleId, pageNumber, pageSize, language, CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -100,7 +100,7 @@ public class CrunchyrollGetReviewsClientTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var language = new CultureInfo(_configuration.CrunchyrollLanguage);
+        var language = new CultureInfo("en-US");
         const int pageNumber = 1;
         const int pageSize = 10;
         var bearerToken = _fixture.Create<string>();
@@ -112,7 +112,7 @@ public class CrunchyrollGetReviewsClientTests
         _mockHttpMessageHandler.MockCrunchyrollReviewsResponse(titleId, language, pageNumber, pageSize, bearerToken, string.Empty);
         
         //Act
-        var result = await _sut.GetReviewsAsync(titleId, pageNumber, pageSize, CancellationToken.None);
+        var result = await _sut.GetReviewsAsync(titleId, pageNumber, pageSize, language, CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -124,7 +124,7 @@ public class CrunchyrollGetReviewsClientTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var language = new CultureInfo(_configuration.CrunchyrollLanguage);
+        var language = new CultureInfo("en-US");
         const int pageNumber = 1;
         const int pageSize = 10;
         var bearerToken = _fixture.Create<string>();
@@ -136,7 +136,7 @@ public class CrunchyrollGetReviewsClientTests
         _mockHttpMessageHandler.MockCrunchyrollReviewsResponse(titleId, language, pageNumber, pageSize, bearerToken, "null");
         
         //Act
-        var result = await _sut.GetReviewsAsync(titleId, pageNumber, pageSize, CancellationToken.None);
+        var result = await _sut.GetReviewsAsync(titleId, pageNumber, pageSize, language, CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -156,7 +156,7 @@ public class CrunchyrollGetReviewsClientTests
             .Returns(ValueTask.FromResult<string?>(null));
         
         //Act
-        var result = await _sut.GetReviewsAsync(titleId, pageNumber, pageSize, CancellationToken.None);
+        var result = await _sut.GetReviewsAsync(titleId, pageNumber, pageSize, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -168,7 +168,7 @@ public class CrunchyrollGetReviewsClientTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
-        var language = new CultureInfo(_configuration.CrunchyrollLanguage);
+        var language = new CultureInfo("en-US");
         const int pageNumber = 1;
         const int pageSize = 10;
         var bearerToken = _fixture.Create<string>();
@@ -180,7 +180,7 @@ public class CrunchyrollGetReviewsClientTests
         _mockHttpMessageHandler.MockCrunchyrollReviewsResponse(titleId, language, pageNumber, pageSize, bearerToken, HttpStatusCode.BadRequest);
         
         //Act
-        var result = await _sut.GetReviewsAsync(titleId, pageNumber, pageSize, CancellationToken.None);
+        var result = await _sut.GetReviewsAsync(titleId, pageNumber, pageSize, language, CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeFalse();

@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
@@ -46,7 +47,8 @@ public class ExtractReviewsTask : IPostTitleIdSetTask, IPostMovieIdSetTask
         _ = await _mediator.Send(new ExtractReviewsCommand()
         {
             TitleId = id!,
-            SlugTitle = slugTitle!
+            SlugTitle = slugTitle!,
+            Language = seriesItem.GetPreferredMetadataCultureInfo()
         }, cancellationToken);
     }
 

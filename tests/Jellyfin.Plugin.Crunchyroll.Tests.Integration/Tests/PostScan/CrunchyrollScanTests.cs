@@ -63,7 +63,7 @@ public class CrunchyrollScanTests
     public async Task SetsCrunchyrollIdsAndScrapsTitleMetadata_WhenTitlePostScanTasksAreCalled_GivenSeriesWithTitleIdAndChildren()
     {
         //Arrange
-        var language = _config.CrunchyrollLanguage;
+        var language = new CultureInfo("en-US");
         var seriesItems = Enumerable.Range(0, Random.Shared.Next(1, 10))
             .Select(_ => SeriesFaker.GenerateWithTitleId())
             .ToList();
@@ -78,7 +78,7 @@ public class CrunchyrollScanTests
         foreach (var series in seriesItems)
         {
             var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], 
-                language, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+                language.Name, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
             seriesResponses.Add(series.Id, seriesResponse);
             
             await _wireMockAdminApi.MockCrunchyrollImagePosterResponse(
@@ -88,7 +88,7 @@ public class CrunchyrollScanTests
                 seriesResponse.Images.PosterWide.First().Last().Source);
             
             var seasons = _itemRepository.MockGetChildren(series);
-            var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(seasons, series.ProviderIds[CrunchyrollExternalKeys.SeriesId], language);
+            var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse(seasons, series.ProviderIds[CrunchyrollExternalKeys.SeriesId], language.Name);
 
             foreach (var seasonResponse in seasonsResponse.Data)
             {
@@ -104,7 +104,7 @@ public class CrunchyrollScanTests
                 }
                 
                 var crunchyrollEpisodesResponse = await _wireMockAdminApi.MockCrunchyrollEpisodesResponse(episodes, 
-                    seasonResponse.Id, language, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+                    seasonResponse.Id, language.Name, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
 
                 foreach (var crunchyrollEpisode in crunchyrollEpisodesResponse.Data)
                 {
@@ -173,14 +173,14 @@ public class CrunchyrollScanTests
     public async Task SetsCrunchyrollIdsForEpisode_WhenEpisodeHasNoEpisodeIdentifier_GivenSeriesWithTitleIdAndChildren()
     {
         //Arrange
-        var language = _config.CrunchyrollLanguage;
+        var language = new CultureInfo("en-US");
         var series = SeriesFaker.GenerateWithTitleId();
         _libraryManager.MockCrunchyrollTitleIdScan(_config.LibraryPath, [series]);
         
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
         
-        var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], language, 
+        var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], language.Name, 
             $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
         
         await _wireMockAdminApi.MockCrunchyrollImagePosterResponse(
@@ -193,7 +193,7 @@ public class CrunchyrollScanTests
         _itemRepository
             .GetItemList(Arg.Is<InternalItemsQuery>(x => x.ParentId == series.Id))
             .Returns([season]);
-        var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse([season], series.ProviderIds[CrunchyrollExternalKeys.SeriesId], language);
+        var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse([season], series.ProviderIds[CrunchyrollExternalKeys.SeriesId], language.Name);
 
         var episode = EpisodeFaker.Generate(season);
         const string episodeName = "abc";
@@ -208,7 +208,7 @@ public class CrunchyrollScanTests
             .Returns(MediaProtocol.File);
         
         var episodesResponse = await _wireMockAdminApi.MockCrunchyrollEpisodesResponse([episode], 
-            seasonsResponse.Data.First().Id, language, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}",
+            seasonsResponse.Data.First().Id, language.Name, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}",
             new CrunchyrollEpisodesResponse
             {
                 Data = new []
@@ -246,7 +246,7 @@ public class CrunchyrollScanTests
     public async Task SetsCrunchyrollIdsForMovie_WhenMovieFound_GivenSeriesWithTitleIdAndChildren()
     {
         //Arrange
-        var language = _config.CrunchyrollLanguage;
+        var language = new CultureInfo("en-US");
         var movie = MovieFaker.Generate();
         var seasonId = CrunchyrollIdFaker.Generate();
         var episodeId = CrunchyrollIdFaker.Generate();
@@ -262,22 +262,22 @@ public class CrunchyrollScanTests
 
         await _wireMockAdminApi.MockCrunchyrollSearchResponseForMovie(
             movie.FileNameWithoutExtension,
-            new CultureInfo(_config.CrunchyrollLanguage).Name,
+            language.Name,
             episodeId,
             seasonId,
             seriesId);
         
-        var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(seriesId, language, 
+        var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(seriesId, language.Name, 
             $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
 
         var season = SeasonFaker.GenerateWithSeasonId();
-        var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse([season], seriesId, language);
+        var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse([season], seriesId, language.Name);
         var episode = EpisodeFaker.GenerateWithEpisodeId();
-        _ = await _wireMockAdminApi.MockCrunchyrollEpisodesResponse([episode], seasonsResponse.Data.First().Id, language,
+        _ = await _wireMockAdminApi.MockCrunchyrollEpisodesResponse([episode], seasonsResponse.Data.First().Id, language.Name,
             $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
         
         var episodeResponse = await _wireMockAdminApi.MockCrunchyrollGetEpisodeResponse(episodeId, seasonId, seriesId, 
-            language, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+            language.Name, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
         
         await _wireMockAdminApi.MockCrunchyrollImagePosterResponse(
             episodeResponse.Data.First().Images.Thumbnail.First().Last().Source);

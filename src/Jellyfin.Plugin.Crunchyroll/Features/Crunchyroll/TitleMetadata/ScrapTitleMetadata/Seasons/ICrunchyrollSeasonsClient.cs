@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -7,5 +8,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTi
 
 public interface ICrunchyrollSeasonsClient
 {
-    public Task<Result<CrunchyrollSeasonsResponse>> GetSeasonsAsync(string titleId, CancellationToken cancellationToken);
+    public Task<Result<CrunchyrollSeasonsResponse>> GetSeasonsAsync(string titleId, CultureInfo language, 
+        CancellationToken cancellationToken);
 }

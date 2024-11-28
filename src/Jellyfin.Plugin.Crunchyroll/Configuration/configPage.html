@@ -15,11 +15,6 @@
                     <div class="fieldDescription">CrunchyrollUrl</div>
                 </div>
                 <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="CrunchyrollLanguage">CrunchyrollLanguage</label>
-                    <input id="CrunchyrollLanguage" name="CrunchyrollLanguage" type="text" is="emby-input" />
-                    <div class="fieldDescription">Crunchyroll Language in ISO 639-1. Example: en-US</div>
-                </div>
-                <div class="inputContainer">
                     <label class="inputLabel inputLabelUnfocused" for="ArchiveOrgUrl">ArchiveOrgUrl</label>
                     <input id="ArchiveOrgUrl" name="ArchiveOrgUrl" type="text" is="emby-input" />
                     <div class="fieldDescription">ArchiveOrgUrl</div>
@@ -60,8 +55,7 @@
                     </label>
                     <div class="fieldDescription">
                         Feature to order your seasons in the the crunchyroll order. For exmaple, Seasons with 
-                        OADs or movies will be ordered in between season 1 and 2. 
-                        The order depends on your metadata language and the available Crunchyroll seasons in that language. 
+                        OADs or movies will be ordered in between season 1 and 2.
                         Default: enabled
                     </div>
                 </div>
@@ -83,7 +77,6 @@
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId).then(function (config) {
                     document.querySelector('#CrunchyrollUrl').value = config.CrunchyrollUrl;
-                    document.querySelector('#CrunchyrollLanguage').value = config.CrunchyrollLanguage;
                     document.querySelector('#ArchiveOrgUrl').value = config.ArchiveOrgUrl;
                     document.querySelector('#LocalDatabasePath').value = config.LocalDatabasePath;
                     document.querySelector('#IsWaybackMachineEnabled').checked = config.IsWaybackMachineEnabled;
@@ -99,7 +92,6 @@
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId).then(function (config) {
                     config.CrunchyrollUrl = document.querySelector('#CrunchyrollUrl').value;
-                    config.CrunchyrollLanguage = document.querySelector('#CrunchyrollLanguage').value;
                     config.ArchiveOrgUrl = document.querySelector('#ArchiveOrgUrl').value;
                     config.LocalDatabasePath = document.querySelector('#LocalDatabasePath').value;
                     config.LibraryPath = document.querySelector('#LibraryPath').value;

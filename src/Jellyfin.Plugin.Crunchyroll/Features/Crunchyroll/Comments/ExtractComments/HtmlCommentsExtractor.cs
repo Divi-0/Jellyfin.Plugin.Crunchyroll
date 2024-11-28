@@ -27,7 +27,7 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
         _config = config;
     }
 
-    public async Task<Result<IReadOnlyList<CommentItem>>> GetCommentsAsync(string url,
+    public async Task<Result<IReadOnlyList<CommentItem>>> GetCommentsAsync(string url, CultureInfo language,
         CancellationToken cancellationToken)
     {
         HttpResponseMessage response;
@@ -52,10 +52,10 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
         }
 
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
-        return ExtractCommentsFromHtml(content);
+        return ExtractCommentsFromHtml(content, language);
     }
 
-    private Result<IReadOnlyList<CommentItem>> ExtractCommentsFromHtml(string html)
+    private Result<IReadOnlyList<CommentItem>> ExtractCommentsFromHtml(string html, CultureInfo language)
     {
         var htmlDocument = new HtmlDocument();
         htmlDocument.LoadHtml(html);
@@ -108,7 +108,7 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
                 Author = username,
                 Message = body,
                 AvatarIconUri = imageUrl,
-                Likes = ConvertLikesToInt(likes),
+                Likes = ConvertLikesToInt(likes, language),
                 RepliesCount = 0
             };
 
@@ -118,7 +118,7 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
         return comments;
     }
 
-    private int ConvertLikesToInt(string likes)
+    private int ConvertLikesToInt(string likes, CultureInfo language)
     {
         if (int.TryParse(likes, out var result))
         {
@@ -145,7 +145,7 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
             throw new NotImplementedException($"value '{likes}' can not be converted");
         }
 
-        var decimalValue = Convert.ToDecimal(number, new CultureInfo(_config.CrunchyrollLanguage));
+        var decimalValue = Convert.ToDecimal(number, language);
         return Convert.ToInt32(Math.Round(decimalValue * 1000));
     }
 

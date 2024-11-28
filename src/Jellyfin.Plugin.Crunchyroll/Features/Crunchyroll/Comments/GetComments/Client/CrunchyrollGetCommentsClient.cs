@@ -41,9 +41,10 @@ public class CrunchyrollGetCommentsClient : ICrunchyrollGetCommentsClient
         };
     }
     
-    public async Task<Result<CommentsResponse>> GetCommentsAsync(string titleId, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    public async Task<Result<CommentsResponse>> GetCommentsAsync(string titleId, int pageNumber, int pageSize, 
+        CultureInfo language, CancellationToken cancellationToken)
     {
-        var locacle = new CultureInfo(_pluginConfiguration.CrunchyrollLanguage).Name;
+        var locacle = language.Name;
         var path =
             $"talkbox/guestbooks/{titleId}/comments?page={pageNumber}&page_size={pageSize}&order=desc&sort=popular&locale={locacle}";
         

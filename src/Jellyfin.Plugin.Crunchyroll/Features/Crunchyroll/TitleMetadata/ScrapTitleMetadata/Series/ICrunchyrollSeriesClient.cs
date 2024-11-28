@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTi
 
 public interface ICrunchyrollSeriesClient
 {
-    public Task<Result<CrunchyrollSeriesContentItem>> GetSeriesMetadataAsync(string titleId, CancellationToken cancellationToken);
+    public Task<Result<CrunchyrollSeriesContentItem>> GetSeriesMetadataAsync(string titleId, CultureInfo language, 
+        CancellationToken cancellationToken);
     public Task<Result<Stream>> GetPosterImagesAsync(string url, CancellationToken cancellationToken);
 }

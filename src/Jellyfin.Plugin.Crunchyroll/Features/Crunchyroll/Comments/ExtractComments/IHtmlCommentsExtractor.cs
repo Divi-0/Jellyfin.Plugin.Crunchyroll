@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -8,5 +9,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComme
 
 public interface IHtmlCommentsExtractor
 {
-    public Task<Result<IReadOnlyList<CommentItem>>> GetCommentsAsync(string url, CancellationToken cancellationToken);
+    public Task<Result<IReadOnlyList<CommentItem>>> GetCommentsAsync(string url, CultureInfo language, 
+        CancellationToken cancellationToken);
 }

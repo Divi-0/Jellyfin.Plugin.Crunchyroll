@@ -40,9 +40,10 @@ public sealed class CrunchyrollGetReviewsClient : ICrunchyrollGetReviewsClient
         };
     }
     
-    public async Task<Result<ReviewsResponse>> GetReviewsAsync(string titleId, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    public async Task<Result<ReviewsResponse>> GetReviewsAsync(string titleId, int pageNumber, int pageSize,
+        CultureInfo language, CancellationToken cancellationToken)
     {
-        var locacle = new CultureInfo(_pluginConfiguration.CrunchyrollLanguage).Name;
+        var locacle = language.Name;
         var path =
             $"content-reviews/v2/{locacle}/review/series/{titleId}/list?page={pageNumber}&page_size={pageSize}&sort=helpful";
 

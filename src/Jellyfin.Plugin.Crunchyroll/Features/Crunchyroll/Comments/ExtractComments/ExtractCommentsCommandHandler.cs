@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
 
-public record ExtractCommentsCommand(string EpisodeId, string EpisodeSlugTitle) : IRequest<Result>;
+public record ExtractCommentsCommand(string EpisodeId, string EpisodeSlugTitle, CultureInfo Language) : IRequest<Result>;
 
 public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsCommand, Result>
 {
@@ -49,10 +49,9 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
             return Result.Ok();
         }
         
-        var twoLetterIsoLanguageName = new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName;
         var crunchyrollUrl = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
-                twoLetterIsoLanguageName == "en" ? string.Empty : twoLetterIsoLanguageName,
+                request.Language.TwoLetterISOLanguageName == "en" ? string.Empty : request.Language.TwoLetterISOLanguageName,
                 "watch",
                 request.EpisodeId,
                 request.EpisodeSlugTitle)
@@ -77,7 +76,7 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
                     crunchyrollUrl)
                 .Replace('\\', '/');
 
-            commentsResult = await _extractor.GetCommentsAsync(snapshotUrl, cancellationToken);
+            commentsResult = await _extractor.GetCommentsAsync(snapshotUrl, request.Language, cancellationToken);
 
             if (commentsResult.IsFailed)
             {

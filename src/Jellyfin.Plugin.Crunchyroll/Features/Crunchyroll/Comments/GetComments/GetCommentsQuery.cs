@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,14 +61,14 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, Result<
         else
         {
             commentsResult = await GetCommentsFromApi(episodeId, request.PageSize, request.PageNumber, 
-                cancellationToken);
+                item.GetPreferredMetadataCultureInfo(), cancellationToken);
         }
 
         return commentsResult;
     }
     
     private async ValueTask<Result<CommentsResponse>> GetCommentsFromApi(string episodeId, int pageSize, int pageNumber, 
-        CancellationToken cancellationToken)
+        CultureInfo language, CancellationToken cancellationToken)
     {
         var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);
 
@@ -77,7 +78,7 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, Result<
         }
 
         return await _crunchyrollClient.GetCommentsAsync(episodeId, pageNumber,
-            pageSize, cancellationToken);
+            pageSize, language, cancellationToken);
     }
     
     private async ValueTask<Result<CommentsResponse>> GetCommentsFromDatabase(string episodeId, int pageSize, int pageNumber)

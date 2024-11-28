@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId;
 
@@ -50,7 +51,10 @@ public class SetTitleIdTask : IPostSeriesScanTask
 
         try
         {
-            var titleIdResult = await _mediator.Send(new TitleIdQuery(item.FileNameWithoutExtension), cancellationToken);
+            var titleIdResult = await _mediator.Send(new TitleIdQuery(
+                item.FileNameWithoutExtension,
+                item.GetPreferredMetadataCultureInfo()), 
+                cancellationToken);
 
             if (titleIdResult.IsFailed)
             {

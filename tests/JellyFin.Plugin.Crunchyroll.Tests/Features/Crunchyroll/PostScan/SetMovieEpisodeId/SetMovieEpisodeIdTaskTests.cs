@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
@@ -55,7 +56,7 @@ public class SetMovieEpisodeIdTaskTests
             .Returns(MediaProtocol.File);
 
         _client
-            .SearchTitleIdAsync(movie.FileNameWithoutExtension, Arg.Any<CancellationToken>())
+            .SearchTitleIdAsync(movie.FileNameWithoutExtension, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok<SearchResponse?>(new SearchResponse
             {
                 EpisodeId = crunchyrollEpisodeId,
@@ -110,7 +111,7 @@ public class SetMovieEpisodeIdTaskTests
             .Returns(MediaProtocol.File);
         
         _client
-            .SearchTitleIdAsync(movie.FileNameWithoutExtension, Arg.Any<CancellationToken>())
+            .SearchTitleIdAsync(movie.FileNameWithoutExtension, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok<SearchResponse?>(null));
 
         //Act
@@ -158,7 +159,7 @@ public class SetMovieEpisodeIdTaskTests
             .Returns(MediaProtocol.File);
         
         _client
-            .SearchTitleIdAsync(movie.FileNameWithoutExtension, Arg.Any<CancellationToken>())
+            .SearchTitleIdAsync(movie.FileNameWithoutExtension, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail<SearchResponse?>("error"));
 
         //Act

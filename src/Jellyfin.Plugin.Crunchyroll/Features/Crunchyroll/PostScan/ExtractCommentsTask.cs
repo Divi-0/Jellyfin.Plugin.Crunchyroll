@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
@@ -43,7 +45,8 @@ public sealed class ExtractCommentsTask : IPostEpisodeIdSetTask, IPostMovieIdSet
             return;
         }
 
-        _ = await _mediator.Send(new ExtractCommentsCommand(id!, slugTitle!), cancellationToken);
+        var language = episodeItem.GetPreferredMetadataCultureInfo();
+        _ = await _mediator.Send(new ExtractCommentsCommand(id!, slugTitle!, language), cancellationToken);
     }
 
     public async Task RunAsync(Movie movie, CancellationToken cancellationToken)

@@ -17,7 +17,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetMovieEpis
 public class CrunchyrollMovieEpisodeIdClient : ICrunchyrollMovieEpisodeIdClient
 {
     private readonly HttpClient _httpClient;
-    private readonly PluginConfiguration _pluginConfiguration;
     private readonly ILogger<CrunchyrollMovieEpisodeIdClient> _logger;
     private readonly ICrunchyrollSessionRepository _crunchyrollSessionRepository;
 
@@ -27,7 +26,6 @@ public class CrunchyrollMovieEpisodeIdClient : ICrunchyrollMovieEpisodeIdClient
         ICrunchyrollSessionRepository crunchyrollSessionRepository)
     {
         _httpClient = httpClient;
-        _pluginConfiguration = pluginConfiguration;
         _logger = logger;
         _crunchyrollSessionRepository = crunchyrollSessionRepository;
 
@@ -40,15 +38,14 @@ public class CrunchyrollMovieEpisodeIdClient : ICrunchyrollMovieEpisodeIdClient
         };
     }
     
-    public async Task<Result<SearchResponse?>> SearchTitleIdAsync(string name, CancellationToken cancellationToken)
+    public async Task<Result<SearchResponse?>> SearchTitleIdAsync(string name, CultureInfo language, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Fetching episode id for {Name}", name);
         
         var urlEncodedName = UrlEncoder.Default.Encode(name);
-
-        var locacle = new CultureInfo(_pluginConfiguration.CrunchyrollLanguage).Name;
+        
         var path =
-            $"content/v2/discover/search?q={urlEncodedName}&n=6&type=episode&ratings=true&locale={locacle}";
+            $"content/v2/discover/search?q={urlEncodedName}&n=6&type=episode&ratings=true&locale={language.Name}";
 
         var bearerToken = await _crunchyrollSessionRepository.GetAsync(cancellationToken);
 

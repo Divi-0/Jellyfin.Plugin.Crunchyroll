@@ -1,3 +1,4 @@
+using System.Globalization;
 using Jellyfin.Plugin.Crunchyroll.Tests.E2E.Common;
 using Jellyfin.Plugin.Crunchyroll.Tests.E2E.Pages;
 using Microsoft.Playwright;
@@ -30,7 +31,8 @@ public class RunScanTests
             await page.StartLibraryScan(_jellyfinFixture.Url);
 
             //One Piece
-            await page.SeriesShouldHaveDataFromCrunchyrollAsync(_jellyfinFixture.Url, "GRMG8ZQZR", 5);
+            await page.SeriesShouldHaveDataFromCrunchyrollAsync(_jellyfinFixture.Url, "GRMG8ZQZR", 
+                new CultureInfo("en-US"), 5);
         }
         catch(Exception)
         {

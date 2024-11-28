@@ -1,4 +1,5 @@
-﻿using AutoFixture;
+﻿using System.Globalization;
+using AutoFixture;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
@@ -63,7 +64,8 @@ public class GetCommentsQueryTests
             .Returns(Result.Ok());
 
         _crunchyrollClient
-            .GetCommentsAsync(episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId], pageNumber, pageSize, Arg.Any<CancellationToken>())
+            .GetCommentsAsync(episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId], pageNumber, pageSize, 
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(new CommentsResponse());
 
         //Act
@@ -117,7 +119,7 @@ public class GetCommentsQueryTests
 
         await _crunchyrollClient
             .DidNotReceive()
-            .GetCommentsAsync(jellyfinId, pageNumber, pageSize, Arg.Any<CancellationToken>());
+            .GetCommentsAsync(jellyfinId, pageNumber, pageSize,  Arg.Any<CultureInfo>(),Arg.Any<CancellationToken>());
         
         await _session
             .DidNotReceive()
@@ -170,6 +172,7 @@ public class GetCommentsQueryTests
         await _crunchyrollClient
             .DidNotReceive()
             .GetCommentsAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<int>(), 
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>());
 
     }

@@ -29,7 +29,8 @@ public class HtmlReviewsExtractor : IHtmlReviewsExtractor
         _config = config;
     }
 
-    public async Task<Result<IReadOnlyList<ReviewItem>>> GetReviewsAsync(string url, CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<ReviewItem>>> GetReviewsAsync(string url, CultureInfo language,
+        CancellationToken cancellationToken = default)
     {
         HttpResponseMessage response;
         try
@@ -53,10 +54,10 @@ public class HtmlReviewsExtractor : IHtmlReviewsExtractor
         }
     
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
-        return ExtractReviewsFromHtml(content);
+        return ExtractReviewsFromHtml(content, language);
     }
 
-    private Result<IReadOnlyList<ReviewItem>> ExtractReviewsFromHtml(string html)
+    private Result<IReadOnlyList<ReviewItem>> ExtractReviewsFromHtml(string html, CultureInfo language)
     {
         var htmlDocument = new HtmlDocument();
         htmlDocument.LoadHtml(html);
@@ -91,7 +92,7 @@ public class HtmlReviewsExtractor : IHtmlReviewsExtractor
             var votingSectionElement = reviewElement.SelectSingleNode(".//div[contains(@class, 'review-votings__votes-section')]");
             var votingContent = votingSectionElement.SelectSingleNode(".//span").GetDirectInnerText();
 
-            var createdAt = TryParseDate(createdAtString);
+            var createdAt = TryParseDate(createdAtString, language);
             
             var item = new ReviewItem()
             {
@@ -113,9 +114,9 @@ public class HtmlReviewsExtractor : IHtmlReviewsExtractor
         return reviewItems;
     }
 
-    private DateTime TryParseDate(string dateString)
+    private DateTime TryParseDate(string dateString, CultureInfo language)
     {
-        var hasParsed = DateTime.TryParse(dateString, new CultureInfo(_config.CrunchyrollLanguage), out var date);
+        var hasParsed = DateTime.TryParse(dateString, language, out var date);
         return hasParsed ? date : default;
     }
 

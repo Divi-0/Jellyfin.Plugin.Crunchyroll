@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -7,5 +8,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.GetComments.
 
 public interface ICrunchyrollGetCommentsClient
 {
-    public Task<Result<CommentsResponse>> GetCommentsAsync(string titleId, int pageNumber, int pageSize, CancellationToken cancellationToken);
+    public Task<Result<CommentsResponse>> GetCommentsAsync(string titleId, int pageNumber, int pageSize, 
+        CultureInfo language, CancellationToken cancellationToken);
 }

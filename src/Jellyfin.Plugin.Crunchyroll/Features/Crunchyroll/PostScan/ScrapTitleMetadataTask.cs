@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using MediaBrowser.Controller.Entities;
@@ -40,6 +41,7 @@ public class ScrapTitleMetadataTask : IPostTitleIdSetTask, IPostMovieIdSetTask
         _ = await _mediator.Send(new ScrapTitleMetadataCommand
         {
             TitleId = id!,
+            Language = seriesItem.GetPreferredMetadataCultureInfo(),
             MovieEpisodeId = hasEpisodeId ? episodeId : null,
             MovieSeasonId = hasSeasonId ? seasonId : null
         }, cancellationToken);

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Common;
@@ -13,10 +14,10 @@ public static class SeriesPage
 {
     /// <returns>Series details page</returns>
     public static async Task<IPage> SeriesShouldHaveDataFromCrunchyrollAsync(this IPage page, string jellyfinUrl, 
-        string seriesCrunchyrollId, int expectedReviewsCount)
+        string seriesCrunchyrollId, CultureInfo language, int expectedReviewsCount)
     {
         var seriesClient = await CrunchyrollClientHelper.GetSeriesClientAsync();
-        var seriesMetadataResult = await seriesClient.GetSeriesMetadataAsync(seriesCrunchyrollId, CancellationToken.None);
+        var seriesMetadataResult = await seriesClient.GetSeriesMetadataAsync(seriesCrunchyrollId, language, CancellationToken.None);
         seriesMetadataResult.IsSuccess.Should().BeTrue();
         var seriesMetadata = seriesMetadataResult.Value;
         

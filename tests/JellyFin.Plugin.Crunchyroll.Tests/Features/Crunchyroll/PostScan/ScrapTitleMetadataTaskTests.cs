@@ -1,4 +1,4 @@
-using FluentResults;
+using System.Globalization;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
@@ -60,6 +60,7 @@ public class ScrapTitleMetadataTaskTests
             .Send(new ScrapTitleMetadataCommand
                 {
                     TitleId = titleId, 
+                    Language = new CultureInfo("en-US"),
                     MovieSeasonId = baseItem is Movie ? baseItem.ProviderIds[CrunchyrollExternalKeys.SeasonId] : null,
                     MovieEpisodeId = baseItem is Movie ? baseItem.ProviderIds[CrunchyrollExternalKeys.EpisodeId] : null
                 },

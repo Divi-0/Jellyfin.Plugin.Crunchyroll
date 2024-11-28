@@ -1,7 +1,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -31,9 +30,9 @@ public class CrunchyrollSeriesClient : ICrunchyrollSeriesClient
         _crunchyrollSessionRepository = crunchyrollSessionRepository;
     }
     
-    public async Task<Result<CrunchyrollSeriesContentItem>> GetSeriesMetadataAsync(string titleId, CancellationToken cancellationToken)
+    public async Task<Result<CrunchyrollSeriesContentItem>> GetSeriesMetadataAsync(string titleId, CultureInfo language, CancellationToken cancellationToken)
     {
-        var locacle = new CultureInfo(_config.CrunchyrollLanguage).Name;
+        var locacle = language.Name;
         var path =
             $"content/v2/cms/series/{titleId}?locale={locacle}";
 

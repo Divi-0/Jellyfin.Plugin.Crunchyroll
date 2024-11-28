@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -17,7 +16,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTi
 public sealed class CrunchyrollEpisodesClient : ICrunchyrollEpisodesClient
 {
     private readonly HttpClient _httpClient;
-    private readonly PluginConfiguration _config;
     private readonly ICrunchyrollSessionRepository _crunchyrollSessionRepository;
     private readonly ILogger<CrunchyrollEpisodesClient> _logger;
 
@@ -25,16 +23,15 @@ public sealed class CrunchyrollEpisodesClient : ICrunchyrollEpisodesClient
         ICrunchyrollSessionRepository crunchyrollSessionRepository, ILogger<CrunchyrollEpisodesClient> logger)
     {
         _httpClient = httpClient;
-        _config = config;
         _crunchyrollSessionRepository = crunchyrollSessionRepository;
         _logger = logger;
         
-        _httpClient.BaseAddress = new Uri(_config.CrunchyrollUrl);
+        _httpClient.BaseAddress = new Uri(config.CrunchyrollUrl);
     }
 
-    public async Task<Result<CrunchyrollEpisodesResponse>> GetEpisodesAsync(string seasonId, CancellationToken cancellationToken)
+    public async Task<Result<CrunchyrollEpisodesResponse>> GetEpisodesAsync(string seasonId, CultureInfo language, CancellationToken cancellationToken)
     {
-        var locacle = new CultureInfo(_config.CrunchyrollLanguage).Name;
+        var locacle = language.Name;
         var path = $"content/v2/cms/seasons/{seasonId}/episodes?locale={locacle}";
 
         var bearerToken = await _crunchyrollSessionRepository.GetAsync(cancellationToken);
@@ -90,9 +87,9 @@ public sealed class CrunchyrollEpisodesClient : ICrunchyrollEpisodesClient
         return seasonsResponse;
     }
 
-    public async Task<Result<CrunchyrollEpisodeDataItem>> GetEpisodeAsync(string episodeId, CancellationToken cancellationToken)
+    public async Task<Result<CrunchyrollEpisodeDataItem>> GetEpisodeAsync(string episodeId, CultureInfo language, CancellationToken cancellationToken)
     {
-        var locacle = new CultureInfo(_config.CrunchyrollLanguage).Name;
+        var locacle = language.Name;
         var path = $"content/v2/cms/objects/{episodeId}?ratings=true&locale={locacle}";
 
         var bearerToken = await _crunchyrollSessionRepository.GetAsync(cancellationToken);

@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Tests.E2E.Common.Helpers;
 using Microsoft.Playwright;
@@ -6,10 +7,11 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.E2E.Pages;
 
 public static class SeasonPage
 {
-    public static async Task ShouldHaveSeasonsWithMetadataAsync(this IPage seriesPage, string titleId, IBrowser browser)
+    public static async Task ShouldHaveSeasonsWithMetadataAsync(this IPage seriesPage, string titleId,
+        CultureInfo language, IBrowser browser)
     {
         var seasonsClient = await CrunchyrollClientHelper.GetSeasonsClientAsync();
-        var seasonsResult = await seasonsClient.GetSeasonsAsync(titleId, CancellationToken.None);
+        var seasonsResult = await seasonsClient.GetSeasonsAsync(titleId, language, CancellationToken.None);
         seasonsResult.IsSuccess.Should().BeTrue();
         var seasonsResponse = seasonsResult.Value;
 
@@ -25,7 +27,7 @@ public static class SeasonPage
             await seasonsPage.GoToSeasonAsync(season.Title);
             
             await seasonsPage.ShouldHaveSeasonMetadataAsync(season.Title);
-            await seasonsPage.ShouldHaveEpisodesAsync(season.Id, browser);
+            await seasonsPage.ShouldHaveEpisodesAsync(season.Id, language, browser);
             await seasonsPage.CloseAsync();
         }
     }
@@ -55,10 +57,11 @@ public static class SeasonPage
         actualSeasonName.Should().Be(expectedSeasonName);
     }
     
-    public static async Task ShouldHaveEpisodesAsync(this IPage seasonsPage, string seasonId, IBrowser browser)
+    public static async Task ShouldHaveEpisodesAsync(this IPage seasonsPage, string seasonId,
+        CultureInfo language, IBrowser browser)
     {
         var episodeClient = await CrunchyrollClientHelper.GetEpisodesClientAsync();
-        var episodesResult = await episodeClient.GetEpisodesAsync(seasonId, CancellationToken.None);
+        var episodesResult = await episodeClient.GetEpisodesAsync(seasonId, language, CancellationToken.None);
         episodesResult.IsSuccess.Should().BeTrue();
         var episodes = episodesResult.Value.Data;
         

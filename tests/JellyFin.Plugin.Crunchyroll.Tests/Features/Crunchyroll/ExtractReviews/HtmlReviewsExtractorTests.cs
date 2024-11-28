@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -41,7 +42,7 @@ public class HtmlReviewsExtractorTests
         var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlReviewsResponse(url);
         
         //Act
-        var result = await _sut.GetReviewsAsync(url, CancellationToken.None);
+        var result = await _sut.GetReviewsAsync(url, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();
@@ -65,7 +66,7 @@ public class HtmlReviewsExtractorTests
         var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlReviewsResponseFails(url, HttpStatusCode.BadRequest);
         
         //Act
-        var result = await _sut.GetReviewsAsync(url, CancellationToken.None);
+        var result = await _sut.GetReviewsAsync(url, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -83,7 +84,7 @@ public class HtmlReviewsExtractorTests
         var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlReviewsResponseThrows(url, new TimeoutException());
         
         //Act
-        var result = await _sut.GetReviewsAsync(url, CancellationToken.None);
+        var result = await _sut.GetReviewsAsync(url, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -101,7 +102,7 @@ public class HtmlReviewsExtractorTests
         var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlReviewsResponseInvalidHtml(url, new TimeoutException());
         
         //Act
-        var result = await _sut.GetReviewsAsync(url, CancellationToken.None);
+        var result = await _sut.GetReviewsAsync(url, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -119,7 +120,7 @@ public class HtmlReviewsExtractorTests
         var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlReviewsResponseInvalidDate(url);
         
         //Act
-        var result = await _sut.GetReviewsAsync(url, CancellationToken.None);
+        var result = await _sut.GetReviewsAsync(url, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();
@@ -161,7 +162,7 @@ public class HtmlReviewsExtractorTests
             });
         
         //Act
-        var result = await _sut.GetReviewsAsync(url, CancellationToken.None);
+        var result = await _sut.GetReviewsAsync(url, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();

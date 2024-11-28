@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading;
@@ -51,13 +52,14 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
             return Result.Fail(GetReviewsErrorCodes.ItemHasNoProviderId);
         }
 
-        var reviewsResult = await GetReviewsAsync(cruncyrollId, request.PageNumber, request.PageSize, cancellationToken);
+        var reviewsResult = await GetReviewsAsync(cruncyrollId, request.PageNumber, request.PageSize, 
+            item.GetPreferredMetadataCultureInfo(), cancellationToken);
 
         return reviewsResult;
     }
 
     private async ValueTask<Result<ReviewsResponse>> GetReviewsAsync(string titleId, int pageNumber, int pageSize, 
-        CancellationToken cancellationToken)
+        CultureInfo language, CancellationToken cancellationToken)
     {
         if (_config.IsWaybackMachineEnabled)
         {
@@ -82,7 +84,7 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
             var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);
             return loginResult.IsFailed ? 
                 loginResult :
-                await _client.GetReviewsAsync(titleId, pageNumber, pageSize, cancellationToken);
+                await _client.GetReviewsAsync(titleId, pageNumber, pageSize, language, cancellationToken);
         }
     }
 }

@@ -13,6 +13,8 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker
                 .RuleFor(x => x.Id, Guid.NewGuid())
                 .RuleFor(x => x.Name, name)
                 .RuleFor(x => x.Path, f => $"videos/{f.Random.Words()}/{name}")
+                .RuleFor(x => x.PreferredMetadataLanguage, "en")
+                .RuleFor(x => x.PreferredMetadataCountryCode, "US")
                 .Generate();
 
             return series;

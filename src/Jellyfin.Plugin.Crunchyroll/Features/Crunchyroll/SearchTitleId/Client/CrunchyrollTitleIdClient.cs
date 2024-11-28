@@ -41,13 +41,14 @@ public class CrunchyrollTitleIdClient : ICrunchyrollTitleIdClient
     }
     
     /// <inheritdoc />
-    public async Task<Result<SearchResponse?>> GetTitleIdAsync(string title, CancellationToken cancellationToken)
+    public async Task<Result<SearchResponse?>> GetTitleIdAsync(string title, CultureInfo language, 
+        CancellationToken cancellationToken)
     {
         _logger.LogDebug("Fetching titleId for {Title}", title);
         
         var urlEncodedTitle = UrlEncoder.Default.Encode(title);
 
-        var locacle = new CultureInfo(_pluginConfiguration.CrunchyrollLanguage).Name;
+        var locacle = language.Name;
         var path =
             $"content/v2/discover/search?q={urlEncodedTitle}&n=6&type=series,movie_listing&ratings=true&locale={locacle}";
 

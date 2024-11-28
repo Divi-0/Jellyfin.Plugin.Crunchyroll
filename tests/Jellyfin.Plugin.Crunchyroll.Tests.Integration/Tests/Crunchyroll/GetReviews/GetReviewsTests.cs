@@ -7,6 +7,8 @@ using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared;
 using Jellyfin.Plugin.Crunchyroll;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
+using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using WireMock.Client;
@@ -30,18 +32,20 @@ public class GetReviewsTests
     {
         //Arrange
         var itemId = Guid.NewGuid();
-        var titleId = Guid.NewGuid().ToString();
+        var series = SeriesFaker.GenerateWithTitleId();
         const int pageNumber = 1;
         const int pageSize = 10;
 
-        PluginWebApplicationFactory.LibraryManagerMock.MockRetrieveItem(itemId, titleId);
+        PluginWebApplicationFactory.LibraryManagerMock
+            .RetrieveItem(itemId)
+            .Returns(series);
 
-        var config = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
-        var locacle = new CultureInfo(config.CrunchyrollLanguage);
+        var locacle = new CultureInfo("en-US");
         
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
-        var mockedResponse = await _wireMockAdminApi.MockReviewsResponseAsync(titleId, locacle.Name, pageNumber, pageSize);
+        var mockedResponse = await _wireMockAdminApi
+            .MockReviewsResponseAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], locacle.Name, pageNumber, pageSize);
 
         //Act
         var path = $"api/crunchyrollPlugin/crunchyroll/reviews/{itemId}?pageNumber={pageNumber}&pageSize={pageSize}";

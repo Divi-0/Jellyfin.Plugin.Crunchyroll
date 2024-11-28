@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -7,7 +8,7 @@ using Mediator;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId;
 
-public record TitleIdQuery(string Title) : IRequest<Result<SearchResponse?>>;
+public record TitleIdQuery(string Title, CultureInfo Language) : IRequest<Result<SearchResponse?>>;
 
 public class TitleIdQueryHandler : IRequestHandler<TitleIdQuery, Result<SearchResponse?>>
 {
@@ -29,7 +30,7 @@ public class TitleIdQueryHandler : IRequestHandler<TitleIdQuery, Result<SearchRe
             return loginResult;
         }
         
-        var titleIdResult = await _client.GetTitleIdAsync(request.Title, cancellationToken);
+        var titleIdResult = await _client.GetTitleIdAsync(request.Title, request.Language, cancellationToken);
 
         if (titleIdResult.IsFailed)
         {

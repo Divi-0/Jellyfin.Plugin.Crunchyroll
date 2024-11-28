@@ -11,7 +11,6 @@ using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
-using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Helper;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
@@ -21,6 +20,7 @@ public record ExtractReviewsCommand : IRequest<Result>
 {
     public required string TitleId { get; init; }
     public required string SlugTitle { get; init; }
+    public required CultureInfo Language { get; init; }
 }
 
 public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsCommand, Result>
@@ -65,7 +65,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
             return Result.Fail(ExtractReviewsErrorCodes.TitleAlreadyHasReviews);
         }
         
-        var twoLetterIsoLanguageName = new CultureInfo(_config.CrunchyrollLanguage).TwoLetterISOLanguageName;
+        var twoLetterIsoLanguageName = request.Language.TwoLetterISOLanguageName;
         var crunchyrollUrl = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
                 twoLetterIsoLanguageName == "en" ? string.Empty : twoLetterIsoLanguageName,
@@ -93,7 +93,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
                     crunchyrollUrl)
                 .Replace('\\', '/');
 
-            reviewsResult = await _htmlReviewsExtractor.GetReviewsAsync(snapshotUrl, cancellationToken);
+            reviewsResult = await _htmlReviewsExtractor.GetReviewsAsync(snapshotUrl, request.Language, cancellationToken);
 
             if (reviewsResult.IsFailed)
             {

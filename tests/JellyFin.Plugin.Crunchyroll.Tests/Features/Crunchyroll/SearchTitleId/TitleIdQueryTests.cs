@@ -1,4 +1,5 @@
-﻿using AutoFixture;
+﻿using System.Globalization;
+using AutoFixture;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
@@ -39,7 +40,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
                 .Returns(Result.Ok());
 
             _crunchyrollClientMock
-                .GetTitleIdAsync(title, Arg.Any<CancellationToken>())
+                .GetTitleIdAsync(title, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(new SearchResponse()
                 {
                     Id = titleId,
@@ -47,7 +48,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
                 });
 
             //Act
-            var query = new TitleIdQuery(title);
+            var query = new TitleIdQuery(title, new CultureInfo("en-US"));
             var result = await _sut.Handle(query, CancellationToken.None);
 
             //Assert
@@ -72,11 +73,11 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
                 .Returns(Result.Ok());
 
             _crunchyrollClientMock
-                .GetTitleIdAsync(title, Arg.Any<CancellationToken>())
+                .GetTitleIdAsync(title, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult(Result.Fail<SearchResponse?>(errorcode)));
 
             //Act
-            var query = new TitleIdQuery(title);
+            var query = new TitleIdQuery(title, new CultureInfo("en-US"));
             var result = await _sut.Handle(query, CancellationToken.None);
 
             //Assert
@@ -100,7 +101,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
                 .Returns(Result.Fail(errorcode));
 
             //Act
-            var query = new TitleIdQuery(title);
+            var query = new TitleIdQuery(title, new CultureInfo("en-US"));
             var result = await _sut.Handle(query, CancellationToken.None);
 
             //Assert
@@ -113,7 +114,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.SearchTitleId
 
             await _crunchyrollClientMock
                 .DidNotReceive()
-                .GetTitleIdAsync(title, Arg.Any<CancellationToken>());
+                .GetTitleIdAsync(title, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
     }
 }

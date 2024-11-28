@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetMovieEpisodeId.Client;
@@ -55,7 +57,10 @@ public class SetMovieEpisodeIdTask : IPostMovieScanTask
             return loginResult;
         }
         
-        var searchResponseResult = await _client.SearchTitleIdAsync(movie.FileNameWithoutExtension, cancellationToken);
+        var searchResponseResult = await _client.SearchTitleIdAsync(
+            movie.FileNameWithoutExtension,
+            movie.GetPreferredMetadataCultureInfo(),
+            cancellationToken);
 
         if (searchResponseResult.IsFailed)
         {

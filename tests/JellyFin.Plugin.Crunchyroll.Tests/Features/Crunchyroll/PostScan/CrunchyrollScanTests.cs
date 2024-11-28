@@ -210,31 +210,6 @@ public class CrunchyrollScanTests
     }
 
     [Fact]
-    public async Task SkipsScan_WhenConfigIsInvalid_GivenEmptyCrunchyrollLanguage()
-    {
-        //Arrange
-        _config.CrunchyrollLanguage = string.Empty;
-
-        //Act
-        await _sut.Run(new Progress<double>(), CancellationToken.None);
-
-        //Assert
-        foreach (var postScanTask in _postSeriesScanTasks)
-        {
-            await postScanTask
-                .DidNotReceive()
-                .RunAsync(Arg.Any<BaseItem>(), Arg.Any<CancellationToken>());
-        }
-        
-        foreach (var postScanTask in _postMovieScanTasks)
-        {
-            await postScanTask
-                .DidNotReceive()
-                .RunAsync(Arg.Any<BaseItem>(), Arg.Any<CancellationToken>());
-        }
-    }
-
-    [Fact]
     public async Task SkipsScan_WhenConfigIsInvalid_GivenEmptyArchiveOrgUrl()
     {
         //Arrange

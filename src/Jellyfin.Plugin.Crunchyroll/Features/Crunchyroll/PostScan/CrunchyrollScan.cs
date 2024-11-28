@@ -108,8 +108,7 @@ public class CrunchyrollScan : ILibraryPostScanTask
 
     private bool IsConfigValid()
     {
-        if (string.IsNullOrWhiteSpace(_config.CrunchyrollUrl) ||
-            string.IsNullOrWhiteSpace(_config.CrunchyrollLanguage))
+        if (string.IsNullOrWhiteSpace(_config.CrunchyrollUrl))
         {
             return false;
         }

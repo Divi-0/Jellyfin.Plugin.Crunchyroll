@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Encodings.Web;
@@ -60,6 +61,7 @@ public class CrunchyrollCommentsTests
         var config = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
         var titleUrlEncoded = UrlEncoder.Default.Encode(title);
         var mockHttp = PluginWebApplicationFactory.CrunchyrollHttpMessageHandlerMock;
+        var locale = new CultureInfo("en-US");
 
         mockHttp.When($"https://www.crunchyroll.com/")
             .Respond(HttpStatusCode.OK);
@@ -67,11 +69,11 @@ public class CrunchyrollCommentsTests
         mockHttp.When($"https://www.crunchyroll.com/auth/v1/token")
             .Respond("application/json", JsonSerializer.Serialize(CrunchyrollDataMock.GetAuthResponseMock()));
         
-        mockHttp.When($"https://www.crunchyroll.com/content/v2/discover/search?q={titleUrlEncoded}&n=6&type=series,movie_listing&ratings=true&locale={config.CrunchyrollLanguage}")
+        mockHttp.When($"https://www.crunchyroll.com/content/v2/discover/search?q={titleUrlEncoded}&n=6&type=series,movie_listing&ratings=true&locale={locale}")
             .Respond("application/json", JsonSerializer.Serialize(CrunchyrollDataMock.GetSearchResponseMock(titleId, title)));
 
         var crunchyrollCommentsResponse = CrunchyrollDataMock.GetCommentsResponseMock();
-        mockHttp.When($"https://www.crunchyroll.com/talkbox/guestbooks/{titleId}/comments?page=1&page_size=50&order=desc&sort=popular&locale={config.CrunchyrollLanguage}")
+        mockHttp.When($"https://www.crunchyroll.com/talkbox/guestbooks/{titleId}/comments?page=1&page_size=50&order=desc&sort=popular&locale={locale}")
             .Respond("application/json", JsonSerializer.Serialize(crunchyrollCommentsResponse));
         
         //Act

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -38,7 +39,7 @@ public class HtmlCommentsExtractorTests
         var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlCommentsResponse(url);
         
         //Act
-        var result = await _sut.GetCommentsAsync(url, CancellationToken.None);
+        var result = await _sut.GetCommentsAsync(url, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();
@@ -62,7 +63,7 @@ public class HtmlCommentsExtractorTests
         var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlCommentsResponse(url);
         
         //Act
-        var result = await _sut.GetCommentsAsync(url, CancellationToken.None);
+        var result = await _sut.GetCommentsAsync(url, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();
@@ -88,7 +89,7 @@ public class HtmlCommentsExtractorTests
         var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlCommentsResponse(url);
         
         //Act
-        var result = await _sut.GetCommentsAsync(url, CancellationToken.None);
+        var result = await _sut.GetCommentsAsync(url, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();
@@ -112,15 +113,13 @@ public class HtmlCommentsExtractorTests
         int likesAsNumber, string language)
     {
         //Arrange
-        _config.CrunchyrollLanguage = language;
-        
         var url = new Faker().Internet.Url();
 
         var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlCommentsResponse(url, 
             "325</button>", $"{likesAsString}</button>");
         
         //Act
-        var result = await _sut.GetCommentsAsync(url, CancellationToken.None);
+        var result = await _sut.GetCommentsAsync(url, new CultureInfo(language), CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();
@@ -160,7 +159,7 @@ public class HtmlCommentsExtractorTests
             });
         
         //Act
-        var result = await _sut.GetCommentsAsync(url, CancellationToken.None);
+        var result = await _sut.GetCommentsAsync(url, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();

@@ -25,9 +25,7 @@ public class CrunchyrollExternalId : IExternalId
     
     public ExternalIdMediaType? Type => ExternalIdMediaType.Series;
     
-    public string? UrlFormatString => "https://www.crunchyroll.com/" +
-                                      $"{new CultureInfo(CrunchyrollPlugin.Instance!.Configuration.CrunchyrollLanguage).TwoLetterISOLanguageName}" +
-                                      "/series/{0}";
+    public string? UrlFormatString => "https://www.crunchyroll.com/series/{0}";
     
     public bool Supports(IHasProviderIds item)
     {

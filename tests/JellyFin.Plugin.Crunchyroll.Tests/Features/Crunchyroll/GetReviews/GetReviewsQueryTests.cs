@@ -1,15 +1,18 @@
+using System.Globalization;
 using AutoFixture;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews.Client;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared;
+using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Library;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.GetReviews;
@@ -45,11 +48,13 @@ public class GetReviewsQueryTests
         var id = Guid.NewGuid();
         const int pageNumber = 1;
         const int pageSize = 10;
-        var providerId = Guid.NewGuid().ToString();
+        var series = SeriesFaker.GenerateWithTitleId();
 
         _config.IsWaybackMachineEnabled = false;
 
-        _libraryManager.MockRetrieveItem(id, providerId);
+        _libraryManager
+            .RetrieveItem(id)
+            .Returns(series);
         
         _loginService
             .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
@@ -57,7 +62,7 @@ public class GetReviewsQueryTests
         
         var reviewsResponse = _fixture.Create<ReviewsResponse>();
         _crunchyrollGetReviewsClient
-            .GetReviewsAsync(providerId, pageNumber, pageSize, Arg.Any<CancellationToken>())
+            .GetReviewsAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], pageNumber, pageSize, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok(reviewsResponse));
         
         //Act
@@ -81,6 +86,7 @@ public class GetReviewsQueryTests
                 Arg.Any<string>(), 
                 Arg.Any<int>(), 
                 Arg.Any<int>(), 
+                new CultureInfo("en-US"), 
                 Arg.Any<CancellationToken>());
 
         await _getReviewsSession
@@ -135,11 +141,13 @@ public class GetReviewsQueryTests
         var id = Guid.NewGuid();
         const int pageNumber = 1;
         const int pageSize = 10;
-        var providerId = Guid.NewGuid().ToString();
+        var series = SeriesFaker.GenerateWithTitleId();
         
         _config.IsWaybackMachineEnabled = false;
 
-        _libraryManager.MockRetrieveItem(id, providerId);
+        _libraryManager
+            .RetrieveItem(id)
+            .Returns(series);
 
         _loginService
             .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
@@ -147,7 +155,7 @@ public class GetReviewsQueryTests
 
         var errorCode = "999";
         _crunchyrollGetReviewsClient
-            .GetReviewsAsync(providerId, pageNumber, pageSize, Arg.Any<CancellationToken>())
+            .GetReviewsAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], pageNumber, pageSize, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail(errorCode));
         
         //Act
@@ -170,15 +178,17 @@ public class GetReviewsQueryTests
         var id = Guid.NewGuid();
         const int pageNumber = 1;
         const int pageSize = 10;
-        var titleId = Guid.NewGuid().ToString();
+        var series = SeriesFaker.GenerateWithTitleId();
 
         _config.IsWaybackMachineEnabled = true;
 
-        _libraryManager.MockRetrieveItem(id, titleId);
+        _libraryManager
+            .RetrieveItem(id)
+            .Returns(series);
         
         var reviewsResponse = _fixture.Create<ReviewsResponse>();
         _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)
+            .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId])
             .Returns(ValueTask.FromResult(Result.Ok<IReadOnlyList<ReviewItem>?>(reviewsResponse.Reviews)));
         
         //Act
@@ -194,14 +204,15 @@ public class GetReviewsQueryTests
         
         await _getReviewsSession
             .Received(1)
-            .GetReviewsForTitleIdAsync(titleId);
+            .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
 
         await _crunchyrollGetReviewsClient
-            .Received(0)
+            .DidNotReceive()
             .GetReviewsAsync(
                 Arg.Any<string>(), 
                 Arg.Any<int>(), 
                 Arg.Any<int>(), 
+               Arg.Any<CultureInfo>(), 
                 Arg.Any<CancellationToken>());
 
         result.Value.Reviews.Should().AllSatisfy(actual =>
@@ -227,15 +238,16 @@ public class GetReviewsQueryTests
         var id = Guid.NewGuid();
         const int pageNumber = 1;
         const int pageSize = 10;
-        var titleId = Guid.NewGuid().ToString();
+        var series = SeriesFaker.GenerateWithTitleId();
 
         _config.IsWaybackMachineEnabled = true;
 
-        _libraryManager.MockRetrieveItem(id, titleId);
+        _libraryManager
+            .RetrieveItem(id)
+            .Returns(series);
         
-        var reviewsResponse = _fixture.Create<ReviewsResponse>();
         _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)!
+            .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId])!
             .Returns(ValueTask.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(null!)));
         
         //Act
@@ -252,14 +264,15 @@ public class GetReviewsQueryTests
         
         await _getReviewsSession
             .Received(1)
-            .GetReviewsForTitleIdAsync(titleId);
+            .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
 
         await _crunchyrollGetReviewsClient
-            .Received(0)
+            .DidNotReceive()
             .GetReviewsAsync(
                 Arg.Any<string>(), 
                 Arg.Any<int>(), 
                 Arg.Any<int>(), 
+                Arg.Any<CultureInfo>(), 
                 Arg.Any<CancellationToken>());
     }
     
@@ -274,7 +287,9 @@ public class GetReviewsQueryTests
 
         _config.IsWaybackMachineEnabled = false;
 
-        _libraryManager.MockRetrieveItem(id, titleId);
+        _libraryManager
+            .RetrieveItem(id)
+            .Returns(SeriesFaker.GenerateWithTitleId());
         
         var errorCode = "999";
         _loginService
@@ -303,6 +318,7 @@ public class GetReviewsQueryTests
                 Arg.Any<string>(), 
                 Arg.Any<int>(), 
                 Arg.Any<int>(), 
+                Arg.Any<CultureInfo>(), 
                 Arg.Any<CancellationToken>());
     }
 }

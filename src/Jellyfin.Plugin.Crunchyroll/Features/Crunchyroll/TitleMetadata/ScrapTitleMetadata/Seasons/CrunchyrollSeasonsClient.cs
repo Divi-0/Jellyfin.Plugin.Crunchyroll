@@ -16,7 +16,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTi
 public sealed class CrunchyrollSeasonsClient : ICrunchyrollSeasonsClient
 {
     private readonly HttpClient _httpClient;
-    private readonly PluginConfiguration _config;
     private readonly ICrunchyrollSessionRepository _crunchyrollSessionRepository;
     private readonly ILogger<CrunchyrollSeasonsClient> _logger;
 
@@ -24,16 +23,16 @@ public sealed class CrunchyrollSeasonsClient : ICrunchyrollSeasonsClient
         ICrunchyrollSessionRepository crunchyrollSessionRepository, ILogger<CrunchyrollSeasonsClient> logger)
     {
         _httpClient = httpClient;
-        _config = config;
         _crunchyrollSessionRepository = crunchyrollSessionRepository;
         _logger = logger;
 
-        _httpClient.BaseAddress = new Uri(_config.CrunchyrollUrl);
+        _httpClient.BaseAddress = new Uri(config.CrunchyrollUrl);
     }
     
-    public async Task<Result<CrunchyrollSeasonsResponse>> GetSeasonsAsync(string titleId, CancellationToken cancellationToken)
+    public async Task<Result<CrunchyrollSeasonsResponse>> GetSeasonsAsync(string titleId, CultureInfo language,
+        CancellationToken cancellationToken)
     {
-        var locacle = new CultureInfo(_config.CrunchyrollLanguage).Name;
+        var locacle = language.Name;
         var path =
             $"content/v2/cms/series/{titleId}/seasons?force_locale=&locale={locacle}";
 

@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
@@ -49,7 +50,7 @@ public class ExtractReviewsTaskTests
         var slugTitle = baseItem.ProviderIds[CrunchyrollExternalKeys.SeriesSlugTitle];
         
         _mediator
-            .Send(new ExtractReviewsCommand { TitleId = titleId, SlugTitle = slugTitle }, 
+            .Send(new ExtractReviewsCommand { TitleId = titleId, SlugTitle = slugTitle, Language = new CultureInfo("en-US")}, 
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
@@ -59,7 +60,7 @@ public class ExtractReviewsTaskTests
         //Assert
         await _mediator
             .Received(1)
-            .Send(new ExtractReviewsCommand { TitleId = titleId, SlugTitle = slugTitle },
+            .Send(new ExtractReviewsCommand { TitleId = titleId, SlugTitle = slugTitle, Language = new CultureInfo("en-US")},
                 Arg.Any<CancellationToken>());
     }
 

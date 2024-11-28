@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -8,5 +9,5 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReview
 
 public interface IHtmlReviewsExtractor
 {
-    public Task<Result<IReadOnlyList<ReviewItem>>> GetReviewsAsync(string url, CancellationToken cancellationToken = default);
+    public Task<Result<IReadOnlyList<ReviewItem>>> GetReviewsAsync(string url, CultureInfo language, CancellationToken cancellationToken = default);
 }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using AutoFixture;
 using Bogus;
 using FluentAssertions;
@@ -55,14 +56,14 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var seasonsResponse = _fixture.Create<CrunchyrollSeasonsResponse>();
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seasonsResponse);
         
         foreach (var season in seasonsResponse.Data)
         {
             var episodesResponse = _fixture.Create<CrunchyrollEpisodesResponse>();
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(episodesResponse);
         }
 
@@ -105,7 +106,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         };
         
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesMetadataResponse);
         
         _scrapTitleMetadataSession
@@ -119,7 +120,7 @@ public class ScrapTitleMetadataCommandHandlerTests
                     actualTitleMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US")};
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -131,18 +132,18 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         foreach (var season in seasonsResponse.Data)
         {
             await _crunchyrollEpisodesClient
                 .Received(1)
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>());
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         var expectedTitleMetadata = new Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata()
         {
@@ -183,7 +184,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollEpisodesClient
             .DidNotReceive()
-            .GetEpisodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+            .GetEpisodeAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -198,11 +199,11 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         var error = _fixture.Create<string>();
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, CancellationToken.None)
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), CancellationToken.None)
             .Returns(Result.Fail(error));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US") };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -215,7 +216,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, CancellationToken.None);
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), CancellationToken.None);
     }
 
     [Fact]
@@ -230,24 +231,24 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var seasonsResponse = _fixture.Create<CrunchyrollSeasonsResponse>();
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seasonsResponse);
         
         foreach (var season in seasonsResponse.Data)
         {
             var episodesResponse = _fixture.Create<CrunchyrollEpisodesResponse>();
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(episodesResponse);
         }
 
         var error = Guid.NewGuid().ToString();
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail(error));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US") };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -260,11 +261,11 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, CancellationToken.None);
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), CancellationToken.None);
         
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, CancellationToken.None);
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), CancellationToken.None);
 
         await _scrapTitleMetadataSession
             .DidNotReceive()
@@ -284,14 +285,14 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         var seasonsResponse = _fixture.Create<CrunchyrollSeasonsResponse>();
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seasonsResponse);
         
         foreach (var season in seasonsResponse.Data)
         {
             var episodesResponse = _fixture.Create<CrunchyrollEpisodesResponse>();
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(episodesResponse);
         }
         
@@ -301,16 +302,16 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var error = _fixture.Create<string>();
         _crunchyrollEpisodesClient
-            .GetEpisodesAsync(seasonsResponse.Data.First().Id, Arg.Any<CancellationToken>())
+            .GetEpisodesAsync(seasonsResponse.Data.First().Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail(error));
 
         var seriesContentItem = _fixture.Create<CrunchyrollSeriesContentItem>();
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesContentItem);
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US") };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -324,12 +325,12 @@ public class ScrapTitleMetadataCommandHandlerTests
         {
             await _crunchyrollEpisodesClient
                 .Received(1)
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>());
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         
         await _scrapTitleMetadataSession
             .Received(1)
@@ -352,7 +353,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Returns(Result.Fail(error));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US") };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -394,22 +395,22 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Create();
         
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seasonsResponse);
         
         foreach (var season in seasonsResponse.Data)
         {
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(Result.Fail(_fixture.Create<string>()));
         }
         
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US") };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -421,13 +422,13 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         foreach (var season in seasonsResponse.Data)
         {
             await _crunchyrollEpisodesClient
                 .Received(1)
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>());
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
 
         await _scrapTitleMetadataSession
@@ -436,7 +437,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _scrapTitleMetadataSession
             .Received(1)
@@ -477,7 +478,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Create();
         
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seasonsResponse);
         
         var newSeasonEpisodes = new Dictionary<string, IReadOnlyList<CrunchyrollEpisodeItem>>();
@@ -485,14 +486,14 @@ public class ScrapTitleMetadataCommandHandlerTests
         {
             var episodes = _fixture.Create<CrunchyrollEpisodesResponse>();
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(episodes);
             
             newSeasonEpisodes.Add(season.Id, episodes.Data);
         }
         
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
@@ -500,7 +501,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .AddOrUpdateTitleMetadata(Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US") };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -512,18 +513,18 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         foreach (var season in seasonsResponse.Data)
         {
             await _crunchyrollEpisodesClient
                 .Received(1)
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>());
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _scrapTitleMetadataSession
             .Received(1)
@@ -574,14 +575,14 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Create();
         
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seasonsResponse);
         
         foreach (var season in seasonsResponse.Data)
         {
             var episodes = _fixture.Create<CrunchyrollEpisodesResponse>();
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(episodes);
         }
         
@@ -624,7 +625,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         };
         
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesMetadataResponse);
         
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
@@ -632,7 +633,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .AddOrUpdateTitleMetadata(Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US") };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -644,18 +645,18 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         foreach (var season in seasonsResponse.Data)
         {
             await _crunchyrollEpisodesClient
                 .Received(1)
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>());
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _scrapTitleMetadataSession
             .Received(1)
@@ -700,7 +701,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Create();
         
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seasonsResponse);
         
         var newSeasonEpisodes = new Dictionary<string, IReadOnlyList<CrunchyrollEpisodeItem>>();
@@ -719,14 +720,14 @@ public class ScrapTitleMetadataCommandHandlerTests
             episodes.Add(existingEpisode);
             
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(new CrunchyrollEpisodesResponse{Data = episodes});
             
             newSeasonEpisodes.Add(season.Id, episodes);
         }
         
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
@@ -734,7 +735,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .AddOrUpdateTitleMetadata(Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US") };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -746,18 +747,18 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         foreach (var season in seasonsResponse.Data)
         {
             await _crunchyrollEpisodesClient
                 .Received(1)
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>());
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
         
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _scrapTitleMetadataSession
             .Received(1)
@@ -806,18 +807,18 @@ public class ScrapTitleMetadataCommandHandlerTests
         crunchyrollSeasonsItems.Add(newSeason);
         
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(new CrunchyrollSeasonsResponse{Data = crunchyrollSeasonsItems});
         
         foreach (var season in crunchyrollSeasonsItems)
         {
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(_fixture.Create<CrunchyrollEpisodesResponse>());
         }
         
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
@@ -825,7 +826,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .AddOrUpdateTitleMetadata(Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US") };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -837,18 +838,18 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         foreach (var season in crunchyrollSeasonsItems)
         {
             await _crunchyrollEpisodesClient
                 .Received(1)
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>());
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _scrapTitleMetadataSession
             .Received(1)
@@ -893,18 +894,18 @@ public class ScrapTitleMetadataCommandHandlerTests
         crunchyrollSeasonsItems.Add(newSeason);
         
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(new CrunchyrollSeasonsResponse{Data = crunchyrollSeasonsItems});
         
         foreach (var season in crunchyrollSeasonsItems)
         {
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(_fixture.Create<CrunchyrollEpisodesResponse>());
         }
         
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
@@ -912,7 +913,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US") };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -924,18 +925,18 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         foreach (var season in crunchyrollSeasonsItems)
         {
             await _crunchyrollEpisodesClient
                 .Received(1)
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>());
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _scrapTitleMetadataSession
             .Received(1)
@@ -961,11 +962,11 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Returns(titleMetadata);
         
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(new CrunchyrollSeasonsResponse{Data = Array.Empty<CrunchyrollSeasonsItem>()});
         
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
@@ -973,7 +974,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x));
         
         //Act
-        var command = new ScrapTitleMetadataCommand { TitleId = titleId };
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US") };
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -985,11 +986,11 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _crunchyrollEpisodesClient
             .DidNotReceive()
-            .GetEpisodesAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+            .GetEpisodesAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _scrapTitleMetadataSession
             .Received(1)
@@ -997,7 +998,7 @@ public class ScrapTitleMetadataCommandHandlerTests
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         actualMetadata.Seasons.Should().BeEquivalentTo(titleMetadata.Seasons);
     }
@@ -1015,14 +1016,14 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var seasonsResponse = _fixture.Create<CrunchyrollSeasonsResponse>();
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seasonsResponse);
         
         foreach (var season in seasonsResponse.Data)
         {
             var episodesResponse = _fixture.Create<CrunchyrollEpisodesResponse>();
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(episodesResponse);
         }
 
@@ -1065,7 +1066,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         };
         
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesMetadataResponse);
         
         _scrapTitleMetadataSession
@@ -1109,7 +1110,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         };
         
         _crunchyrollEpisodesClient
-            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CancellationToken>())
+            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(episodeResponse);
         
         //Act
@@ -1117,7 +1118,8 @@ public class ScrapTitleMetadataCommandHandlerTests
         {
             TitleId = titleId, 
             MovieEpisodeId = extraEpisodeId,
-            MovieSeasonId = seasonsResponse.Data[0].Id
+            MovieSeasonId = seasonsResponse.Data[0].Id,
+            Language = new CultureInfo("en-US")
         };
         var result = await _sut.Handle(command, CancellationToken.None);
 
@@ -1130,18 +1132,18 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         foreach (var season in seasonsResponse.Data)
         {
             await _crunchyrollEpisodesClient
                 .Received(1)
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>());
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         var expectedTitleMetadata = new Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata()
         {
@@ -1182,7 +1184,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollEpisodesClient
             .Received(1)
-            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CancellationToken>());
+            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         actualTitleMetadata.Seasons[0].Episodes.Should().Contain(x => x.Id == extraEpisodeId);
     }
@@ -1201,14 +1203,14 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var seasonsResponse = _fixture.Create<CrunchyrollSeasonsResponse>();
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seasonsResponse);
         
         foreach (var season in seasonsResponse.Data)
         {
             var episodesResponse = _fixture.Create<CrunchyrollEpisodesResponse>();
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(episodesResponse);
         }
 
@@ -1251,7 +1253,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         };
         
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesMetadataResponse);
         
         _scrapTitleMetadataSession
@@ -1295,7 +1297,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         };
         
         _crunchyrollEpisodesClient
-            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CancellationToken>())
+            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(episodeResponse);
         
         //Act
@@ -1303,7 +1305,8 @@ public class ScrapTitleMetadataCommandHandlerTests
         {
             TitleId = titleId, 
             MovieEpisodeId = extraEpisodeId,
-            MovieSeasonId = extraSeasonId
+            MovieSeasonId = extraSeasonId,
+            Language = new CultureInfo("en-US")
         };
         var result = await _sut.Handle(command, CancellationToken.None);
 
@@ -1316,18 +1319,18 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         foreach (var season in seasonsResponse.Data)
         {
             await _crunchyrollEpisodesClient
                 .Received(1)
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>());
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         var expectedTitleMetadata = new Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata()
         {
@@ -1368,7 +1371,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollEpisodesClient
             .Received(1)
-            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CancellationToken>());
+            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         actualTitleMetadata.Seasons
             .First(x => x.Id == extraSeasonId).Episodes
@@ -1421,7 +1424,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             .Create();
         
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seasonsResponse);
         
         var newSeasonEpisodes = new Dictionary<string, IReadOnlyList<CrunchyrollEpisodeItem>>();
@@ -1429,14 +1432,14 @@ public class ScrapTitleMetadataCommandHandlerTests
         {
             var episodes = _fixture.Create<CrunchyrollEpisodesResponse>();
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(episodes);
             
             newSeasonEpisodes.Add(season.Id, episodes.Data);
         }
         
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
@@ -1448,7 +1451,8 @@ public class ScrapTitleMetadataCommandHandlerTests
         {
             TitleId = titleId, 
             MovieSeasonId = titleMetadata.Seasons.Last().Id,
-            MovieEpisodeId = extraEpisodeId
+            MovieEpisodeId = extraEpisodeId,
+            Language = new CultureInfo("en-US")
         };
         var result = await _sut.Handle(command, CancellationToken.None);
 
@@ -1461,18 +1465,18 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         foreach (var season in seasonsResponse.Data)
         {
             await _crunchyrollEpisodesClient
                 .Received(1)
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>());
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _scrapTitleMetadataSession
             .Received(1)
@@ -1494,7 +1498,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollEpisodesClient
             .DidNotReceive()
-            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CancellationToken>());
+            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         actualMetadata.Seasons.Should().Contain(x => x.Episodes.Any(y => y.Id == extraEpisodeId));
     }
@@ -1512,14 +1516,14 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         var seasonsResponse = _fixture.Create<CrunchyrollSeasonsResponse>();
         _crunchyrollSeasonsClient
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>())
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seasonsResponse);
         
         foreach (var season in seasonsResponse.Data)
         {
             var episodesResponse = _fixture.Create<CrunchyrollEpisodesResponse>();
             _crunchyrollEpisodesClient
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>())
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(episodesResponse);
         }
 
@@ -1562,7 +1566,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         };
         
         _crunchyrollSeriesClient
-            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesMetadataResponse);
         
         _scrapTitleMetadataSession
@@ -1576,7 +1580,7 @@ public class ScrapTitleMetadataCommandHandlerTests
                     actualTitleMetadata = x));
         
         _crunchyrollEpisodesClient
-            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CancellationToken>())
+            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
         
         //Act
@@ -1584,7 +1588,8 @@ public class ScrapTitleMetadataCommandHandlerTests
         {
             TitleId = titleId, 
             MovieEpisodeId = extraEpisodeId,
-            MovieSeasonId = seasonsResponse.Data.First().Id
+            MovieSeasonId = seasonsResponse.Data.First().Id,
+            Language = new CultureInfo("en-US")
         };
         var result = await _sut.Handle(command, CancellationToken.None);
 
@@ -1597,18 +1602,18 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollSeasonsClient
             .Received(1)
-            .GetSeasonsAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         foreach (var season in seasonsResponse.Data)
         {
             await _crunchyrollEpisodesClient
                 .Received(1)
-                .GetEpisodesAsync(season.Id, Arg.Any<CancellationToken>());
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         }
 
         await _crunchyrollSeriesClient
             .Received(1)
-            .GetSeriesMetadataAsync(titleId, Arg.Any<CancellationToken>());
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         var expectedTitleMetadata = new Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata()
         {
@@ -1649,7 +1654,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         
         await _crunchyrollEpisodesClient
             .Received(1)
-            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CancellationToken>());
+            .GetEpisodeAsync(extraEpisodeId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         actualTitleMetadata.Seasons.Should().NotContain(x => x.Episodes.Any(y => y.Id == extraEpisodeId));
     }

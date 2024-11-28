@@ -20,7 +20,6 @@ public class CrunchyrollSeasonsClientTests
     private readonly MockHttpMessageHandler _mockHttpMessageHandler;
     private readonly PluginConfiguration _config;
     private readonly ICrunchyrollSessionRepository _crunchyrollSessionRepository;
-    private readonly ILogger<CrunchyrollSeasonsClient> _logger;
 
     public CrunchyrollSeasonsClientTests()
     {
@@ -29,9 +28,9 @@ public class CrunchyrollSeasonsClientTests
         _mockHttpMessageHandler = new MockHttpMessageHandler();
         _config = new PluginConfiguration();
         _crunchyrollSessionRepository = Substitute.For<ICrunchyrollSessionRepository>();
-        _logger = Substitute.For<ILogger<CrunchyrollSeasonsClient>>();
+        var logger = Substitute.For<ILogger<CrunchyrollSeasonsClient>>();
         _sut = new CrunchyrollSeasonsClient(_mockHttpMessageHandler.ToHttpClient(), _config, 
-            _crunchyrollSessionRepository, _logger);
+            _crunchyrollSessionRepository, logger);
     }
 
     [Fact]
@@ -39,6 +38,7 @@ public class CrunchyrollSeasonsClientTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
+        var culture = new CultureInfo("en-US");
         
         var bearerToken = _fixture.Create<string>();
         _crunchyrollSessionRepository
@@ -46,11 +46,11 @@ public class CrunchyrollSeasonsClientTests
             .Returns(bearerToken);
 
         var seasonsResponse = _fixture.Create<CrunchyrollSeasonsResponse>();
-        var seasonsMock = _mockHttpMessageHandler.MockCrunchyrollSeasonsResponse(titleId, new CultureInfo(_config.CrunchyrollLanguage), 
+        var seasonsMock = _mockHttpMessageHandler.MockCrunchyrollSeasonsResponse(titleId, culture, 
             bearerToken, seasonsResponse);
         
         //Act
-        var result = await _sut.GetSeasonsAsync(titleId, CancellationToken.None);
+        var result = await _sut.GetSeasonsAsync(titleId, culture, CancellationToken.None);
         
         //Assert
         result.IsSuccess.Should().BeTrue();
@@ -68,17 +68,18 @@ public class CrunchyrollSeasonsClientTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
+        var culture = new CultureInfo("en-US");
         
         var bearerToken = _fixture.Create<string>();
         _crunchyrollSessionRepository
             .GetAsync(Arg.Any<CancellationToken>())
             .Returns((string?)null);
         
-        var seasonsMock = _mockHttpMessageHandler.MockCrunchyrollSeasonsResponse(titleId, new CultureInfo(_config.CrunchyrollLanguage), 
+        var seasonsMock = _mockHttpMessageHandler.MockCrunchyrollSeasonsResponse(titleId, culture, 
             bearerToken, _fixture.Create<CrunchyrollSeasonsResponse>());
         
         //Act
-        var result = await _sut.GetSeasonsAsync(titleId, CancellationToken.None);
+        var result = await _sut.GetSeasonsAsync(titleId, culture, CancellationToken.None);
         
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -94,17 +95,18 @@ public class CrunchyrollSeasonsClientTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
+        var culture = new CultureInfo("en-US");
         
         var bearerToken = _fixture.Create<string>();
         _crunchyrollSessionRepository
             .GetAsync(Arg.Any<CancellationToken>())
             .Returns(bearerToken);
         
-        var seasonsMock = _mockHttpMessageHandler.MockCrunchyrollSeasonsResponse(titleId, new CultureInfo(_config.CrunchyrollLanguage), 
+        var seasonsMock = _mockHttpMessageHandler.MockCrunchyrollSeasonsResponse(titleId, culture, 
             bearerToken, HttpStatusCode.BadRequest);
         
         //Act
-        var result = await _sut.GetSeasonsAsync(titleId, CancellationToken.None);
+        var result = await _sut.GetSeasonsAsync(titleId, culture, CancellationToken.None);
         
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -122,17 +124,18 @@ public class CrunchyrollSeasonsClientTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
+        var culture = new CultureInfo("en-US");
         
         var bearerToken = _fixture.Create<string>();
         _crunchyrollSessionRepository
             .GetAsync(Arg.Any<CancellationToken>())
             .Returns(bearerToken);
         
-        var seasonsMock = _mockHttpMessageHandler.MockCrunchyrollSeasonsResponseThrows(titleId, new CultureInfo(_config.CrunchyrollLanguage), 
+        var seasonsMock = _mockHttpMessageHandler.MockCrunchyrollSeasonsResponseThrows(titleId, culture, 
             bearerToken, new Exception());
         
         //Act
-        var result = await _sut.GetSeasonsAsync(titleId, CancellationToken.None);
+        var result = await _sut.GetSeasonsAsync(titleId, culture, CancellationToken.None);
         
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -150,17 +153,18 @@ public class CrunchyrollSeasonsClientTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
+        var culture = new CultureInfo("en-US");
         
         var bearerToken = _fixture.Create<string>();
         _crunchyrollSessionRepository
             .GetAsync(Arg.Any<CancellationToken>())
             .Returns(bearerToken);
         
-        var seasonsMock = _mockHttpMessageHandler.MockCrunchyrollSeasonsResponse(titleId, new CultureInfo(_config.CrunchyrollLanguage), 
+        var seasonsMock = _mockHttpMessageHandler.MockCrunchyrollSeasonsResponse(titleId, culture, 
             bearerToken, "invalidJson");
         
         //Act
-        var result = await _sut.GetSeasonsAsync(titleId, CancellationToken.None);
+        var result = await _sut.GetSeasonsAsync(titleId, culture, CancellationToken.None);
         
         //Assert
         result.IsSuccess.Should().BeFalse();
@@ -178,17 +182,18 @@ public class CrunchyrollSeasonsClientTests
     {
         //Arrange
         var titleId = _fixture.Create<string>();
+        var culture = new CultureInfo("en-US");
         
         var bearerToken = _fixture.Create<string>();
         _crunchyrollSessionRepository
             .GetAsync(Arg.Any<CancellationToken>())
             .Returns(bearerToken);
         
-        var seasonsMock = _mockHttpMessageHandler.MockCrunchyrollSeasonsResponse(titleId, new CultureInfo(_config.CrunchyrollLanguage), 
+        var seasonsMock = _mockHttpMessageHandler.MockCrunchyrollSeasonsResponse(titleId, culture, 
             bearerToken, "null");
         
         //Act
-        var result = await _sut.GetSeasonsAsync(titleId, CancellationToken.None);
+        var result = await _sut.GetSeasonsAsync(titleId, culture, CancellationToken.None);
         
         //Assert
         result.IsSuccess.Should().BeFalse();

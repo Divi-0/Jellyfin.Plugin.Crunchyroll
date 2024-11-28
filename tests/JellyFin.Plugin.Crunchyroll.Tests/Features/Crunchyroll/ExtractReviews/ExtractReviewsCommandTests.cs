@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Web;
 using AutoFixture;
 using Bogus;
@@ -87,7 +88,7 @@ public class ExtractReviewsCommandTests
             .Replace('\\', '/');
         
         _htmlReviewsExtractor
-            .GetReviewsAsync(url, Arg.Any<CancellationToken>())
+            .GetReviewsAsync(url,  Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(reviews)));
 
         IReadOnlyList<ReviewItem>? actualReviewItems = null;
@@ -106,7 +107,8 @@ public class ExtractReviewsCommandTests
         var command = new ExtractReviewsCommand()
         {
             TitleId = titleId,
-            SlugTitle = slugTitle
+            SlugTitle = slugTitle,
+            Language = new CultureInfo("en-US")
         };
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -123,7 +125,7 @@ public class ExtractReviewsCommandTests
         
         await _htmlReviewsExtractor
             .Received(1)
-            .GetReviewsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+            .GetReviewsAsync(Arg.Any<string>(), new CultureInfo("en-US"), Arg.Any<CancellationToken>());
         
         await _addReviewsSession
             .Received(1)
@@ -162,7 +164,8 @@ public class ExtractReviewsCommandTests
         var command = new ExtractReviewsCommand()
         {
             TitleId = titleId,
-            SlugTitle = slugTitle
+            SlugTitle = slugTitle,
+            Language = new CultureInfo("en-US")
         };
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -179,7 +182,7 @@ public class ExtractReviewsCommandTests
         
         await _htmlReviewsExtractor
             .DidNotReceive()
-            .GetReviewsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+            .GetReviewsAsync(Arg.Any<string>(), new CultureInfo("en-US"), Arg.Any<CancellationToken>());
         
         await _addReviewsSession
             .Received(1)
@@ -195,8 +198,6 @@ public class ExtractReviewsCommandTests
         //Arrange
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
-
-        _config.CrunchyrollLanguage = "en-US";
         
         _getReviewsSession
             .GetReviewsForTitleIdAsync(titleId)
@@ -212,7 +213,8 @@ public class ExtractReviewsCommandTests
         var command = new ExtractReviewsCommand()
         {
             TitleId = titleId,
-            SlugTitle = slugTitle
+            SlugTitle = slugTitle,
+            Language = new CultureInfo("en-US")
         };
 
         _ = await _sut.Handle(command, CancellationToken.None);
@@ -259,7 +261,7 @@ public class ExtractReviewsCommandTests
             .Replace('\\', '/');
         
         _htmlReviewsExtractor
-            .GetReviewsAsync(url, Arg.Any<CancellationToken>())
+            .GetReviewsAsync(url, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(reviews)));
         
         _addReviewsSession
@@ -277,7 +279,8 @@ public class ExtractReviewsCommandTests
         var command = new ExtractReviewsCommand()
         {
             TitleId = titleId,
-            SlugTitle = slugTitle
+            SlugTitle = slugTitle,
+            Language = new CultureInfo("en-US")
         };
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -315,7 +318,8 @@ public class ExtractReviewsCommandTests
         var command = new ExtractReviewsCommand()
         {
             TitleId = titleId,
-            SlugTitle = slugTitle
+            SlugTitle = slugTitle,
+            Language = new CultureInfo("en-US")
         };
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -363,14 +367,15 @@ public class ExtractReviewsCommandTests
         
         var error = "error123";
         _htmlReviewsExtractor
-            .GetReviewsAsync(url, Arg.Any<CancellationToken>())
+            .GetReviewsAsync(url, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Fail<IReadOnlyList<ReviewItem>>(error)));
         
         //Act
         var command = new ExtractReviewsCommand()
         {
             TitleId = titleId,
-            SlugTitle = slugTitle
+            SlugTitle = slugTitle,
+            Language = new CultureInfo("en-US")
         };
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -405,7 +410,8 @@ public class ExtractReviewsCommandTests
         var command = new ExtractReviewsCommand()
         {
             TitleId = titleId,
-            SlugTitle = slugTitle
+            SlugTitle = slugTitle,
+            Language = new CultureInfo("en-US")
         };
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -455,7 +461,7 @@ public class ExtractReviewsCommandTests
             htmlUrls.Add(failedUrl);
         
             _htmlReviewsExtractor
-                .GetReviewsAsync(failedUrl, Arg.Any<CancellationToken>())
+                .GetReviewsAsync(failedUrl, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult(Result.Fail<IReadOnlyList<ReviewItem>>(ExtractReviewsErrorCodes.HtmlExtractorInvalidCrunchyrollReviewsPage)));
         }
         
@@ -473,7 +479,7 @@ public class ExtractReviewsCommandTests
         htmlUrls.Add(url);
         
         _htmlReviewsExtractor
-            .GetReviewsAsync(url, Arg.Any<CancellationToken>())
+            .GetReviewsAsync(url, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(reviews)));
         
         _addReviewsSession
@@ -491,7 +497,8 @@ public class ExtractReviewsCommandTests
         var command = new ExtractReviewsCommand()
         {
             TitleId = titleId,
-            SlugTitle = slugTitle
+            SlugTitle = slugTitle,
+            Language = new CultureInfo("en-US")
         };
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -503,7 +510,7 @@ public class ExtractReviewsCommandTests
         {
             await _htmlReviewsExtractor
                 .Received(1)
-                .GetReviewsAsync(expectedUrl, Arg.Any<CancellationToken>());
+                .GetReviewsAsync(expectedUrl, new CultureInfo("en-US"), Arg.Any<CancellationToken>());
         }
     }
 
@@ -543,7 +550,7 @@ public class ExtractReviewsCommandTests
             htmlUrls.Add(failedUrl);
         
             _htmlReviewsExtractor
-                .GetReviewsAsync(failedUrl, Arg.Any<CancellationToken>())
+                .GetReviewsAsync(failedUrl, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult(Result.Fail<IReadOnlyList<ReviewItem>>(ExtractReviewsErrorCodes.HtmlUrlRequestFailed)));
         }
         
@@ -561,7 +568,7 @@ public class ExtractReviewsCommandTests
         htmlUrls.Add(url);
         
         _htmlReviewsExtractor
-            .GetReviewsAsync(url, Arg.Any<CancellationToken>())
+            .GetReviewsAsync(url, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(reviews)));
         
         _addReviewsSession
@@ -579,7 +586,8 @@ public class ExtractReviewsCommandTests
         var command = new ExtractReviewsCommand()
         {
             TitleId = titleId,
-            SlugTitle = slugTitle
+            SlugTitle = slugTitle,
+            Language = new CultureInfo("en-US")
         };
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -591,7 +599,7 @@ public class ExtractReviewsCommandTests
         {
             _htmlReviewsExtractor
                 .Received(1)
-                .GetReviewsAsync(expectedUrl, Arg.Any<CancellationToken>());
+                .GetReviewsAsync(expectedUrl, new CultureInfo("en-US"), Arg.Any<CancellationToken>());
         });
     }
 }

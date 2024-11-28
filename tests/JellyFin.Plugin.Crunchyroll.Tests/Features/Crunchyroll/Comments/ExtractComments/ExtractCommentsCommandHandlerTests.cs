@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Web;
 using AutoFixture;
 using Bogus;
@@ -63,7 +64,7 @@ public class ExtractCommentsCommandHandlerTests
         
         var comments = Enumerable.Range(0, 10).Select(_ => CommentItemFaker.Generate()).ToList();
         _htmlCommentsExtractor
-            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(comments);
 
         EpisodeComments actualEpisodeComments = null!;
@@ -83,7 +84,7 @@ public class ExtractCommentsCommandHandlerTests
         }
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -97,7 +98,8 @@ public class ExtractCommentsCommandHandlerTests
         
         await _htmlCommentsExtractor
             .Received(1)
-            .GetCommentsAsync(Arg.Is<string>(x => x.Contains($"/watch/{episodeId}/{episodeSlugTitle}")), 
+            .GetCommentsAsync(Arg.Is<string>(x => x.Contains($"/watch/{episodeId}/{episodeSlugTitle}")),
+                new CultureInfo("en-US"),
                 Arg.Any<CancellationToken>());
 
         await _commentsSession
@@ -143,7 +145,7 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(ValueTask.CompletedTask);
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -158,6 +160,7 @@ public class ExtractCommentsCommandHandlerTests
         await _htmlCommentsExtractor
             .DidNotReceive()
             .GetCommentsAsync(Arg.Is<string>(x => x.Contains($"/watch/{episodeId}/{episodeSlugTitle}")), 
+                new CultureInfo("en-US"),
                 Arg.Any<CancellationToken>());
 
         await _commentsSession
@@ -174,8 +177,6 @@ public class ExtractCommentsCommandHandlerTests
         //Arrange
         var episodeId = CrunchyrollIdFaker.Generate();
         var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
-
-        _config.CrunchyrollLanguage = "en-US";
         
         _commentsSession
             .CommentsForEpisodeExists(episodeId)
@@ -187,7 +188,7 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(Result.Fail<IReadOnlyList<SearchResponse>>("error"));
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
         _ = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -224,11 +225,11 @@ public class ExtractCommentsCommandHandlerTests
             AvatarIconUri = string.Empty
         }).ToList();
         _htmlCommentsExtractor
-            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetCommentsAsync(Arg.Any<string>(),  Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(comments);
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -258,7 +259,7 @@ public class ExtractCommentsCommandHandlerTests
         
         var comments = Enumerable.Range(0, 10).Select(_ => CommentItemFaker.Generate()).ToList();
         _htmlCommentsExtractor
-            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(comments);
         
         var avatarUris = new Dictionary<CommentItem, string>();
@@ -273,7 +274,7 @@ public class ExtractCommentsCommandHandlerTests
         }
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -308,7 +309,7 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(Result.Fail("error"));
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -323,6 +324,7 @@ public class ExtractCommentsCommandHandlerTests
         await _htmlCommentsExtractor
             .DidNotReceive()
             .GetCommentsAsync(Arg.Any<string>(), 
+                new CultureInfo("en-US"),
                 Arg.Any<CancellationToken>());
 
         await _commentsSession
@@ -348,11 +350,11 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(searchResponses);
         
         _htmlCommentsExtractor
-            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
-
+        
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -367,6 +369,7 @@ public class ExtractCommentsCommandHandlerTests
         await _htmlCommentsExtractor
             .Received(3)
             .GetCommentsAsync(Arg.Any<string>(), 
+                new CultureInfo("en-US"),
                 Arg.Any<CancellationToken>());
 
         await _commentsSession
@@ -386,7 +389,7 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(true);
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -405,6 +408,7 @@ public class ExtractCommentsCommandHandlerTests
         await _htmlCommentsExtractor
             .DidNotReceive()
             .GetCommentsAsync(Arg.Any<string>(), 
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>());
 
         await _commentsSession
@@ -430,11 +434,11 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(searchResponses);
         
         _htmlCommentsExtractor
-            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail<IReadOnlyList<CommentItem>>(ExtractCommentsErrorCodes.HtmlUrlRequestFailed));
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -454,7 +458,7 @@ public class ExtractCommentsCommandHandlerTests
                 .GetCommentsAsync(Arg.Is<string>(x => 
                         x.Contains($"/watch/{episodeId}/{episodeSlugTitle}") && 
                         x.Contains(searchResponse.Timestamp.ToString("yyyyMMddHHmmss"))), 
-                    Arg.Any<CancellationToken>());
+                    new CultureInfo("en-US"), Arg.Any<CancellationToken>());
         }
         
         await _commentsSession
@@ -480,11 +484,11 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(searchResponses);
         
         _htmlCommentsExtractor
-            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail<IReadOnlyList<CommentItem>>(ExtractCommentsErrorCodes.HtmlExtractorInvalidCrunchyrollCommentsPage));
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle);
+        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -504,7 +508,7 @@ public class ExtractCommentsCommandHandlerTests
                 .GetCommentsAsync(Arg.Is<string>(x => 
                         x.Contains($"/watch/{episodeId}/{episodeSlugTitle}") && 
                         x.Contains(searchResponse.Timestamp.ToString("yyyyMMddHHmmss"))), 
-                    Arg.Any<CancellationToken>());
+                    new CultureInfo("en-US"), Arg.Any<CancellationToken>());
         }
         
         await _commentsSession

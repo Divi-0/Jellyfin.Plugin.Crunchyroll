@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -92,7 +93,7 @@ public class CrunchyrollMovieEpisodeIdClientTests
             .Respond("application/json", JsonSerializer.Serialize(mockedResponse));
         
         //Act
-        var searchResponseResult = await _sut.SearchTitleIdAsync(name, CancellationToken.None);
+        var searchResponseResult = await _sut.SearchTitleIdAsync(name, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         searchResponseResult.IsSuccess.Should().BeTrue();
@@ -125,7 +126,7 @@ public class CrunchyrollMovieEpisodeIdClientTests
             .When($"https://www.crunchyroll.com/content/v2/discover/search?q={UrlEncoder.Default.Encode(name)}&n=6&type=episode&ratings=true&locale=en-US");
         
         //Act
-        var searchResponseResult = await _sut.SearchTitleIdAsync(name, CancellationToken.None);
+        var searchResponseResult = await _sut.SearchTitleIdAsync(name, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         searchResponseResult.IsSuccess.Should().BeFalse();
@@ -149,7 +150,7 @@ public class CrunchyrollMovieEpisodeIdClientTests
             .Respond(HttpStatusCode.Forbidden);
         
         //Act
-        var searchResponseResult = await _sut.SearchTitleIdAsync(name, CancellationToken.None);
+        var searchResponseResult = await _sut.SearchTitleIdAsync(name, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         searchResponseResult.IsSuccess.Should().BeFalse();
@@ -173,7 +174,7 @@ public class CrunchyrollMovieEpisodeIdClientTests
             .Respond("application/json", "null");
         
         //Act
-        var searchResponseResult = await _sut.SearchTitleIdAsync(name, CancellationToken.None);
+        var searchResponseResult = await _sut.SearchTitleIdAsync(name, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         searchResponseResult.IsSuccess.Should().BeFalse();
@@ -202,7 +203,7 @@ public class CrunchyrollMovieEpisodeIdClientTests
             .Respond("application/json", JsonSerializer.Serialize(mockedResponse));
         
         //Act
-        var searchResponseResult = await _sut.SearchTitleIdAsync(name, CancellationToken.None);
+        var searchResponseResult = await _sut.SearchTitleIdAsync(name, new CultureInfo("en-US"), CancellationToken.None);
 
         //Assert
         searchResponseResult.IsSuccess.Should().BeTrue();
