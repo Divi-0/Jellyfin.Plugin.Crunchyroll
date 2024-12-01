@@ -13,7 +13,7 @@ public static class GetCommentsServiceExtension
             .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
 
-        serviceCollection.AddSingleton<IGetCommentsSession, CrunchyrollUnitOfWork>();
+        serviceCollection.AddScoped<IGetCommentsRepository, GetCommentsRepository>();
         
         return serviceCollection;
     }

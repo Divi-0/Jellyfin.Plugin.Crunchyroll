@@ -6,13 +6,20 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entitie
 
 public record TitleMetadata
 {
-    public Guid Id { get; init; }
-    public required string TitleId { get; init; }
+    public Guid Id { get; init; } = default;
+    public required string CrunchyrollId { get; init; }
     public required string SlugTitle { get; set; }
     public required string Description { get; set; }
     public required string Studio { get; set; }
     public required string Title { get; set; }
-    public required ImageSource PosterTall { get; set; }
-    public required ImageSource PosterWide { get; set; }
-    public List<Season> Seasons { get; init; } = new List<Season>();
+    /// <summary>
+    /// <see cref="ImageSource"/> as json serialized
+    /// </summary>
+    public required string PosterTall { get; set; }
+    /// <summary>
+    /// <see cref="ImageSource"/> as json serialized
+    /// </summary>
+    public required string PosterWide { get; set; }
+    public required string Language { get; init; }
+    public List<Season> Seasons { get; init; } = [];
 }

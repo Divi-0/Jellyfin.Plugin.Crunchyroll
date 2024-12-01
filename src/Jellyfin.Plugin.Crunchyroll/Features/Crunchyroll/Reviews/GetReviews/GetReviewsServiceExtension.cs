@@ -13,7 +13,7 @@ public static class GetReviewsServiceExtension
             .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
         
-        serviceCollection.AddSingleton<IGetReviewsSession, CrunchyrollUnitOfWork>();
+        serviceCollection.AddSingleton<IGetReviewsRepository, ReviewsRepistory>();
         
         return serviceCollection;
     }

@@ -11,7 +11,7 @@ public static class CrunchyrollSeasonFaker
         var title = new Bogus.Faker().Random.Words();
         var seasonNumber = Random.Shared.Next(1, int.MaxValue);
         return new Bogus.Faker<Season>()
-            .RuleFor(x => x.Id, season is null ? CrunchyrollIdFaker.Generate() : season.ProviderIds[CrunchyrollExternalKeys.SeasonId])
+            .RuleFor(x => x.CrunchyrollId, season is null ? CrunchyrollIdFaker.Generate() : season.ProviderIds[CrunchyrollExternalKeys.SeasonId])
             .RuleFor(x => x.Title, _ => title)
             .RuleFor(x => x.SlugTitle, _ => CrunchyrollSlugFaker.Generate(title))
             .RuleFor(x => x.SeasonNumber, seasonNumber)

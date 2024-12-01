@@ -1,7 +1,6 @@
 using Bogus;
 using FluentAssertions;
 using FluentResults;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.Client;
 
@@ -10,16 +9,16 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.Avatar.AddAvata
 public class AddAvatarServiceTests
 {
     private readonly AddAvatarService _sut;
-    private readonly IAddAvatarSession _session;
+    private readonly IAddAvatarRepository _repository;
     private readonly IAvatarClient _client;
     
     private readonly Faker _faker;
 
     public AddAvatarServiceTests()
     {
-        _session = Substitute.For<IAddAvatarSession>();
+        _repository = Substitute.For<IAddAvatarRepository>();
         _client = Substitute.For<IAvatarClient>();
-        _sut = new AddAvatarService(_session, _client);
+        _sut = new AddAvatarService(_repository, _client);
         
         _faker = new Faker();
     }
@@ -29,18 +28,19 @@ public class AddAvatarServiceTests
     {
         //Arrange
         var uri = _faker.Internet.UrlWithPath(fileExt: "png");
+        var fileName = Path.GetFileName(uri);
         var stream = new MemoryStream();
         
-        _session
-            .AvatarExistsAsync(uri)
+        _repository
+            .AvatarExists(fileName)
             .Returns(Result.Ok(false));
         
         _client
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>())
             .Returns(Result.Ok<Stream>(stream));
         
-        _session
-            .AddAvatarImageAsync(uri, Arg.Any<Stream>())
+        _repository
+            .AddAvatarImageAsync(fileName, Arg.Any<Stream>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         //Act
@@ -50,17 +50,18 @@ public class AddAvatarServiceTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().Be(uri);
         
-        await _session
+        _repository
             .Received(1)
-            .AvatarExistsAsync(uri);
+            .AvatarExists(fileName);
         
         await _client
             .Received(1)
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
             
-        await _session
+        await _repository
             .Received(1)
-            .AddAvatarImageAsync(uri, Arg.Is<Stream>(actualStream => actualStream == stream));
+            .AddAvatarImageAsync(fileName, Arg.Is<Stream>(actualStream => actualStream == stream), 
+                Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -68,9 +69,10 @@ public class AddAvatarServiceTests
     {
         //Arrange
         var uri = _faker.Internet.UrlWithPath(fileExt: "png");
+        var fileName = Path.GetFileName(uri);
         
-        _session
-            .AvatarExistsAsync(uri)
+        _repository
+            .AvatarExists(fileName)
             .Returns(Result.Ok(true));
         
         //Act
@@ -80,17 +82,17 @@ public class AddAvatarServiceTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().Be(uri);
         
-        await _session
+        _repository
             .Received(1)
-            .AvatarExistsAsync(uri);
+            .AvatarExists(fileName);
         
         await _client
             .DidNotReceive()
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
             
-        await _session
+        await _repository
             .DidNotReceive()
-            .AddAvatarImageAsync(uri, Arg.Any<Stream>());
+            .AddAvatarImageAsync(fileName, Arg.Any<Stream>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -98,9 +100,10 @@ public class AddAvatarServiceTests
     {
         //Arrange
         var uri = _faker.Internet.UrlWithPath(fileExt: "png");
+        var fileName = Path.GetFileName(uri);
         
-        _session
-            .AvatarExistsAsync(uri)
+        _repository
+            .AvatarExists(fileName)
             .Returns(Result.Fail("error"));
         
         //Act
@@ -109,17 +112,17 @@ public class AddAvatarServiceTests
         //Assert
         result.IsFailed.Should().BeTrue();
         
-        await _session
+        _repository
             .Received(1)
-            .AvatarExistsAsync(uri);
+            .AvatarExists(fileName);
         
         await _client
             .DidNotReceive()
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
             
-        await _session
+        await _repository
             .DidNotReceive()
-            .AddAvatarImageAsync(uri, Arg.Any<Stream>());
+            .AddAvatarImageAsync(fileName, Arg.Any<Stream>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -127,9 +130,10 @@ public class AddAvatarServiceTests
     {
         //Arrange
         var uri = _faker.Internet.UrlWithPath(fileExt: "png");
+        var fileName = Path.GetFileName(uri);
         
-        _session
-            .AvatarExistsAsync(uri)
+        _repository
+            .AvatarExists(fileName)
             .Returns(Result.Ok(false));
         
         _client
@@ -142,17 +146,17 @@ public class AddAvatarServiceTests
         //Assert
         result.IsFailed.Should().BeTrue();
         
-        await _session
+        _repository
             .Received(1)
-            .AvatarExistsAsync(uri);
+            .AvatarExists(fileName);
         
         await _client
             .Received(1)
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
             
-        await _session
+        await _repository
             .DidNotReceive()
-            .AddAvatarImageAsync(uri, Arg.Any<Stream>());
+            .AddAvatarImageAsync(fileName, Arg.Any<Stream>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -161,17 +165,18 @@ public class AddAvatarServiceTests
         //Arrange
         var uri = _faker.Internet.UrlWithPath(fileExt: "png");
         var stream = new MemoryStream();
+        var fileName = Path.GetFileName(uri);
         
-        _session
-            .AvatarExistsAsync(uri)
+        _repository
+            .AvatarExists(fileName)
             .Returns(Result.Ok(false));
         
         _client
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>())
             .Returns(Result.Ok<Stream>(stream));
         
-        _session
-            .AddAvatarImageAsync(uri, Arg.Any<Stream>())
+        _repository
+            .AddAvatarImageAsync(fileName, Arg.Any<Stream>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
         
         //Act
@@ -180,17 +185,17 @@ public class AddAvatarServiceTests
         //Assert
         result.IsFailed.Should().BeTrue();
         
-        await _session
+        _repository
             .Received(1)
-            .AvatarExistsAsync(uri);
+            .AvatarExists(fileName);
         
         await _client
             .Received(1)
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
             
-        await _session
+        await _repository
             .Received(1)
-            .AddAvatarImageAsync(uri, Arg.Any<Stream>());
+            .AddAvatarImageAsync(fileName, Arg.Any<Stream>(), Arg.Any<CancellationToken>());
     }
     
     [Fact]
@@ -201,17 +206,18 @@ public class AddAvatarServiceTests
         var archivedImageUrl = _faker.Internet.UrlWithPath(fileExt: "png");
         var uri = $"{webArchiveOrgUri}im_/{archivedImageUrl}";
         var stream = new MemoryStream();
+        var fileName = Path.GetFileName(archivedImageUrl);
         
-        _session
-            .AvatarExistsAsync(archivedImageUrl)
+        _repository
+            .AvatarExists(fileName)
             .Returns(Result.Ok(false));
         
         _client
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>())
             .Returns(Result.Ok<Stream>(stream));
         
-        _session
-            .AddAvatarImageAsync(archivedImageUrl, Arg.Any<Stream>())
+        _repository
+            .AddAvatarImageAsync(fileName, Arg.Any<Stream>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         //Act
@@ -221,17 +227,18 @@ public class AddAvatarServiceTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().Be(archivedImageUrl);
         
-        await _session
+        _repository
             .Received(1)
-            .AvatarExistsAsync(archivedImageUrl);
+            .AvatarExists(fileName);
         
         await _client
             .Received(1)
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
             
-        await _session
+        await _repository
             .Received(1)
-            .AddAvatarImageAsync(archivedImageUrl, Arg.Is<Stream>(actualStream => actualStream == stream));
+            .AddAvatarImageAsync(fileName, Arg.Is<Stream>(actualStream => actualStream == stream),
+                Arg.Any<CancellationToken>());
     }
     
     [Fact]
@@ -242,11 +249,12 @@ public class AddAvatarServiceTests
         var archivedImageUrl = _faker.Internet.UrlWithPath(fileExt: "png");
         var uri = $"{webArchiveOrgUri}im_/{archivedImageUrl}";
         var stream = new MemoryStream();
+        var fileName = Path.GetFileName(archivedImageUrl);
         
         var cancellationTokenSource = new CancellationTokenSource();
         
-        _session
-            .AvatarExistsAsync(archivedImageUrl)
+        _repository
+            .AvatarExists(fileName)
             .Returns(Result.Ok(false));
         
         _client
@@ -261,12 +269,13 @@ public class AddAvatarServiceTests
                 return Result.Ok<Stream>(stream);
             }));
         
-        _session
-            .AddAvatarImageAsync(archivedImageUrl, Arg.Any<Stream>())
+        _repository
+            .AddAvatarImageAsync(fileName, Arg.Any<Stream>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         //Act
         var firstTask = _sut.AddAvatarIfNotExists(uri, CancellationToken.None);
+        // ReSharper disable once MethodSupportsCancellation
         var secondTask = Task.Run(async () =>
         {
             var result = await _sut.AddAvatarIfNotExists(uri, CancellationToken.None);
@@ -283,16 +292,58 @@ public class AddAvatarServiceTests
                 .BeTrue("first task adds image, second task sees uri is already being fetched");
         });
         
-        await _session
+        _repository
             .Received(1)
-            .AvatarExistsAsync(archivedImageUrl);
+            .AvatarExists(fileName);
         
         await _client
             .Received(1)
             .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
             
-        await _session
+        await _repository
             .Received(1)
-            .AddAvatarImageAsync(archivedImageUrl, Arg.Is<Stream>(actualStream => actualStream == stream));
+            .AddAvatarImageAsync(fileName, Arg.Is<Stream>(actualStream => actualStream == stream),
+                Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task ReturnsSuccess_WhenStreamFound_GivenUriWithJpeExtension()
+    {
+        //Arrange
+        var uri = _faker.Internet.UrlWithPath(fileExt: "jpe");
+        var fileName = Path.GetFileName(uri).Replace("jpe", "jpeg");
+        var stream = new MemoryStream();
+        
+        _repository
+            .AvatarExists(fileName)
+            .Returns(Result.Ok(false));
+        
+        _client
+            .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<Stream>(stream));
+        
+        _repository
+            .AddAvatarImageAsync(fileName, Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
+        //Act
+        var result = await _sut.AddAvatarIfNotExists(uri, CancellationToken.None);
+        
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(uri);
+        
+        _repository
+            .Received(1)
+            .AvatarExists(fileName);
+        
+        await _client
+            .Received(1)
+            .GetAvatarStreamAsync(uri, Arg.Any<CancellationToken>());
+            
+        await _repository
+            .Received(1)
+            .AddAvatarImageAsync(fileName, Arg.Is<Stream>(actualStream => actualStream == stream), 
+                Arg.Any<CancellationToken>());
     }
 }

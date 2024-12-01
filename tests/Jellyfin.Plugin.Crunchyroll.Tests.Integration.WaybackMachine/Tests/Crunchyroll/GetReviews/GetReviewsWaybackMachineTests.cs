@@ -50,7 +50,7 @@ public class GetReviewsWaybackMachineTests
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
 
-        var mockedReviews = DatabaseMockHelper.InsertRandomReviews(_crunchyrollDatabaseFixture.DbFilePath, 
+        var mockedReviews = await DatabaseMockHelper.InsertRandomReviews( 
             series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
 
         //Act

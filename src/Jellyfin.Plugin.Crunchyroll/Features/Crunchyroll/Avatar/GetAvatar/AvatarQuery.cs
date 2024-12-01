@@ -13,15 +13,16 @@ public record AvatarQuery : IRequest<Result<Stream?>>
 
 public sealed class AvatarQueryHandler : IRequestHandler<AvatarQuery, Result<Stream?>>
 {
-    private readonly IGetAvatarSession _getAvatarSession;
+    private readonly IGetAvatarRepository _repository;
 
-    public AvatarQueryHandler(IGetAvatarSession getAvatarSession)
+    public AvatarQueryHandler(IGetAvatarRepository repository)
     {
-        _getAvatarSession = getAvatarSession;
+        _repository = repository;
     }
     
     public async ValueTask<Result<Stream?>> Handle(AvatarQuery request, CancellationToken cancellationToken)
     {
-        return await _getAvatarSession.GetAvatarImageAsync(request.Url);
+        var fileName = Path.GetFileName(request.Url).Replace("jpe", "jpeg");
+        return await _repository.GetAvatarImageAsync(fileName, cancellationToken);
     }
 }

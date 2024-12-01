@@ -18,12 +18,17 @@
       <PackageReference Include="Jellyfin.Model" Version="10.10.0">
           <IncludeAssets>compile</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="LiteDB" Version="5.0.21" />
       <PackageReference Include="Mediator.Abstractions" Version="2.1.7" />
       <PackageReference Include="Mediator.SourceGenerator" Version="2.1.7">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
+          <IncludeAssets>compile</IncludeAssets>
+      </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11">
+            <IncludeAssets>compile</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1">
             <IncludeAssets>compile</IncludeAssets>
         </PackageReference>
@@ -77,6 +82,10 @@
       <EmbeddedResource Include="Configuration\configPage.html" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Common\Persistence\Migrations\" />
+    </ItemGroup>
+
     <Target Name="CopyXMLFromPackagesForBuild" AfterTargets="Build">
         <ItemGroup>
             <PackageReferenceFiles Condition="%(PackageReference.IncludeAssets) != 'compile'" Include="$(NugetPackageRoot)$([MSBuild]::Escape('%(PackageReference.Identity)').ToLower())/%(PackageReference.Version)/lib/$(TargetFramework)/*.dll" />
@@ -89,10 +98,6 @@
             <PackageReferenceFiles Condition="%(PackageReference.IncludeAssets) != 'compile'" Include="$(NugetPackageRoot)$([MSBuild]::Escape('%(PackageReference.Identity)').ToLower())/%(PackageReference.Version)/lib/$(TargetFramework)/*.dll" />
         </ItemGroup>
         <Copy SourceFiles="@(PackageReferenceFiles)" DestinationFolder="$(PublishDir)" />
-    </Target>
-
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="if $(ConfigurationName) == Debug (&#xA; xcopy /y &quot;$(TargetDir)*.*&quot; &quot;%localAppData%/jellyfin/plugins/Crunchyroll&quot;&#xA;)" />
     </Target>
 
 </Project>

@@ -1,27 +1,29 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging;
+using Episode = Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.Episode;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeasonJellyfinData;
 
 public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
 {
     private readonly ILogger<OverwriteSeasonJellyfinDataTask> _logger;
-    private readonly IOverwriteSeasonJellyfinDataSession _session;
+    private readonly IOverwriteSeasonJellyfinDataRepository _repository;
     private readonly ILibraryManager _libraryManager;
     private readonly PluginConfiguration _config;
 
     public OverwriteSeasonJellyfinDataTask(ILogger<OverwriteSeasonJellyfinDataTask> logger,
-        IOverwriteSeasonJellyfinDataSession session, ILibraryManager libraryManager, PluginConfiguration config)
+        IOverwriteSeasonJellyfinDataRepository repository, ILibraryManager libraryManager, PluginConfiguration config)
     {
         _logger = logger;
-        _session = session;
+        _repository = repository;
         _libraryManager = libraryManager;
         _config = config;
     }
@@ -37,7 +39,8 @@ public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
             return;
         }
 
-        var seasonResult = await _session.GetSeasonAsync(seasonId!);
+        var seasonResult = await _repository.GetSeasonAsync(seasonId!, seasonItem.GetPreferredMetadataCultureInfo(),
+            cancellationToken);
 
         if (seasonResult.IsFailed)
         {
@@ -45,6 +48,12 @@ public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
         }
 
         var crunchyrollSeason = seasonResult.Value;
+
+        if (crunchyrollSeason is null)
+        {
+            _logger.LogError("Season with crunchyrollId {SeasonId} not found", seasonId);
+            return;
+        }
 
         seasonItem.Name = !string.IsNullOrWhiteSpace(crunchyrollSeason.SeasonDisplayNumber) 
             ? $"S{crunchyrollSeason.SeasonDisplayNumber}: {crunchyrollSeason.Title}" 

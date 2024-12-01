@@ -6,7 +6,7 @@ public static class GetEpisodeIdServiceExtension
 {
     public static IServiceCollection AddCrunchyrollGetEpisodeId(this IServiceCollection serviceCollection)
     {
-        serviceCollection.AddSingleton<IGetEpisodeSession, CrunchyrollUnitOfWork>();
+        serviceCollection.AddScoped<IGetEpisodeRepository, GetEpisodeRepository>();
         
         return serviceCollection;
     }

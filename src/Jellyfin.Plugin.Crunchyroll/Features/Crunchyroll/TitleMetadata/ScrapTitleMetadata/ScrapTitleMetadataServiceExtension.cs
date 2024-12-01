@@ -23,8 +23,8 @@ public static class ScrapTitleMetadataServiceExtension
             .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
 
-        serviceCollection.AddSingleton<IScrapTitleMetadataSession, CrunchyrollUnitOfWork>();
-        serviceCollection.AddSingleton<IGetTitleMetadata, CrunchyrollUnitOfWork>();
+        serviceCollection.AddScoped<IScrapTitleMetadataRepository, ScrapTitleMetadataRepository>();
+        serviceCollection.AddScoped<IGetTitleMetadataRepository, ScrapTitleMetadataRepository>();
         
         return serviceCollection;
     }

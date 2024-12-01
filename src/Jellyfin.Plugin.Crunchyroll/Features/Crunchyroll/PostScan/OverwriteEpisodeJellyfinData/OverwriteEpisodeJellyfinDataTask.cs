@@ -2,12 +2,15 @@ using System;
 using System.IO;
 using System.IO.Abstractions;
 using System.Net.Http;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
@@ -20,16 +23,16 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
 {
     private readonly ILogger<OverwriteEpisodeJellyfinDataTask> _logger;
     private readonly ILibraryManager _libraryManager;
-    private readonly IOverwriteEpisodeJellyfinDataTaskSession _session;
+    private readonly IOverwriteEpisodeJellyfinDataTaskRepository _repository;
     private readonly ISetEpisodeThumbnail _setEpisodeThumbnail;
 
     public OverwriteEpisodeJellyfinDataTask(ILogger<OverwriteEpisodeJellyfinDataTask> logger,
-        ILibraryManager libraryManager, IOverwriteEpisodeJellyfinDataTaskSession session,
+        ILibraryManager libraryManager, IOverwriteEpisodeJellyfinDataTaskRepository repository,
         ISetEpisodeThumbnail setEpisodeThumbnail)
     {
         _logger = logger;
         _libraryManager = libraryManager;
-        _session = session;
+        _repository = repository;
         _setEpisodeThumbnail = setEpisodeThumbnail;
     }
     
@@ -44,16 +47,25 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
             return;
         }
 
-        var crunchyrollEpisodeResult = await _session.GetEpisodeAsync(episodeId!);
+        var crunchyrollEpisodeResult = await _repository.GetEpisodeAsync(episodeId!, 
+            episodeItem.GetPreferredMetadataCultureInfo(), cancellationToken);
 
         if (crunchyrollEpisodeResult.IsFailed)
         {
             return;
         }
-
+        
         var crunchyrollEpisode = crunchyrollEpisodeResult.Value;
+
+        if (crunchyrollEpisode is null)
+        {
+            _logger.LogError("episode with crunchyroll episodeId {EpisodeId} was not found", episodeId);
+            return;
+        }
+
+        var thumbnail = JsonSerializer.Deserialize<ImageSource>(crunchyrollEpisode.Thumbnail)!;
         _ = await _setEpisodeThumbnail
-            .GetAndSetThumbnailAsync((Episode)episodeItem, crunchyrollEpisode.Thumbnail, cancellationToken);
+            .GetAndSetThumbnailAsync((Episode)episodeItem, thumbnail, cancellationToken);
 
         episodeItem.Name = crunchyrollEpisode.Title;
         episodeItem.Overview = crunchyrollEpisode.Description;

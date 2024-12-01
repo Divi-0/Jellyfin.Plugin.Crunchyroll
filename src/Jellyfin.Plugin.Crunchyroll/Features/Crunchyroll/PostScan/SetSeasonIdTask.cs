@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetSeasonId;
 
@@ -115,13 +116,15 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
 
     private async Task<Result<string?>> GetSeasonIdByName(string titleId, BaseItem season, CancellationToken cancellationToken)
     {
-        var byNameQuery = new SeasonIdQueryByName(titleId, season.FileNameWithoutExtension);
+        var byNameQuery = new SeasonIdQueryByName(titleId, season.FileNameWithoutExtension, 
+            season.GetPreferredMetadataCultureInfo());
         return await _mediator.Send(byNameQuery, cancellationToken);
     }
 
     private async Task<Result<string?>> GetSeasonIdByNumber(string titleId, BaseItem season, int seasonCounter, CancellationToken cancellationToken)
     {
-        var query = new SeasonIdQueryByNumber(titleId, season.IndexNumber!.Value, seasonCounter);
+        var query = new SeasonIdQueryByNumber(titleId, season.IndexNumber!.Value, seasonCounter,
+            season.GetPreferredMetadataCultureInfo());
         return await _mediator.Send(query, cancellationToken);
     }
 

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -9,14 +10,14 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 
 public class AddAvatarService : IAddAvatarService
 {
-    private readonly IAddAvatarSession _session;
+    private readonly IAddAvatarRepository _repository;
     private readonly IAvatarClient _client;
     
     private readonly ConcurrentDictionary<string, bool> _concurrentDictionary = new();
 
-    public AddAvatarService(IAddAvatarSession session, IAvatarClient client)
+    public AddAvatarService(IAddAvatarRepository repository, IAvatarClient client)
     {
-        _session = session;
+        _repository = repository;
         _client = client;
     }
     
@@ -28,8 +29,9 @@ public class AddAvatarService : IAddAvatarService
         {
             return Result.Ok(archivedUrl);
         }
-        
-        var existsResult = await _session.AvatarExistsAsync(archivedUrl);
+
+        var fileName = Path.GetFileName(archivedUrl).Replace("jpe", "jpeg");//TODO: Test jpe jpeg
+        var existsResult = _repository.AvatarExists(fileName);
         
         if (existsResult.IsFailed)
         {
@@ -51,7 +53,7 @@ public class AddAvatarService : IAddAvatarService
 
         var imageStream = avatarResult.Value;
             
-        var addAvatarResult = await _session.AddAvatarImageAsync(archivedUrl, imageStream);
+        var addAvatarResult = await _repository.AddAvatarImageAsync(fileName, imageStream, cancellationToken);
 
         _concurrentDictionary.TryRemove(uri, out _);
         

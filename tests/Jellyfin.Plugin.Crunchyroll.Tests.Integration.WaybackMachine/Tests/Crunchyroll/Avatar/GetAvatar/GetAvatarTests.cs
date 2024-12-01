@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
 using AutoFixture;
+using Bogus;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
@@ -13,14 +14,11 @@ public class GetAvatarTests
 {
     private readonly Fixture _fixture;
     
-    private readonly CrunchyrollDatabaseFixture _crunchyrollDatabaseFixture;
     private readonly HttpClient _httpClient;
 
-    public GetAvatarTests(CrunchyrollDatabaseFixture crunchyrollDatabaseFixture)
+    public GetAvatarTests()
     {
         _fixture = new Fixture();
-        
-        _crunchyrollDatabaseFixture = crunchyrollDatabaseFixture;
         _httpClient = PluginWebApplicationFactory.Instance.CreateClient();
     }
 
@@ -28,9 +26,9 @@ public class GetAvatarTests
     public async Task ReturnsImage_WhenRequestingExistingAvatar_GivenUrl()
     {
         //Arrange
-        var imageUrl = _fixture.Create<Uri>().AbsoluteUri;
+        var imageUrl = new Faker().Internet.UrlWithPath(fileExt: "png");
         
-        DatabaseMockHelper.InsertAvatarImage(_crunchyrollDatabaseFixture.DbFilePath, imageUrl, 
+        DatabaseMockHelper.InsertAvatarImage(imageUrl, 
             new MemoryStream(Encoding.UTF8.GetBytes(Properties.Resources.AvatarImageYuzu)));
         
         //Act
@@ -46,7 +44,7 @@ public class GetAvatarTests
     public async Task ReturnsNotFound_WhenImageIsNotPresentInDatabase_GivenUrl()
     {
         //Arrange
-        var imageUrl = _fixture.Create<Uri>().AbsoluteUri;
+        var imageUrl = new Faker().Internet.UrlWithPath(fileExt: "png");
         
         //Act
         var response = await _httpClient.GetAsync($"api/crunchyrollPlugin/crunchyroll/avatar/{UrlEncoder.Default.Encode(imageUrl)}");

@@ -11,6 +11,7 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.MediaInfo;
 using Mediator;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
@@ -34,8 +35,19 @@ public class SetEpisodeIdTaskTests
         _libraryManager = MockHelper.LibraryManager;
         _itemRepository = MockHelper.ItemRepository;
         var logger = Substitute.For<ILogger<SetEpisodeIdTask>>();
+
+        var scopeFactory = Substitute.For<IServiceScopeFactory>();
+        var scope = Substitute.For<IServiceScope>();
+
+        scope.ServiceProvider
+            .GetService<IEnumerable<IPostEpisodeIdSetTask>>()
+            .Returns(_postSeasonIdSetTasks);
+        
+        scopeFactory
+            .CreateScope()
+            .Returns(scope);
             
-        _sut = new SetEpisodeIdTask(_mediator, _libraryManager, logger, _postSeasonIdSetTasks);
+        _sut = new SetEpisodeIdTask(_mediator, _libraryManager, logger, scopeFactory);
     }
 
     [Fact]
@@ -63,7 +75,6 @@ public class SetEpisodeIdTaskTests
         
         _mediator
             .Send(new EpisodeIdQuery(
-                series.ProviderIds[CrunchyrollExternalKeys.SeriesId], 
                 season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
                 episode.IndexNumber!.Value.ToString()))
             .Returns(new EpisodeIdResult(CrunchyrollIdFaker.Generate(), CrunchyrollSlugFaker.Generate()));
@@ -126,7 +137,6 @@ public class SetEpisodeIdTaskTests
         var crunchyrollSlugTitle = CrunchyrollSlugFaker.Generate();
         _mediator
             .Send(new EpisodeIdQuery(
-                series.ProviderIds[CrunchyrollExternalKeys.SeriesId], 
                 season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
                 episodeIdentifier))
             .Returns(new EpisodeIdResult(crunchyrollId, crunchyrollSlugTitle));
@@ -188,7 +198,6 @@ public class SetEpisodeIdTaskTests
         var crunchyrollSlugTitle = CrunchyrollSlugFaker.Generate();
         _mediator
             .Send(new EpisodeIdQuery(
-                series.ProviderIds[CrunchyrollExternalKeys.SeriesId], 
                 season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
                 episodeIdentifier))
             .Returns(new EpisodeIdResult(crunchyrollId, crunchyrollSlugTitle));
@@ -213,46 +222,6 @@ public class SetEpisodeIdTaskTests
         _postSeasonIdSetTasks.Should().AllSatisfy(x =>
         {
             x.Received(1).RunAsync(episode, Arg.Any<CancellationToken>());
-        });
-    }
-
-    [Fact]
-    public async Task IgnoresItem_WhenNoTitleIdFound_GivenSeasonWithSeriesWithoutTitleId()
-    {
-        //Arrange
-        var series = SeriesFaker.Generate();
-        var season = SeasonFaker.GenerateWithSeasonId(series);
-        
-        _libraryManager
-            .GetItemById(series.Id)
-            .Returns(series);
-        
-        var episode = EpisodeFaker.Generate();
-        _itemRepository
-            .GetItemList(Arg.Is<InternalItemsQuery>(x =>
-                x.ParentId == season.Id &&
-                x.GroupByPresentationUniqueKey == false &&
-                x.DtoOptions.Fields.Count != 0))
-            .Returns([episode]);
-        
-        //Act
-        await _sut.RunAsync(season, CancellationToken.None);
-
-        //Assert
-        episode.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeId, out var episodeId).Should().BeFalse();
-        episodeId.Should().BeNull();
-        
-        await _libraryManager
-            .DidNotReceive()
-            .UpdateItemAsync(
-                Arg.Is<BaseItem>(x => x == episode), 
-                Arg.Is<BaseItem>(x => x == episode.DisplayParent), 
-                ItemUpdateType.MetadataEdit, 
-                Arg.Any<CancellationToken>());
-
-        _postSeasonIdSetTasks.Should().AllSatisfy(x =>
-        {
-            x.DidNotReceive().RunAsync(episode, Arg.Any<CancellationToken>());
         });
     }
 
@@ -479,7 +448,6 @@ public class SetEpisodeIdTaskTests
         
         _mediator
             .Send(new EpisodeIdQuery(
-                series.ProviderIds[CrunchyrollExternalKeys.SeriesId], 
                 season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
                 episode.IndexNumber!.Value.ToString()))
             .Returns((EpisodeIdResult?)null);
@@ -532,7 +500,6 @@ public class SetEpisodeIdTaskTests
         
         _mediator
             .Send(new EpisodeIdQuery(
-                series.ProviderIds[CrunchyrollExternalKeys.SeriesId], 
                 season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
                 episode.IndexNumber!.Value.ToString()))
             .Returns(Result.Fail("error"));
@@ -579,7 +546,6 @@ public class SetEpisodeIdTaskTests
         
         _mediator
             .Send(new EpisodeIdQuery(
-                series.ProviderIds[CrunchyrollExternalKeys.SeriesId], 
                 season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
                 episode.IndexNumber!.Value.ToString()))
             .Returns(Result.Fail("error"));
@@ -644,7 +610,6 @@ public class SetEpisodeIdTaskTests
         var crunchyrollSlugTitle = CrunchyrollSlugFaker.Generate();
         _mediator
             .Send(new EpisodeIdQuery(
-                series.ProviderIds[CrunchyrollExternalKeys.SeriesId], 
                 season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
                 episodeIdentifier))
             .Returns(new EpisodeIdResult(crunchyrollId, crunchyrollSlugTitle));

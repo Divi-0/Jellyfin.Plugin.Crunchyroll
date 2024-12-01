@@ -125,7 +125,7 @@ public class CrunchyrollScanTests
             series.ProviderIds[CrunchyrollExternalKeys.SeriesId].Should().NotBeEmpty();
             series.ProviderIds[CrunchyrollExternalKeys.SeriesSlugTitle].Should().NotBeEmpty();
             
-            DatabaseMockHelper.ShouldHaveMetadata(_databaseFixture.DbFilePath, 
+            DatabaseMockHelper.ShouldHaveMetadata( 
                 series.ProviderIds[CrunchyrollExternalKeys.SeriesId],
                 seriesResponses[series.Id]);
             
@@ -298,6 +298,6 @@ public class CrunchyrollScanTests
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeasonId);
         movie.ProviderIds[CrunchyrollExternalKeys.SeasonId].Should().Be(seasonId);
         
-        DatabaseMockHelper.ShouldHaveMetadata(_databaseFixture.DbFilePath, seriesId, seriesResponse);
+        DatabaseMockHelper.ShouldHaveMetadata(seriesId, seriesResponse);
     }
 }

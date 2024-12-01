@@ -14,7 +14,7 @@ public static class ExtractCommentsServiceExtensions
             })
             .AddPollyHttpClientDefaultPolicy();
 
-        services.AddSingleton<IExtractCommentsSession, CrunchyrollUnitOfWork>();
+        services.AddScoped<IExtractCommentsRepository, ExtractCommentsRepository>();
 
         return services;
     }

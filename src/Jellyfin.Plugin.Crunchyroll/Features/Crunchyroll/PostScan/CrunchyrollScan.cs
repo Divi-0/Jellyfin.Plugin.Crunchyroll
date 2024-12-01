@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -15,30 +14,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 
-public class CrunchyrollScan : ILibraryPostScanTask
+public sealed class CrunchyrollScan : ILibraryPostScanTask
 {
     private readonly ILogger<CrunchyrollScan> _logger;
     private readonly ILibraryManager _libraryManager;
-    private readonly IEnumerable<IPostSeriesScanTask>? _postSeriesScanTasks;
-    private readonly IEnumerable<IPostMovieScanTask>? _postMovieScanTasks;
     private readonly PluginConfiguration _config;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public CrunchyrollScan(ILogger<CrunchyrollScan> logger, ILibraryManager libraryManager, 
-        IEnumerable<IPostSeriesScanTask> postSeriesScanTasks, IEnumerable<IPostMovieScanTask> postMovieScanTasks, 
         PluginConfiguration? config = null)
     {
         _logger = logger;
         _libraryManager = libraryManager;
-        
-        var seriesScanTasks = postSeriesScanTasks.ToArray();
-        _postSeriesScanTasks = seriesScanTasks.Length != 0 
-            ? seriesScanTasks 
-            : CrunchyrollPlugin.Instance!.ServiceProvider.GetServices<IPostSeriesScanTask>();
-        
-        var movieScanTasks = postMovieScanTasks.ToArray();
-        _postMovieScanTasks = movieScanTasks.Length != 0 
-            ? movieScanTasks 
-            : CrunchyrollPlugin.Instance!.ServiceProvider.GetServices<IPostMovieScanTask>();
+
+        _serviceScopeFactory = CrunchyrollPlugin.Instance!.ServiceProvider
+            .GetRequiredService<IServiceScopeFactory>();
         
         _config = config ?? CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
     }
@@ -51,6 +41,8 @@ public class CrunchyrollScan : ILibraryPostScanTask
             progress.Report(100);
             return;
         }
+
+        using var serviceScope = _serviceScopeFactory.CreateScope();
         
         var startTimestamp = Stopwatch.GetTimestamp();
         
@@ -76,7 +68,7 @@ public class CrunchyrollScan : ILibraryPostScanTask
         {
             try
             {
-                foreach (var postScanTask in _postSeriesScanTasks ?? [])
+                foreach (var postScanTask in serviceScope.ServiceProvider.GetServices<IPostSeriesScanTask>())
                 {
                     await postScanTask.RunAsync(item, cancellationToken);
                 }
@@ -94,7 +86,7 @@ public class CrunchyrollScan : ILibraryPostScanTask
 
         await Parallel.ForEachAsync(allItems.Where(x => x is Movie), cancellationToken, async (movie, _) =>
         {
-            foreach (var postScanTask in _postMovieScanTasks ?? [])
+            foreach (var postScanTask in serviceScope.ServiceProvider.GetServices<IPostMovieScanTask>())
             {
                 await postScanTask.RunAsync(movie, cancellationToken);
             }

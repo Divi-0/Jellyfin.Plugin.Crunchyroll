@@ -1,3 +1,4 @@
+using System.Globalization;
 using AutoFixture;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetSeasonId;
@@ -9,14 +10,14 @@ public class SeasonIdQueryByNameTests
     private readonly Fixture _fixture;
     
     private readonly SeasonIdQueryByNameHandler _sut;
-    private readonly IGetSeasonSession _getSeasonSession;
+    private readonly IGetSeasonRepository _repository;
 
     public SeasonIdQueryByNameTests()
     {
         _fixture = new Fixture();
         
-        _getSeasonSession = Substitute.For<IGetSeasonSession>();
-        _sut = new SeasonIdQueryByNameHandler(_getSeasonSession);
+        _repository = Substitute.For<IGetSeasonRepository>();
+        _sut = new SeasonIdQueryByNameHandler(_repository);
     }
 
     [Fact]
@@ -26,13 +27,14 @@ public class SeasonIdQueryByNameTests
         var titleId = _fixture.Create<string>();
         var seasonName = _fixture.Create<string>();
         var seasonId = _fixture.Create<string>();
+        var language = new CultureInfo("en-US");
 
-        _getSeasonSession
-            .GetSeasonIdByNameAsync(titleId, seasonName)
+        _repository
+            .GetSeasonIdByNameAsync(titleId, seasonName, language, Arg.Any<CancellationToken>())
             .Returns(seasonId);
 
         //Act
-        var query = new SeasonIdQueryByName(titleId, seasonName);
+        var query = new SeasonIdQueryByName(titleId, seasonName, language);
         var result = await _sut.Handle(query, CancellationToken.None);
 
         //Assert
@@ -46,13 +48,14 @@ public class SeasonIdQueryByNameTests
         //Arrange
         var titleId = _fixture.Create<string>();
         var seasonName = _fixture.Create<string>();
+        var language = new CultureInfo("en-US");
 
-        _getSeasonSession
-            .GetSeasonIdByNameAsync(titleId, seasonName)
+        _repository
+            .GetSeasonIdByNameAsync(titleId, seasonName, language, Arg.Any<CancellationToken>())
             .Returns((string?)null);
 
         //Act
-        var query = new SeasonIdQueryByName(titleId, seasonName);
+        var query = new SeasonIdQueryByName(titleId, seasonName, language);
         var result = await _sut.Handle(query, CancellationToken.None);
 
         //Assert

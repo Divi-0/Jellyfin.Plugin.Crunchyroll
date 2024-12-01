@@ -1,8 +1,11 @@
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging;
@@ -11,16 +14,16 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteMov
 
 public class OverwriteMovieJellyfinDataTask : IPostMovieIdSetTask
 {
-    private readonly IOverwriteMovieJellyfinDataUnitOfWork _unitOfWork;
+    private readonly IOverwriteMovieJellyfinDataRepository _repository;
     private readonly ILogger<OverwriteMovieJellyfinDataTask> _logger;
     private readonly ISetEpisodeThumbnail _setEpisodeThumbnail;
     private readonly ILibraryManager _libraryManager;
 
-    public OverwriteMovieJellyfinDataTask(IOverwriteMovieJellyfinDataUnitOfWork unitOfWork,
+    public OverwriteMovieJellyfinDataTask(IOverwriteMovieJellyfinDataRepository repository,
         ILogger<OverwriteMovieJellyfinDataTask> logger, ISetEpisodeThumbnail setEpisodeThumbnail,
         ILibraryManager libraryManager)
     {
-        _unitOfWork = unitOfWork;
+        _repository = repository;
         _logger = logger;
         _setEpisodeThumbnail = setEpisodeThumbnail;
         _libraryManager = libraryManager;
@@ -40,7 +43,8 @@ public class OverwriteMovieJellyfinDataTask : IPostMovieIdSetTask
             return;
         }
 
-        var titleMetadataResult = await _unitOfWork.GetTitleMetadataAsync(seriesId!, cancellationToken);
+        var titleMetadataResult = await _repository.GetTitleMetadataAsync(seriesId!, 
+            movie.GetPreferredMetadataCultureInfo(), cancellationToken);
 
         if (titleMetadataResult.IsFailed)
         {
@@ -55,7 +59,7 @@ public class OverwriteMovieJellyfinDataTask : IPostMovieIdSetTask
 
         var crunchyrollMovieEpisode = titleMetadataResult.Value.Seasons
             .SelectMany(x => x.Episodes)
-            .FirstOrDefault(x => x.Id == episodeId);
+            .FirstOrDefault(x => x.CrunchyrollId == episodeId);
 
         if (crunchyrollMovieEpisode is null)
         {
@@ -67,7 +71,8 @@ public class OverwriteMovieJellyfinDataTask : IPostMovieIdSetTask
         movie.Overview = crunchyrollMovieEpisode.Description;
         movie.SetStudios([titleMetadataResult.Value.Studio]);
 
-        _ = await _setEpisodeThumbnail.GetAndSetThumbnailAsync(movie, crunchyrollMovieEpisode.Thumbnail, cancellationToken);
+        var thumbnail = JsonSerializer.Deserialize<ImageSource>(crunchyrollMovieEpisode.Thumbnail)!;
+        _ = await _setEpisodeThumbnail.GetAndSetThumbnailAsync(movie, thumbnail, cancellationToken);
 
         await _libraryManager.UpdateItemAsync(movie, movie.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
     }

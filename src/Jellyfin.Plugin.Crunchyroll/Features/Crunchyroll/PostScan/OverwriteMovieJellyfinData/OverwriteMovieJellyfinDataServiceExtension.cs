@@ -7,7 +7,7 @@ public static class OverwriteMovieJellyfinDataServiceExtension
 {
     public static void AddOverwriteMovieJellyfinData(this IServiceCollection serviceCollection)
     {
-        serviceCollection.AddSingleton<IPostMovieIdSetTask, OverwriteMovieJellyfinDataTask>();
-        serviceCollection.AddScoped<IOverwriteMovieJellyfinDataUnitOfWork, CrunchyrollUnitOfWork>();
+        serviceCollection.AddScoped<IPostMovieIdSetTask, OverwriteMovieJellyfinDataTask>();
+        serviceCollection.AddScoped<IOverwriteMovieJellyfinDataRepository, OverwriteMovieJellyfinDataRepository>();
     }
 }

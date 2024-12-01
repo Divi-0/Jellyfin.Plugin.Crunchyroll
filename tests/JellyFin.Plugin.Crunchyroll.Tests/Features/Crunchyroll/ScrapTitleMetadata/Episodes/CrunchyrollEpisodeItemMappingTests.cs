@@ -1,3 +1,4 @@
+using System.Globalization;
 using Bogus;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
@@ -5,6 +6,8 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleM
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ScrapTitleMetadata.Episodes;
 
@@ -21,7 +24,9 @@ public class CrunchyrollEpisodeItemMappingTests
     public void ReturnsFullEntity_WhenSuccessful_GivenFullCrunchyrollItem()
     {
         //Arrange
+        var seasonId = Guid.NewGuid();
         var thumbnailUri = _faker.Internet.UrlWithPath(fileExt: "png");
+        var language = new CultureInfo("en-GB");
         var crunchyrollEpisodeItem = new CrunchyrollEpisodeItem
         {
             Id = CrunchyrollIdFaker.Generate(),
@@ -47,23 +52,25 @@ public class CrunchyrollEpisodeItemMappingTests
         };
 
         //Act
-        var entity = crunchyrollEpisodeItem.ToEpisodeEntity();
+        var entity = crunchyrollEpisodeItem.ToEpisodeEntity(seasonId, language);
 
         //Assert
         var expectedEntity = new Episode
         {
-            Id = crunchyrollEpisodeItem.Id,
+            CrunchyrollId = crunchyrollEpisodeItem.Id,
             Title = crunchyrollEpisodeItem.Title,
             Description = crunchyrollEpisodeItem.Description,
             SlugTitle = crunchyrollEpisodeItem.SlugTitle,
             EpisodeNumber = crunchyrollEpisodeItem.Episode,
-            Thumbnail = new ImageSource
+            Thumbnail = JsonSerializer.Serialize(new ImageSource
             {
                 Uri = thumbnailUri,
                 Width = 0,
                 Height = 0
-            },
-            SequenceNumber = 123.4
+            }),
+            SequenceNumber = 123.4,
+            SeasonId = seasonId,
+            Language = language.Name
         };
         
         entity.Should().BeEquivalentTo(expectedEntity);
@@ -73,7 +80,9 @@ public class CrunchyrollEpisodeItemMappingTests
     public void ReturnsFullEntity_WhenEpisodeIsEmpty_GivenCrunchyrollItem()
     {
         //Arrange
+        var seasonId = Guid.NewGuid();
         var thumbnailUri = _faker.Internet.UrlWithPath(fileExt: "png");
+        var language = new CultureInfo("en-GB");
         var crunchyrollEpisodeItem = new CrunchyrollEpisodeItem
         {
             Id = CrunchyrollIdFaker.Generate(),
@@ -99,23 +108,25 @@ public class CrunchyrollEpisodeItemMappingTests
         };
 
         //Act
-        var entity = crunchyrollEpisodeItem.ToEpisodeEntity();
+        var entity = crunchyrollEpisodeItem.ToEpisodeEntity(seasonId, language);
 
         //Assert
         var expectedEntity = new Episode
         {
-            Id = crunchyrollEpisodeItem.Id,
+            CrunchyrollId = crunchyrollEpisodeItem.Id,
             Title = crunchyrollEpisodeItem.Title,
             Description = crunchyrollEpisodeItem.Description,
             SlugTitle = crunchyrollEpisodeItem.SlugTitle,
             EpisodeNumber = "5",
-            Thumbnail = new ImageSource
+            Thumbnail = JsonSerializer.Serialize(new ImageSource
             {
                 Uri = thumbnailUri,
                 Width = 12,
                 Height = 34
-            },
-            SequenceNumber = 123.4
+            }),
+            SequenceNumber = 123.4,
+            SeasonId = seasonId,
+            Language = language.Name
         };
         
         entity.Should().BeEquivalentTo(expectedEntity);
@@ -125,6 +136,8 @@ public class CrunchyrollEpisodeItemMappingTests
     public void ReturnsEmptyImages_WhenItemHasNoImages_GivenCrunchyrollItem()
     {
         //Arrange
+        var seasonId = Guid.NewGuid();
+        var language = new CultureInfo("en-GB");
         var crunchyrollEpisodeItem = new CrunchyrollEpisodeItem
         {
             Id = CrunchyrollIdFaker.Generate(),
@@ -141,23 +154,25 @@ public class CrunchyrollEpisodeItemMappingTests
         };
 
         //Act
-        var entity = crunchyrollEpisodeItem.ToEpisodeEntity();
+        var entity = crunchyrollEpisodeItem.ToEpisodeEntity(seasonId, language);
 
         //Assert
         var expectedEntity = new Episode
         {
-            Id = crunchyrollEpisodeItem.Id,
+            CrunchyrollId = crunchyrollEpisodeItem.Id,
             Title = crunchyrollEpisodeItem.Title,
             Description = crunchyrollEpisodeItem.Description,
             SlugTitle = crunchyrollEpisodeItem.SlugTitle,
             EpisodeNumber = "5",
-            Thumbnail = new ImageSource
+            Thumbnail = JsonSerializer.Serialize(new ImageSource
             {
                 Uri = string.Empty,
                 Width = 0,
                 Height = 0
-            },
-            SequenceNumber = 123.4
+            }),
+            SequenceNumber = 123.4,
+            SeasonId = seasonId,
+            Language = language.Name
         };
         
         entity.Should().BeEquivalentTo(expectedEntity);

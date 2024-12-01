@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using FluentResults.Extensions;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes;
@@ -14,6 +15,8 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleM
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
 using Mediator;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 
@@ -27,17 +30,17 @@ public record ScrapTitleMetadataCommand : IRequest<Result>
 
 public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetadataCommand, Result>
 {
-    private readonly IScrapTitleMetadataSession _unitOfWork;
+    private readonly IScrapTitleMetadataRepository _repository;
     private readonly ICrunchyrollSeasonsClient _seasonsClient;
     private readonly ICrunchyrollEpisodesClient _episodesClient;
     private readonly ILoginService _loginService;
     private readonly ICrunchyrollSeriesClient _crunchyrollSeriesClient;
 
-    public ScrapTitleMetadataCommandHandler(IScrapTitleMetadataSession unitOfWork,
+    public ScrapTitleMetadataCommandHandler(IScrapTitleMetadataRepository repository,
         ICrunchyrollSeasonsClient seasonsClient, ICrunchyrollEpisodesClient episodesClient, ILoginService loginService, 
         ICrunchyrollSeriesClient crunchyrollSeriesClient)
     {
-        _unitOfWork = unitOfWork;
+        _repository = repository;
         _seasonsClient = seasonsClient;
         _episodesClient = episodesClient;
         _loginService = loginService;
@@ -62,21 +65,15 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         
         var crunchyrollSeasons = seasonsResult.Value.Data;
         
-        var titleMetadata = await _unitOfWork.GetTitleMetadataAsync(request.TitleId);
+        var titleMetadataResult = await _repository.GetTitleMetadataAsync(request.TitleId, 
+            request.Language, cancellationToken);
 
-        var seasonEpisodesDictionary = new ConcurrentDictionary<string, List<Episode>>();
-        await Parallel.ForEachAsync(crunchyrollSeasons, cancellationToken, async (season, _) =>
+        if (titleMetadataResult.IsFailed)
         {
-            var episodesResult =  await _episodesClient.GetEpisodesAsync(season.Id, request.Language, cancellationToken);
-            
-            seasonEpisodesDictionary[season.Id] = episodesResult.IsFailed ? 
-                Array.Empty<Episode>().ToList() : 
-                episodesResult.Value.Data
-                    .Select(x => x.ToEpisodeEntity()).ToList();
-        });
+            return titleMetadataResult.ToResult();
+        }
 
-        var seasons = crunchyrollSeasons.Select(x =>
-            x.ToSeasonEntity(seasonEpisodesDictionary[x.Id])).ToList();
+        var titleMetadata = titleMetadataResult.Value;
         
         var seriesMetadataResult = await _crunchyrollSeriesClient.GetSeriesMetadataAsync(request.TitleId, request.Language,
             cancellationToken);
@@ -92,32 +89,66 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
             var crunchyrollPosterWide = seriesMetadataResult.Value.Images.PosterWide.First().Last();
             titleMetadata = new Entities.TitleMetadata
             {
-                TitleId = request.TitleId,
+                Id = Guid.NewGuid(),
+                CrunchyrollId = request.TitleId,
                 SlugTitle = seriesMetadataResult.Value.SlugTitle,
                 Description = seriesMetadataResult.Value.Description,
                 Title = seriesMetadataResult.Value.Title,
                 Studio = seriesMetadataResult.Value.ContentProvider,
-                PosterTall = new ImageSource
+                PosterTall = JsonSerializer.Serialize(new ImageSource
                 {
                     Uri = crunchyrollPosterTall.Source,
                     Width = crunchyrollPosterTall.Width,
                     Height = crunchyrollPosterTall.Height,
-                },
-                PosterWide = new ImageSource
+                }),
+                PosterWide = JsonSerializer.Serialize(new ImageSource
                 {
                     Uri = crunchyrollPosterWide.Source,
                     Width = crunchyrollPosterWide.Width,
                     Height = crunchyrollPosterWide.Height,
-                },
-                Seasons = seasons
+                }),
+                Seasons = [],
+                Language = request.Language.Name
             };
         }
         else
         {
             ApplyNewSeriesMetadataToTitleMetadata(titleMetadata, seriesMetadataResult.Value);
-            ApplyNewSeasonsToExistingSeasons(titleMetadata, seasons);
-            ApplyNewEpisodesToExistingEpisodes(titleMetadata, seasonEpisodesDictionary);
         }
+
+        var seasons = crunchyrollSeasons.Select(x =>
+            x.ToSeasonEntity(titleMetadata.Id, request.Language)).ToList();
+        
+        if (titleMetadata.Seasons.Count == 0)
+        {
+            titleMetadata.Seasons.AddRange(seasons);
+        }
+        else
+        {
+            ApplyNewSeasonsToExistingSeasons(titleMetadata, seasons);
+        }
+        
+        await Parallel.ForEachAsync(titleMetadata.Seasons, cancellationToken, async (season, _) =>
+        {
+            var episodesResult =  await _episodesClient.GetEpisodesAsync(season.CrunchyrollId, request.Language, cancellationToken);
+
+            if (episodesResult.IsFailed)
+            {
+                return;
+            }
+
+            var episodes = episodesResult.Value.Data
+                .Select(x => x.ToEpisodeEntity(season.Id, request.Language)).ToList();
+            
+            if (season.Episodes.Count == 0)
+            {
+                season.Episodes.AddRange(episodes);
+            }
+            else
+            {
+                ApplyNewEpisodesToExistingEpisodes(season, episodes);
+            }
+        });
 
         if (!string.IsNullOrWhiteSpace(request.MovieEpisodeId) 
             && !string.IsNullOrWhiteSpace(request.MovieSeasonId))
@@ -125,22 +156,21 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
             await HandleMovieAsync(request.MovieEpisodeId!, request.MovieSeasonId, request.Language, titleMetadata, cancellationToken);
         }
         
-        await _unitOfWork.AddOrUpdateTitleMetadata(titleMetadata);
+        var dbResult = await _repository.AddOrUpdateTitleMetadata(titleMetadata, cancellationToken)
+            .Bind(async () => await _repository.SaveChangesAsync(cancellationToken));
         
-        return Result.Ok();
+        return dbResult.IsFailed
+            ? dbResult
+            : Result.Ok();
     }
 
-    private static void ApplyNewEpisodesToExistingEpisodes(Entities.TitleMetadata titleMetadata, ConcurrentDictionary<string, List<Episode>> seasonEpisodesDictionary)
+    private static void ApplyNewEpisodesToExistingEpisodes(Season season, List<Episode> episodes)
     {
-        foreach (var season in titleMetadata.Seasons)
+        foreach (var currentListedCrunchyrollEpisode in episodes ?? [])
         {
-            seasonEpisodesDictionary.TryGetValue(season.Id, out var episodes);
-            foreach (var currentListedCrunchyrollEpisode in episodes ?? Array.Empty<Episode>().ToList())
+            if (season.Episodes.All(x => x.CrunchyrollId != currentListedCrunchyrollEpisode.CrunchyrollId))
             {
-                if (season.Episodes.All(x => x.Id != currentListedCrunchyrollEpisode.Id))
-                {
-                    season.Episodes.Add(currentListedCrunchyrollEpisode);
-                }
+                season.Episodes.Add(currentListedCrunchyrollEpisode);
             }
         }
     }
@@ -149,7 +179,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
     {
         foreach (var season in seasons)
         {
-            if (titleMetadata.Seasons.All(x => x.Id != season.Id))
+            if (titleMetadata.Seasons.All(x => x.CrunchyrollId != season.CrunchyrollId))
             {
                 titleMetadata.Seasons.Add(season);
             }
@@ -165,53 +195,55 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         
         var crunchyrollPosterTall = seriesContentResponse.Images.PosterTall.First().Last();
         var crunchyrollPosterWide = seriesContentResponse.Images.PosterWide.First().Last();
-        titleMetadata.PosterTall = new ImageSource
+        titleMetadata.PosterTall = JsonSerializer.Serialize(new ImageSource
         {
             Uri = crunchyrollPosterTall.Source,
             Width = crunchyrollPosterTall.Width,
             Height = crunchyrollPosterTall.Height,
-        };
-        titleMetadata.PosterWide = new ImageSource
+        });
+        titleMetadata.PosterWide = JsonSerializer.Serialize(new ImageSource
         {
             Uri = crunchyrollPosterWide.Source,
             Width = crunchyrollPosterWide.Width,
             Height = crunchyrollPosterWide.Height,
-        };
+        });
     }
 
-    private async Task HandleMovieAsync(string episodeId, string seasonId, CultureInfo language, Entities.TitleMetadata titleMetadata, 
+    private async Task HandleMovieAsync(string crunchyrollEpisodeId, string crunchyrollSeasonId, CultureInfo language, Entities.TitleMetadata titleMetadata, 
         CancellationToken cancellationToken)
     {
         var isEpisodeAlreadyScraped = titleMetadata.Seasons
             .SelectMany(x => x.Episodes)
-            .Any(x => x.Id == episodeId);
+            .Any(x => x.CrunchyrollId == crunchyrollEpisodeId);
         
         if (isEpisodeAlreadyScraped)
         {
             return;
         }
 
-        var episodeResult = await _episodesClient.GetEpisodeAsync(episodeId, language, cancellationToken);
+        var episodeResult = await _episodesClient.GetEpisodeAsync(crunchyrollEpisodeId, language, cancellationToken);
 
         if (episodeResult.IsFailed)
         {
             return;
         }
 
-        var season = titleMetadata.Seasons.FirstOrDefault(x => x.Id == seasonId);
+        var season = titleMetadata.Seasons.FirstOrDefault(x => x.CrunchyrollId == crunchyrollSeasonId);
 
         if (season is null)
         {
-            season = new Season()
+            season = new Season
             {
-                Id = seasonId,
+                CrunchyrollId = crunchyrollSeasonId,
                 Title = episodeResult.Value.EpisodeMetadata.SeasonTitle,
                 Identifier = string.Empty,
                 SeasonNumber = episodeResult.Value.EpisodeMetadata.SeasonNumber,
                 SeasonSequenceNumber = episodeResult.Value.EpisodeMetadata.SeasonSequenceNumber,
                 SlugTitle = episodeResult.Value.EpisodeMetadata.SeriesSlugTitle,
                 SeasonDisplayNumber = episodeResult.Value.EpisodeMetadata.SeasonDisplayNumber,
-                Episodes = []
+                Episodes = [],
+                SeriesId = titleMetadata.Id,
+                Language = language.Name
             };
             
             titleMetadata.Seasons.Add(season);
@@ -219,18 +251,20 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         
         season.Episodes.Add(new Episode
         {
-            Id = episodeId,
+            CrunchyrollId = crunchyrollEpisodeId,
             Title = episodeResult.Value.Title,
             Description = episodeResult.Value.Description,
-            Thumbnail = new ImageSource
+            Thumbnail = JsonSerializer.Serialize(new ImageSource
             {
                 Uri = episodeResult.Value.Images.Thumbnail.First().Last().Source,
                 Height = episodeResult.Value.Images.Thumbnail.First().Last().Height,
                 Width = episodeResult.Value.Images.Thumbnail.First().Last().Width
-            },
+            }),
             EpisodeNumber = episodeResult.Value.EpisodeMetadata.Episode,
             SequenceNumber = episodeResult.Value.EpisodeMetadata.SequenceNumber,
-            SlugTitle = episodeResult.Value.SlugTitle
+            SlugTitle = episodeResult.Value.SlugTitle,
+            SeasonId = season.Id,
+            Language = language.Name
         });
     }
 }

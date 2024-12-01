@@ -3,20 +3,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Mediator;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
 
-public record EpisodeIdQueryByName(string TitleId, string SeasonId, string EpisodeName) : IRequest<Result<EpisodeIdResult?>>;
+public record EpisodeIdQueryByName(string SeasonId, string EpisodeName) : IRequest<Result<EpisodeIdResult?>>;
 
 public class EpisodeIdQueryByNameHandler : IRequestHandler<EpisodeIdQueryByName, Result<EpisodeIdResult?>>
 {
-    private readonly IGetEpisodeSession _getEpisodeSession;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<EpisodeIdQueryHandler> _logger;
 
-    public EpisodeIdQueryByNameHandler(IGetEpisodeSession getEpisodeSession, ILogger<EpisodeIdQueryHandler> logger)
+    public EpisodeIdQueryByNameHandler(IServiceScopeFactory serviceScopeFactory, ILogger<EpisodeIdQueryHandler> logger)
     {
-        _getEpisodeSession = getEpisodeSession;
+        _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
     }
     
@@ -24,8 +25,10 @@ public class EpisodeIdQueryByNameHandler : IRequestHandler<EpisodeIdQueryByName,
     {
         try
         {
-            return await _getEpisodeSession.GetEpisodeIdByNameAsync(request.TitleId, request.SeasonId,
-                request.EpisodeName);
+            using var scope = _serviceScopeFactory.CreateScope();
+            var repository = scope.ServiceProvider.GetRequiredService<IGetEpisodeRepository>();
+            return await repository.GetEpisodeIdByNameAsync(request.SeasonId,
+                request.EpisodeName, cancellationToken);
         }
         catch (Exception e)
         {

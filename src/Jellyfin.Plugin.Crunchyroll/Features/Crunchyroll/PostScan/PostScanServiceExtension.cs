@@ -17,25 +17,25 @@ internal static class PostScanServiceExtension
         serviceCollection.AddScoped<IFile>(serviceProvider => serviceProvider.GetRequiredService<IFileSystem>().File);
         serviceCollection.AddScoped<IDirectory>(serviceProvider => serviceProvider.GetRequiredService<IFileSystem>().Directory);
         
-        serviceCollection.AddSingleton<IPostSeriesScanTask, SetTitleIdTask>();
+        serviceCollection.AddScoped<IPostSeriesScanTask, SetTitleIdTask>();
             
-        serviceCollection.AddSingleton<IPostTitleIdSetTask, ScrapTitleMetadataTask>();
-        serviceCollection.AddSingleton<IPostTitleIdSetTask, SetSeasonIdTask>();
-        serviceCollection.AddSingleton<IPostTitleIdSetTask, ExtractReviewsTask>();
+        serviceCollection.AddScoped<IPostTitleIdSetTask, ScrapTitleMetadataTask>();
+        serviceCollection.AddScoped<IPostTitleIdSetTask, SetSeasonIdTask>();
+        serviceCollection.AddScoped<IPostTitleIdSetTask, ExtractReviewsTask>();
             
         serviceCollection.AddOverwriteSeasonJellyfinData();
-        serviceCollection.AddSingleton<IPostSeasonIdSetTask, SetEpisodeIdTask>();
+        serviceCollection.AddScoped<IPostSeasonIdSetTask, SetEpisodeIdTask>();
         
-        serviceCollection.AddSingleton<IPostEpisodeIdSetTask, ExtractCommentsTask>();
+        serviceCollection.AddScoped<IPostEpisodeIdSetTask, ExtractCommentsTask>();
 
         serviceCollection.AddOverwriteSeriesJellyfinData();
         serviceCollection.AddOverwriteEpisodeJellyfinData();
         serviceCollection.AddSetMovieEpisodeId();
         
-        serviceCollection.AddSingleton<IPostMovieIdSetTask, ScrapTitleMetadataTask>();
+        serviceCollection.AddScoped<IPostMovieIdSetTask, ScrapTitleMetadataTask>();
         serviceCollection.AddOverwriteMovieJellyfinData();
-        serviceCollection.AddSingleton<IPostMovieIdSetTask, ExtractReviewsTask>();
-        serviceCollection.AddSingleton<IPostMovieIdSetTask, ExtractCommentsTask>();
+        serviceCollection.AddScoped<IPostMovieIdSetTask, ExtractReviewsTask>();
+        serviceCollection.AddScoped<IPostMovieIdSetTask, ExtractCommentsTask>();
 
         return serviceCollection;
     }

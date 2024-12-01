@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,37 +10,46 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetSeas
 /// <param name="SeasonNumber">eg. 1,2,3</param>
 /// <param name="DuplicateCounter">When multiple seasons have the same season number this param identifies which duplicate season to choose;
 /// 1 = take the first season you find, 2 = take the second the season of the seasons with identical season-numbers, ...</param>
-public record SeasonIdQueryByNumber(string TitleId, int SeasonNumber, int DuplicateCounter) : IRequest<Result<string?>>;
+public record SeasonIdQueryByNumber(string TitleId, int SeasonNumber, int DuplicateCounter, CultureInfo Language) : IRequest<Result<string?>>;
 
 public class SeasonIdQueryByNumberHandler : IRequestHandler<SeasonIdQueryByNumber, Result<string?>>
 {
-    private readonly IGetSeasonSession _getSeasonSession;
+    private readonly IGetSeasonRepository _repository;
 
-    public SeasonIdQueryByNumberHandler(IGetSeasonSession getSeasonSession)
+    public SeasonIdQueryByNumberHandler(IGetSeasonRepository repository)
     {
-        _getSeasonSession = getSeasonSession;
+        _repository = repository;
     }
     
     public async ValueTask<Result<string?>> Handle(SeasonIdQueryByNumber request, CancellationToken cancellationToken)
     {
-        var seasonId = await _getSeasonSession
-            .GetSeasonIdByNumberAsync(request.TitleId, request.SeasonNumber, request.DuplicateCounter);
+        var seasonIdResult = await _repository
+            .GetSeasonIdByNumberAsync(request.TitleId, request.SeasonNumber, request.DuplicateCounter, request.Language,
+                cancellationToken);
+
+        if (seasonIdResult.IsFailed)
+        {
+            return seasonIdResult;
+        }
+        
+        var seasonId = seasonIdResult.Value;
 
         if (!string.IsNullOrWhiteSpace(seasonId))
         {
             return seasonId;
         }
 
-        var seasons = await _getSeasonSession.GetAllSeasonsAsync(request.TitleId);
+        var seasonsResult = await _repository.GetAllSeasonsAsync(request.TitleId, request.Language,
+            cancellationToken);
 
-        foreach (var season in seasons)
+        foreach (var season in seasonsResult.Value)
         {
             var regex = new Regex($@"S{request.SeasonNumber}(DC)?$");
             var match = regex.Match(season.Identifier);
 
             if (match.Success)
             {
-                return season.Id;
+                return season.CrunchyrollId;
             }
         }
 

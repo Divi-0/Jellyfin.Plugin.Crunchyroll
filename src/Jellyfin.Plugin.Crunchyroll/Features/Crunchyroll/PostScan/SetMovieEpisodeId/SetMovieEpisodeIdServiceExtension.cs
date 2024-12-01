@@ -13,6 +13,6 @@ public static class SetMovieEpisodeIdServiceExtension
             .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
         
-        serviceCollection.AddSingleton<IPostMovieScanTask, SetMovieEpisodeIdTask>();
+        serviceCollection.AddScoped<IPostMovieScanTask, SetMovieEpisodeIdTask>();
     }
 }

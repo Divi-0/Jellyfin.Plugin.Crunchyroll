@@ -24,16 +24,16 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
     private readonly ICrunchyrollGetReviewsClient _client;
     private readonly ILibraryManager _libraryManager;
     private readonly PluginConfiguration _config;
-    private readonly IGetReviewsSession _getReviewsSession;
+    private readonly IGetReviewsRepository _iGetReviewsRepository;
     private readonly ILoginService _loginService;
 
     public GetReviewsQueryHandler(ICrunchyrollGetReviewsClient client, ILibraryManager libraryManager,
-        PluginConfiguration config, IGetReviewsSession getReviewsSession, ILoginService loginService)
+        PluginConfiguration config, IGetReviewsRepository iGetReviewsRepository, ILoginService loginService)
     {
         _client = client;
         _libraryManager = libraryManager;
         _config = config;
-        _getReviewsSession = getReviewsSession;
+        _iGetReviewsRepository = iGetReviewsRepository;
         _loginService = loginService;
     }
     
@@ -63,7 +63,7 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
     {
         if (_config.IsWaybackMachineEnabled)
         {
-            var reviewsResult = await _getReviewsSession.GetReviewsForTitleIdAsync(titleId);
+            var reviewsResult = await _iGetReviewsRepository.GetReviewsForTitleIdAsync(titleId, language, cancellationToken);
 
             if (reviewsResult.IsFailed)
             {

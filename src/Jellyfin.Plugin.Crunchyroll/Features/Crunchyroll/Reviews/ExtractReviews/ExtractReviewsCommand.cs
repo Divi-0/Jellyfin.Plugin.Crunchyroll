@@ -7,12 +7,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using FluentResults;
+using FluentResults.Extensions;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
 using Mediator;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
 
@@ -28,29 +33,29 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
     private readonly IWaybackMachineClient _waybackMachineClient;
     private readonly PluginConfiguration _config;
     private readonly IHtmlReviewsExtractor _htmlReviewsExtractor;
-    private readonly IAddReviewsSession _addReviewsSession;
-    private readonly IGetReviewsSession _getReviewsSession;
+    private readonly IAddReviewsRepistory _addReviewsRepistory;
+    private readonly IGetReviewsRepository _getReviewsRepository;
     private readonly ILogger<ExtractReviewsCommandHandler> _logger;
     private readonly IAddAvatarService _addAvatarService;
 
     private static readonly DateTime DateWhenReviewsWereDeleted = new DateTime(2024, 07, 10);
     
     public ExtractReviewsCommandHandler(IWaybackMachineClient waybackMachineClient, PluginConfiguration config, 
-        IHtmlReviewsExtractor htmlReviewsExtractor, IAddReviewsSession addReviewsSession, IGetReviewsSession getReviewsSession,
+        IHtmlReviewsExtractor htmlReviewsExtractor, IAddReviewsRepistory addReviewsRepistory, IGetReviewsRepository getReviewsRepository,
         ILogger<ExtractReviewsCommandHandler> logger, IAddAvatarService addAvatarService)
     {
         _waybackMachineClient = waybackMachineClient;
         _config = config;
         _htmlReviewsExtractor = htmlReviewsExtractor;
-        _addReviewsSession = addReviewsSession;
-        _getReviewsSession = getReviewsSession;
+        _addReviewsRepistory = addReviewsRepistory;
+        _getReviewsRepository = getReviewsRepository;
         _logger = logger;
         _addAvatarService = addAvatarService;
     }
     
     public async ValueTask<Result> Handle(ExtractReviewsCommand request, CancellationToken cancellationToken)
     {
-        var hasReviewsResult = await HasTitleAnyReviews(request.TitleId);
+        var hasReviewsResult = await HasTitleAnyReviews(request.TitleId, request.Language, cancellationToken);
 
         if (hasReviewsResult.IsFailed)
         {
@@ -106,10 +111,18 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         var reviews = reviewsResult.ValueOrDefault ?? [];
         
         await StoreAvatarImagesAndRemoveWebArchivePrefixFromImageUrl(reviews, cancellationToken);
-        
-        await _addReviewsSession.AddReviewsForTitleIdAsync(request.TitleId, reviews);
 
-        return Result.Ok();
+        var dbResult = await _addReviewsRepistory.AddReviewsForTitleIdAsync(new TitleReviews
+            {
+                CrunchyrollSeriesId = request.TitleId,
+                Reviews = JsonSerializer.Serialize(reviews),
+                Language = request.Language.Name
+            }, cancellationToken)
+            .Bind(async () => await _addReviewsRepistory.SaveChangesAsync(cancellationToken));
+
+        return dbResult.IsSuccess
+            ? Result.Ok() 
+            : dbResult;
     }
 
     private async Task StoreAvatarImagesAndRemoveWebArchivePrefixFromImageUrl(IReadOnlyList<ReviewItem> reviews, 
@@ -130,15 +143,15 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         });
     }
 
-    private async ValueTask<Result<bool>> HasTitleAnyReviews(string titleId)
+    private async ValueTask<Result<bool>> HasTitleAnyReviews(string titleId, CultureInfo language, CancellationToken cancellationToken)
     {
-        var result = await _getReviewsSession.GetReviewsForTitleIdAsync(titleId);
+        var result = await _getReviewsRepository.GetReviewsForTitleIdAsync(titleId, language, cancellationToken);
 
         if (result.IsFailed)
         {
             return result.ToResult();
         }
         
-        return result.Value is not null;
+        return result.Value.Count != 0;
     }
 }

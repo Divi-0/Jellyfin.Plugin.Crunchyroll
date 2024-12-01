@@ -8,6 +8,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetEpisodeI
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using Mediator;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
@@ -17,35 +18,32 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
     private readonly IMediator _mediator;
     private readonly ILibraryManager _libraryManager;
     private readonly ILogger<SetEpisodeIdTask> _logger;
-    private readonly IEnumerable<IPostEpisodeIdSetTask> _postEpisodeIdSetTasks;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public SetEpisodeIdTask(IMediator mediator, ILibraryManager libraryManager, ILogger<SetEpisodeIdTask> logger,
-        IEnumerable<IPostEpisodeIdSetTask> postEpisodeIdSetTasks)
+        IServiceScopeFactory serviceScopeFactory)
     {
         _mediator = mediator;
         _libraryManager = libraryManager;
         _logger = logger;
-        _postEpisodeIdSetTasks = postEpisodeIdSetTasks;
+        _serviceScopeFactory = serviceScopeFactory;
     }
     
     public async Task RunAsync(BaseItem seasonItem, CancellationToken cancellationToken)
     {
-        var hasTitleId = seasonItem.DisplayParent.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out var titleId) &&
-                          !string.IsNullOrWhiteSpace(titleId);
-        
         var hasSeasonId = seasonItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeasonId, out var seasonId) &&
                           !string.IsNullOrWhiteSpace(seasonId);
 
-        if (!hasTitleId || !hasSeasonId)
+        if (!hasSeasonId)
         {
             //if the item has no indexNumber or already has a seasonId, ignore it
             _logger.LogDebug("Season {Name} has no Crunchyroll id. Skipping...", seasonItem.Name);
             return;
         }
 
-        await Parallel.ForEachAsync(((Folder)seasonItem).Children, async (episode, _) =>
+        await Parallel.ForEachAsync(((Folder)seasonItem).Children, cancellationToken, async (episode, _) =>
         {
-            var setEpisodeIdResult = await SetEpisodeId(episode, titleId, seasonId, cancellationToken);
+            var setEpisodeIdResult = await SetEpisodeId(episode, seasonId, cancellationToken);
 
             if (setEpisodeIdResult.IsFailed)
             {
@@ -56,7 +54,7 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
         });
     }
 
-    private async ValueTask<Result> SetEpisodeId(BaseItem episode, string? titleId,
+    private async ValueTask<Result> SetEpisodeId(BaseItem episode,
         string? seasonId, CancellationToken cancellationToken)
     {
         var hasEpisodeId = episode.ProviderIds.TryGetValue(CrunchyrollExternalKeys.EpisodeId, out var existingEpisodeId) &&
@@ -71,7 +69,7 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
             return Result.Ok();
         }
 
-        var episodeIdResult = await GetEpisodeIdAsync(episode, titleId!, seasonId!, cancellationToken);
+        var episodeIdResult = await GetEpisodeIdAsync(episode, seasonId!, cancellationToken);
 
         if (episodeIdResult.IsFailed)
         {
@@ -88,7 +86,7 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
         return Result.Ok();
     }
 
-    private async Task<Result<EpisodeIdResult?>> GetEpisodeIdAsync(BaseItem episode, string titleId, string seasonId, 
+    private async Task<Result<EpisodeIdResult?>> GetEpisodeIdAsync(BaseItem episode, string seasonId, 
         CancellationToken cancellationToken)
     {
         string episodeIdentifier;
@@ -104,7 +102,7 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
 
             if (!match.Success)
             {
-                var episodeIdByNameResult = await _mediator.Send(new EpisodeIdQueryByName(titleId, seasonId, episode.FileNameWithoutExtension), cancellationToken);
+                var episodeIdByNameResult = await _mediator.Send(new EpisodeIdQueryByName(seasonId, episode.FileNameWithoutExtension), cancellationToken);
 
                 if (episodeIdByNameResult.IsSuccess)
                 {
@@ -124,7 +122,7 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
             episodeIdentifier = episode.IndexNumber.Value.ToString();
         }
 
-        var episodeIdResult = await _mediator.Send(new EpisodeIdQuery(titleId!, seasonId!, episodeIdentifier), cancellationToken);
+        var episodeIdResult = await _mediator.Send(new EpisodeIdQuery(seasonId!, episodeIdentifier), cancellationToken);
 
         if (episodeIdResult.IsFailed)
         {
@@ -136,7 +134,9 @@ public partial class SetEpisodeIdTask : IPostSeasonIdSetTask
 
     private async Task RunPostTasks(BaseItem episodeItem, CancellationToken cancellationToken)
     {
-        foreach (var task in _postEpisodeIdSetTasks)
+        using var scope = _serviceScopeFactory.CreateScope();
+        var postEpisodeIdSetTasks = scope.ServiceProvider.GetServices<IPostEpisodeIdSetTask>();
+        foreach (var task in postEpisodeIdSetTasks)
         {
             await task.RunAsync(episodeItem, cancellationToken);
         }

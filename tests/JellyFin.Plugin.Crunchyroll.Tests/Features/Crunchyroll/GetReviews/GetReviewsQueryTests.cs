@@ -25,7 +25,7 @@ public class GetReviewsQueryTests
     private readonly ICrunchyrollGetReviewsClient _crunchyrollGetReviewsClient;
     private readonly ILibraryManager _libraryManager;
     private readonly PluginConfiguration _config;
-    private readonly IGetReviewsSession _getReviewsSession;
+    private readonly IGetReviewsRepository _getReviewsRepository;
     private readonly ILoginService _loginService;
 
     public GetReviewsQueryTests()
@@ -34,11 +34,11 @@ public class GetReviewsQueryTests
 
         _config = new PluginConfiguration();
         _crunchyrollGetReviewsClient = Substitute.For<ICrunchyrollGetReviewsClient>();
-        _getReviewsSession = Substitute.For<IGetReviewsSession>();
+        _getReviewsRepository = Substitute.For<IGetReviewsRepository>();
         _libraryManager = Tests.MockHelper.LibraryManager;
         _loginService = Substitute.For<ILoginService>();
         _sut = new GetReviewsQueryHandler(_crunchyrollGetReviewsClient, _libraryManager, _config,
-            _getReviewsSession, _loginService);
+            _getReviewsRepository, _loginService);
     }
     
     [Fact]
@@ -89,9 +89,9 @@ public class GetReviewsQueryTests
                 new CultureInfo("en-US"), 
                 Arg.Any<CancellationToken>());
 
-        await _getReviewsSession
-            .Received(0)
-            .GetReviewsForTitleIdAsync(Arg.Any<string>());
+        await _getReviewsRepository
+            .DidNotReceive()
+            .GetReviewsForTitleIdAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         result.Value.Should().Be(reviewsResponse);
     }
@@ -187,9 +187,10 @@ public class GetReviewsQueryTests
             .Returns(series);
         
         var reviewsResponse = _fixture.Create<ReviewsResponse>();
-        _getReviewsSession
-            .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId])
-            .Returns(ValueTask.FromResult(Result.Ok<IReadOnlyList<ReviewItem>?>(reviewsResponse.Reviews)));
+        _getReviewsRepository
+            .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Ok(reviewsResponse.Reviews));
         
         //Act
         var query = new GetReviewsQuery(id.ToString(), pageNumber, pageSize);
@@ -202,9 +203,10 @@ public class GetReviewsQueryTests
             .Received(1)
             .RetrieveItem(id);
         
-        await _getReviewsSession
+        await _getReviewsRepository
             .Received(1)
-            .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
+            .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>());
 
         await _crunchyrollGetReviewsClient
             .DidNotReceive()
@@ -246,9 +248,10 @@ public class GetReviewsQueryTests
             .RetrieveItem(id)
             .Returns(series);
         
-        _getReviewsSession
-            .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId])!
-            .Returns(ValueTask.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(null!)));
+        _getReviewsRepository
+            .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>())!
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>>(null!));
         
         //Act
         var query = new GetReviewsQuery(id.ToString(), pageNumber, pageSize);
@@ -262,9 +265,10 @@ public class GetReviewsQueryTests
             .Received(1)
             .RetrieveItem(id);
         
-        await _getReviewsSession
+        await _getReviewsRepository
             .Received(1)
-            .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
+            .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>());
 
         await _crunchyrollGetReviewsClient
             .DidNotReceive()
@@ -283,7 +287,6 @@ public class GetReviewsQueryTests
         var id = Guid.NewGuid();
         const int pageNumber = 1;
         const int pageSize = 10;
-        var titleId = Guid.NewGuid().ToString();
 
         _config.IsWaybackMachineEnabled = false;
 

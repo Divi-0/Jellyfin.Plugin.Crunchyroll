@@ -122,21 +122,18 @@ public class CrunchyrollScanTests
         //Assert
         itemList.Should().AllSatisfy(series =>
         {
-            DatabaseMockHelper.ShouldHaveReviews(_crunchyrollDatabaseFixture.DbFilePath, series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
+            DatabaseMockHelper.ShouldHaveReviews(series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
 
             series.Children.Should().AllSatisfy(season =>
             {
                 ((Season)season).Children.Should().AllSatisfy(episode =>
                 {
-                    DatabaseMockHelper.ShouldHaveComments(_crunchyrollDatabaseFixture.DbFilePath, episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId]);
+                    DatabaseMockHelper.ShouldHaveComments(episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId]);
                 });
             });
         });
 
-        imageUris.Should().AllSatisfy(x =>
-        {
-            DatabaseMockHelper.ShouldHaveAvatarUri(_crunchyrollDatabaseFixture.DbFilePath, x);
-        });
+        imageUris.Should().AllSatisfy(DatabaseMockHelper.ShouldHaveAvatarUri);
     }
     
     [Fact]
@@ -209,9 +206,9 @@ public class CrunchyrollScanTests
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeasonId);
         movie.ProviderIds[CrunchyrollExternalKeys.SeasonId].Should().Be(seasonId);
         
-        DatabaseMockHelper.ShouldHaveMetadata(_crunchyrollDatabaseFixture.DbFilePath, seriesId, seriesResponse);
-        DatabaseMockHelper.ShouldHaveReviews(_crunchyrollDatabaseFixture.DbFilePath, seriesId);
-        DatabaseMockHelper.ShouldHaveComments(_crunchyrollDatabaseFixture.DbFilePath, episodeId);
+        DatabaseMockHelper.ShouldHaveMetadata(seriesId, seriesResponse);
+        DatabaseMockHelper.ShouldHaveReviews(seriesId);
+        DatabaseMockHelper.ShouldHaveComments(episodeId);
     }
 
     private string GetCrunchyrollUrlForTitle(string seriesId, string seriesSlugTitle)

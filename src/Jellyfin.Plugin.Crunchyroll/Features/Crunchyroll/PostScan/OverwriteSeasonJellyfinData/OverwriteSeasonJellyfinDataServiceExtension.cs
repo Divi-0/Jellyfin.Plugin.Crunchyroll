@@ -7,8 +7,8 @@ internal static class OverwriteSeasonJellyfinDataServiceExtension
 {
     internal static IServiceCollection AddOverwriteSeasonJellyfinData(this IServiceCollection serviceCollection)
     {
-        serviceCollection.AddSingleton<IPostSeasonIdSetTask, OverwriteSeasonJellyfinDataTask>();
-        serviceCollection.AddSingleton<IOverwriteSeasonJellyfinDataSession, CrunchyrollUnitOfWork>();
+        serviceCollection.AddScoped<IPostSeasonIdSetTask, OverwriteSeasonJellyfinDataTask>();
+        serviceCollection.AddScoped<IOverwriteSeasonJellyfinDataRepository, OverwriteSeasonJellyfinDataRepository>();
         
         return serviceCollection;
     }

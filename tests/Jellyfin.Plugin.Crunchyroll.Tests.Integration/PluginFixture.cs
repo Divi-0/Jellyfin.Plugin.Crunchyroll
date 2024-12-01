@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.Crunchyroll;
+using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login.Client;
@@ -15,6 +16,14 @@ public class PluginFixture : IDisposable
 {
     public PluginFixture()
     {
+        var location = typeof(CrunchyrollDbContext).Assembly.Location;
+        var filePath = Path.Combine(Path.GetDirectoryName(location)!, "Crunchyroll.db");
+        
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+        
         PluginWebApplicationFactory.CreateInstance();
         var applicationPaths = PluginWebApplicationFactory.Instance.Services.GetRequiredService<IApplicationPaths>();
         var xmlSerializer = PluginWebApplicationFactory.Instance.Services.GetRequiredService<IXmlSerializer>();
@@ -37,10 +46,10 @@ public class PluginFixture : IDisposable
 
 [CollectionDefinition(CollectionNames.Plugin)]
 public class PluginCollection : 
-    ICollectionFixture<PluginFixture>,
+    ICollectionFixture<CrunchyrollDatabaseFixture>,
     ICollectionFixture<WireMockFixture>,
     ICollectionFixture<WaybackMachineDisabledConfigFixture>,
-    ICollectionFixture<CrunchyrollDatabaseFixture>
+    ICollectionFixture<PluginFixture>
 {
     // This class has no code, and is never created. Its purpose is simply
     // to be the place to apply [CollectionDefinition] and all the

@@ -1,8 +1,11 @@
+using System.Globalization;
+using System.Text.Json;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteMovieJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -14,20 +17,20 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
 public class OverwriteMovieJellyfinDataTaskTests
 {
     private readonly OverwriteMovieJellyfinDataTask _sut;
-    private readonly IOverwriteMovieJellyfinDataUnitOfWork _unitOfWork;
+    private readonly IOverwriteMovieJellyfinDataRepository _repository;
     private readonly ILibraryManager _libraryManager;
     private readonly IMediaSourceManager _mediaSourceManager;
     private readonly ISetEpisodeThumbnail _setEpisodeThumbnail;
 
     public OverwriteMovieJellyfinDataTaskTests()
     {
-        _unitOfWork = Substitute.For<IOverwriteMovieJellyfinDataUnitOfWork>();
+        _repository = Substitute.For<IOverwriteMovieJellyfinDataRepository>();
         _setEpisodeThumbnail = Substitute.For<ISetEpisodeThumbnail>();
         _libraryManager = MockHelper.LibraryManager;
         var logger = Substitute.For<ILogger<OverwriteMovieJellyfinDataTask>>();
         _mediaSourceManager = MockHelper.MediaSourceManager;
         _sut = new OverwriteMovieJellyfinDataTask(
-            _unitOfWork, 
+            _repository, 
             logger,
             _setEpisodeThumbnail,
             _libraryManager);
@@ -39,7 +42,8 @@ public class OverwriteMovieJellyfinDataTaskTests
         //Arrange
         var movie = MovieFaker.GenerateWithCrunchyrollIds();
         var episode = CrunchyrollEpisodeFaker.Generate();
-        episode = episode with { Id = movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId] };
+        episode = episode with { CrunchyrollId = movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId] };
+        var thumbnailImageSource = JsonSerializer.Deserialize<ImageSource>(episode.Thumbnail)!;
         
         var season = CrunchyrollSeasonFaker.Generate();
         season.Episodes.Add(episode);
@@ -49,12 +53,12 @@ public class OverwriteMovieJellyfinDataTaskTests
             .GetItemById(movie.ParentId)
             .Returns((BaseItem?)null);
 
-        _unitOfWork
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(titleMetadata);
         
         _setEpisodeThumbnail
-            .GetAndSetThumbnailAsync(movie, episode.Thumbnail, Arg.Any<CancellationToken>())
+            .GetAndSetThumbnailAsync(movie, thumbnailImageSource, Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
         //Act
@@ -67,7 +71,10 @@ public class OverwriteMovieJellyfinDataTaskTests
 
         await _setEpisodeThumbnail
             .Received(1)
-            .GetAndSetThumbnailAsync(movie, episode.Thumbnail, Arg.Any<CancellationToken>());
+            .GetAndSetThumbnailAsync(movie, Arg.Is<ImageSource>(x => 
+                x.Uri == thumbnailImageSource.Uri &&
+                x.Height == thumbnailImageSource.Height &&
+                x.Width == thumbnailImageSource.Width), Arg.Any<CancellationToken>());
         
         await _libraryManager
             .Received(1)
@@ -80,7 +87,8 @@ public class OverwriteMovieJellyfinDataTaskTests
         //Arrange
         var movie = MovieFaker.GenerateWithCrunchyrollIds();
         var episode = CrunchyrollEpisodeFaker.Generate();
-        episode = episode with { Id = movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId] };
+        episode = episode with { CrunchyrollId = movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId] };
+        var thumbnailImageSource = JsonSerializer.Deserialize<ImageSource>(episode.Thumbnail)!;
         
         var season = CrunchyrollSeasonFaker.Generate();
         season.Episodes.Add(episode);
@@ -90,12 +98,12 @@ public class OverwriteMovieJellyfinDataTaskTests
             .GetItemById(movie.ParentId)
             .Returns((BaseItem?)null);
 
-        _unitOfWork
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(titleMetadata);
         
         _setEpisodeThumbnail
-            .GetAndSetThumbnailAsync(movie, episode.Thumbnail, Arg.Any<CancellationToken>())
+            .GetAndSetThumbnailAsync(movie, thumbnailImageSource, Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error123"));
 
         //Act
@@ -108,7 +116,10 @@ public class OverwriteMovieJellyfinDataTaskTests
 
         await _setEpisodeThumbnail
             .Received(1)
-            .GetAndSetThumbnailAsync(movie, episode.Thumbnail, Arg.Any<CancellationToken>());
+            .GetAndSetThumbnailAsync(movie, Arg.Is<ImageSource>(x => 
+                x.Uri == thumbnailImageSource.Uri &&
+                x.Height == thumbnailImageSource.Height &&
+                x.Width == thumbnailImageSource.Width), Arg.Any<CancellationToken>());
         
         await _libraryManager
             .Received(1)
@@ -121,17 +132,17 @@ public class OverwriteMovieJellyfinDataTaskTests
         //Arrange
         var movie = MovieFaker.GenerateWithCrunchyrollIds();
 
-        _unitOfWork
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns((Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?)null);
         
         //Act
         await _sut.RunAsync(movie, CancellationToken.None);
 
         //Assert
-        await _unitOfWork
+        await _repository
             .Received(1)
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         
         await _libraryManager
             .DidNotReceive()
@@ -144,17 +155,17 @@ public class OverwriteMovieJellyfinDataTaskTests
         //Arrange
         var movie = MovieFaker.GenerateWithCrunchyrollIds();
 
-        _unitOfWork
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
         
         //Act
         await _sut.RunAsync(movie, CancellationToken.None);
 
         //Assert
-        await _unitOfWork
+        await _repository
             .Received(1)
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         
         await _libraryManager
             .DidNotReceive()
@@ -175,9 +186,9 @@ public class OverwriteMovieJellyfinDataTaskTests
         await _sut.RunAsync(movie, CancellationToken.None);
 
         //Assert
-        await _unitOfWork
+        await _repository
             .DidNotReceive()
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
     }
     
     
@@ -191,13 +202,14 @@ public class OverwriteMovieJellyfinDataTaskTests
         var season = CrunchyrollSeasonFaker.Generate();
         season.Episodes.Add(episode);
         var titleMetadata = CrunchyrollTitleMetadataFaker.Generate(movie, [season]);
+        var thumbnailImageSource = JsonSerializer.Deserialize<ImageSource>(episode.Thumbnail)!;
         
         _libraryManager
             .GetItemById(movie.ParentId)
             .Returns((BaseItem?)null);
 
-        _unitOfWork
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(titleMetadata);
 
         //Act
@@ -206,7 +218,7 @@ public class OverwriteMovieJellyfinDataTaskTests
         //Assert
         await _setEpisodeThumbnail
             .DidNotReceive()
-            .GetAndSetThumbnailAsync(movie, episode.Thumbnail, Arg.Any<CancellationToken>());
+            .GetAndSetThumbnailAsync(movie, thumbnailImageSource, Arg.Any<CancellationToken>());
         
         await _libraryManager
             .DidNotReceive()

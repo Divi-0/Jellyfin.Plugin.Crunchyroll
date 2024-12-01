@@ -1,3 +1,4 @@
+using System.Globalization;
 using Bogus;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
@@ -21,6 +22,8 @@ public class CrunchyrollSeasonsItemMappingTests
     public void ReturnsEntity_WhenCrunchyrollSeasonIsValid_GivenCrunchyrollSeason()
     {
         //Arrange
+        var seriesId = Guid.NewGuid();
+        var language = new CultureInfo("en-US");
         var crunchyrollSeason = new CrunchyrollSeasonsItem
         {
             Id = CrunchyrollIdFaker.Generate(),
@@ -34,18 +37,20 @@ public class CrunchyrollSeasonsItemMappingTests
 
         var expectedEntity = new Season
         {
-            Id = crunchyrollSeason.Id,
+            CrunchyrollId = crunchyrollSeason.Id,
             Title = crunchyrollSeason.Title,
             SeasonNumber = crunchyrollSeason.SeasonNumber,
             SeasonSequenceNumber = crunchyrollSeason.SeasonSequenceNumber,
             SeasonDisplayNumber = crunchyrollSeason.SeasonDisplayNumber,
             SlugTitle = crunchyrollSeason.SlugTitle,
             Identifier = crunchyrollSeason.Identifier,
-            Episodes = []
+            Episodes = [],
+            SeriesId = seriesId,
+            Language = language.Name
         };
         
         //Act
-        var entity = crunchyrollSeason.ToSeasonEntity([]);
+        var entity = crunchyrollSeason.ToSeasonEntity(seriesId, language);
 
         //Assert
         entity.Should().BeEquivalentTo(expectedEntity);

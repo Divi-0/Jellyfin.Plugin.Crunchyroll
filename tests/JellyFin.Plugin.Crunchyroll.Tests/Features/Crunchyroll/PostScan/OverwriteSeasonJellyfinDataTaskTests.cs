@@ -1,8 +1,10 @@
+using System.Globalization;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeasonJellyfinData;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -15,7 +17,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
 public class OverwriteSeasonJellyfinDataTaskTests
 {
     private readonly OverwriteSeasonJellyfinDataTask _sut;
-    private readonly IOverwriteSeasonJellyfinDataSession _session;
+    private readonly IOverwriteSeasonJellyfinDataRepository _repository;
     private readonly ILibraryManager _libraryManager;
     private readonly IItemRepository _itemRepository;
     private readonly PluginConfiguration _config;
@@ -25,10 +27,10 @@ public class OverwriteSeasonJellyfinDataTaskTests
         var logger = Substitute.For<ILogger<OverwriteSeasonJellyfinDataTask>>();
         _libraryManager = MockHelper.LibraryManager;
         _itemRepository = MockHelper.ItemRepository;
-        _session = Substitute.For<IOverwriteSeasonJellyfinDataSession>();
+        _repository = Substitute.For<IOverwriteSeasonJellyfinDataRepository>();
         _config = new PluginConfiguration();
 
-        _sut = new OverwriteSeasonJellyfinDataTask(logger, _session, _libraryManager, _config);
+        _sut = new OverwriteSeasonJellyfinDataTask(logger, _repository, _libraryManager, _config);
     }
 
     [Fact]
@@ -49,8 +51,9 @@ public class OverwriteSeasonJellyfinDataTaskTests
                 x.DtoOptions.Fields.Count != 0))
             .Returns([EpisodeFaker.Generate(season)]);
 
-        _session
-            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId])
+        _repository
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(crunchyrollSeason);
 
         //Act
@@ -59,9 +62,10 @@ public class OverwriteSeasonJellyfinDataTaskTests
         //Assert
         season.Name.Should().Be($"S{crunchyrollSeason.SeasonDisplayNumber}: {crunchyrollSeason.Title}");
 
-        await _session
+        await _repository
             .Received(1)
-            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId]);
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _libraryManager
             .Received(1)
@@ -87,8 +91,9 @@ public class OverwriteSeasonJellyfinDataTaskTests
                 x.DtoOptions.Fields.Count != 0))
             .Returns([EpisodeFaker.Generate(season)]);
 
-        _session
-            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId])
+        _repository
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(crunchyrollSeason);
 
         //Act
@@ -97,9 +102,10 @@ public class OverwriteSeasonJellyfinDataTaskTests
         //Assert
         season.Name.Should().Be(crunchyrollSeason.Title);
 
-        await _session
+        await _repository
             .Received(1)
-            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId]);
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _libraryManager
             .Received(1)
@@ -120,9 +126,9 @@ public class OverwriteSeasonJellyfinDataTaskTests
         await _sut.RunAsync(season, CancellationToken.None);
 
         //Assert
-        await _session
+        await _repository
             .DidNotReceive()
-            .GetSeasonAsync(Arg.Any<string>());
+            .GetSeasonAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _libraryManager
             .DidNotReceive()
@@ -139,17 +145,19 @@ public class OverwriteSeasonJellyfinDataTaskTests
             .GetItemById(season.ParentId)
             .Returns((BaseItem?)null);
 
-        _session
-            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId])
+        _repository
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
 
         //Act
         await _sut.RunAsync(season, CancellationToken.None);
 
         //Assert
-        await _session
+        await _repository
             .Received(1)
-            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId]);
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _libraryManager
             .DidNotReceive()
@@ -174,8 +182,9 @@ public class OverwriteSeasonJellyfinDataTaskTests
                 x.DtoOptions.Fields.Count != 0))
             .Returns([EpisodeFaker.Generate(season)]);
 
-        _session
-            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId])
+        _repository
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(crunchyrollSeason);
         
         _libraryManager
@@ -186,9 +195,10 @@ public class OverwriteSeasonJellyfinDataTaskTests
         var action = async () => await _sut.RunAsync(season, CancellationToken.None);
         await action.Should().NotThrowAsync();
 
-        await _session
+        await _repository
             .Received(1)
-            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId]);
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _libraryManager
             .Received()
@@ -218,8 +228,9 @@ public class OverwriteSeasonJellyfinDataTaskTests
                 x.DtoOptions.Fields.Count != 0))
             .Returns([episodeChild]);
 
-        _session
-            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId])
+        _repository
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(crunchyrollSeason);
 
         //Act
@@ -230,9 +241,10 @@ public class OverwriteSeasonJellyfinDataTaskTests
         season.IndexNumber.Should().Be(crunchyrollSeason.SeasonSequenceNumber);
         season.PresentationUniqueKey.Should().NotBe(oldPresentationKey);
 
-        await _session
+        await _repository
             .Received(1)
-            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId]);
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _libraryManager
             .Received(1)
@@ -266,8 +278,9 @@ public class OverwriteSeasonJellyfinDataTaskTests
                 x.DtoOptions.Fields.Count != 0))
             .Returns([episodeChild]);
 
-        _session
-            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId])
+        _repository
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(crunchyrollSeason);
 
         //Act
@@ -277,9 +290,10 @@ public class OverwriteSeasonJellyfinDataTaskTests
         season.Name.Should().Be($"S{crunchyrollSeason.SeasonDisplayNumber}: {crunchyrollSeason.Title}");
         season.IndexNumber.Should().NotBe(crunchyrollSeason.SeasonSequenceNumber);
 
-        await _session
+        await _repository
             .Received(1)
-            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId]);
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
 
         await _libraryManager
             .Received(1)
@@ -290,5 +304,41 @@ public class OverwriteSeasonJellyfinDataTaskTests
         await _libraryManager
             .DidNotReceive()
             .UpdateItemAsync(episodeChild, season, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task SkipsItem_WhenRepositoryGetSeasonReturnedNull_GivenSeasonWithSeasonId()
+    {
+        //Arrange
+        var season = SeasonFaker.GenerateWithSeasonId();
+
+        _libraryManager
+            .GetItemById(season.ParentId)
+            .Returns((BaseItem?)null);
+        
+        _itemRepository
+            .GetItemList(Arg.Is<InternalItemsQuery>(x =>
+                x.ParentId == season.Id &&
+                x.GroupByPresentationUniqueKey == false &&
+                x.DtoOptions.Fields.Count != 0))
+            .Returns([EpisodeFaker.Generate(season)]);
+
+        _repository
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId], 
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<Season?>(null));
+
+        //Act
+        await _sut.RunAsync(season, CancellationToken.None);
+
+        //Assert
+        await _repository
+            .Received(1)
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+
+        await _libraryManager
+            .DidNotReceive()
+            .UpdateItemAsync(season, null!, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
     }
 }

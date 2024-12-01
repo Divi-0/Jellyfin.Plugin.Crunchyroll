@@ -24,17 +24,17 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, Result<
     private readonly ILibraryManager _libraryManager;
     private readonly ILoginService _loginService;
     private readonly PluginConfiguration _config;
-    private readonly IGetCommentsSession _session;
+    private readonly IGetCommentsRepository _repository;
 
     public GetCommentsQueryHandler(ICrunchyrollGetCommentsClient crunchyrollClient,
         ILibraryManager libraryManager, ILoginService loginService, PluginConfiguration config,
-        IGetCommentsSession session)
+        IGetCommentsRepository repository)
     {
         _crunchyrollClient = crunchyrollClient;
         _libraryManager = libraryManager;
         _loginService = loginService;
         _config = config;
-        _session = session;
+        _repository = repository;
     }
 
     public async ValueTask<Result<CommentsResponse>> Handle(GetCommentsQuery request, CancellationToken cancellationToken)
@@ -56,7 +56,8 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, Result<
         Result<CommentsResponse> commentsResult;
         if (_config.IsWaybackMachineEnabled)
         {
-            commentsResult = await GetCommentsFromDatabase(episodeId, request.PageSize, request.PageNumber);
+            commentsResult = await GetCommentsFromDatabase(episodeId, request.PageSize, request.PageNumber, 
+                item.GetPreferredMetadataCultureInfo(), cancellationToken);
         }
         else
         {
@@ -81,9 +82,18 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, Result<
             pageSize, language, cancellationToken);
     }
     
-    private async ValueTask<Result<CommentsResponse>> GetCommentsFromDatabase(string episodeId, int pageSize, int pageNumber)
+    private async ValueTask<Result<CommentsResponse>> GetCommentsFromDatabase(string episodeId, int pageSize, 
+        int pageNumber, CultureInfo language, CancellationToken cancellationToken)
     {
-        var comments = await _session.GetCommentsAsync(episodeId, pageSize, pageNumber);
+        var commentsResult = await _repository.GetCommentsAsync(episodeId, pageSize, pageNumber,
+            language, cancellationToken);
+
+        if (commentsResult.IsFailed)
+        {
+            return commentsResult.ToResult();
+        }
+        
+        var comments = commentsResult.Value;
         
         foreach (var commentItem in comments)
         {

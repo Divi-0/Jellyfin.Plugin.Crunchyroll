@@ -1,6 +1,6 @@
 namespace Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 
-public class CommentItem
+public record CommentItem
 {
     public string? AvatarIconUri { get; set; }
     public required string Author { get; init; }

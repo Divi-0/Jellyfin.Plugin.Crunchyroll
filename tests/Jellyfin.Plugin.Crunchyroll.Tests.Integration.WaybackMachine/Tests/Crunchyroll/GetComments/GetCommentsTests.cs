@@ -37,8 +37,7 @@ public class GetCommentsTests
             .RetrieveItem(episode.Id)
             .Returns(episode);
         
-        var comments = DatabaseMockHelper.InsertRandomComments(
-            _crunchyrollDatabaseFixture.DbFilePath, 
+        var comments = await DatabaseMockHelper.InsertRandomComments(
             episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId]);
         
         //Act

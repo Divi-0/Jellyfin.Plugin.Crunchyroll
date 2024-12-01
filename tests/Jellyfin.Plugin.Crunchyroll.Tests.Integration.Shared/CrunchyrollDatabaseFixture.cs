@@ -1,6 +1,5 @@
-using Jellyfin.Plugin.Crunchyroll;
+using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -12,8 +11,8 @@ public class CrunchyrollDatabaseFixture : IAsyncLifetime
     
     public Task InitializeAsync()
     {
-        var location = typeof(CrunchyrollUnitOfWork).Assembly.Location;
-        DbFilePath = Path.Combine(Path.GetDirectoryName(location)!, $"Crunchyroll_{Guid.NewGuid()}.db");
+        var location = typeof(CrunchyrollDbContext).Assembly.Location;
+        DbFilePath = Path.Combine(Path.GetDirectoryName(location)!, "Crunchyroll.db");
 
         _ = Task.Run(() =>
         {
@@ -22,7 +21,7 @@ public class CrunchyrollDatabaseFixture : IAsyncLifetime
             }
 
             var config = CrunchyrollPlugin.Instance.ServiceProvider.GetRequiredService<PluginConfiguration>();
-            config.LocalDatabasePath = DbFilePath;
+            config.LocalDatabasePath = Path.GetDirectoryName(location)!;
         });
 
         return Task.CompletedTask;

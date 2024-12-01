@@ -1,8 +1,12 @@
+using System.Globalization;
+using System.Text.Json;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -13,18 +17,18 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan;
 public class OverwriteEpisodeJellyfinDataTaskTests
 {
     private readonly ILibraryManager _libraryManager;
-    private readonly IOverwriteEpisodeJellyfinDataTaskSession _session;
+    private readonly IOverwriteEpisodeJellyfinDataTaskRepository _repository;
     private readonly ISetEpisodeThumbnail _setEpisodeThumbnail;
     private readonly OverwriteEpisodeJellyfinDataTask _sut;
     
     public OverwriteEpisodeJellyfinDataTaskTests()
     {
         _libraryManager = MockHelper.LibraryManager;
-        _session = Substitute.For<IOverwriteEpisodeJellyfinDataTaskSession>();
+        _repository = Substitute.For<IOverwriteEpisodeJellyfinDataTaskRepository>();
         var logger = Substitute.For<ILogger<OverwriteEpisodeJellyfinDataTask>>();
         _setEpisodeThumbnail = Substitute.For<ISetEpisodeThumbnail>();
         
-        _sut = new OverwriteEpisodeJellyfinDataTask(logger, _libraryManager, _session, _setEpisodeThumbnail);
+        _sut = new OverwriteEpisodeJellyfinDataTask(logger, _libraryManager, _repository, _setEpisodeThumbnail);
     }
 
     [Fact]
@@ -32,31 +36,37 @@ public class OverwriteEpisodeJellyfinDataTaskTests
     {
         //Arrange
         var episode = EpisodeFaker.GenerateWithEpisodeId();
-        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode);
+        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode: episode);
+        var thumbnailImageSource = JsonSerializer.Deserialize<ImageSource>(crunchyrollEpisode.Thumbnail)!;
         
         _libraryManager
             .GetItemById(episode.ParentId)
             .Returns((BaseItem?)null);
 
-        _session
-            .GetEpisodeAsync(crunchyrollEpisode.Id)
+        _repository
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>())
             .Returns(crunchyrollEpisode);
 
         _setEpisodeThumbnail
-            .GetAndSetThumbnailAsync(episode, crunchyrollEpisode.Thumbnail, Arg.Any<CancellationToken>())
+            .GetAndSetThumbnailAsync(episode, thumbnailImageSource, Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
         //Act
         await _sut.RunAsync(episode, CancellationToken.None);
 
         //Assert
-        await _session
+        await _repository
             .Received(1)
-            .GetEpisodeAsync(crunchyrollEpisode.Id);
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>());
 
         await _setEpisodeThumbnail
             .Received(1)
-            .GetAndSetThumbnailAsync(episode, crunchyrollEpisode.Thumbnail, Arg.Any<CancellationToken>());
+            .GetAndSetThumbnailAsync(episode, Arg.Is<ImageSource>(x => 
+                x.Uri == thumbnailImageSource.Uri &&
+                x.Height == thumbnailImageSource.Height &&
+                x.Width == thumbnailImageSource.Width), Arg.Any<CancellationToken>());
         
         episode.Name.Should().Be(crunchyrollEpisode.Title);
         episode.Overview.Should().Be(crunchyrollEpisode.Description);
@@ -78,7 +88,8 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         //Arrange
         var season = SeasonFaker.Generate();
         var episode = EpisodeFaker.GenerateWithEpisodeId(season);
-        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode);
+        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode: episode);
+        var thumbnailImageSource = JsonSerializer.Deserialize<ImageSource>(crunchyrollEpisode.Thumbnail)!;
         episode.IndexNumber = null;
         
         if (!string.IsNullOrWhiteSpace(episodeIdentifier))
@@ -94,25 +105,30 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .GetItemById(episode.ParentId)
             .Returns(season);
 
-        _session
-            .GetEpisodeAsync(crunchyrollEpisode.Id)
+        _repository
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>())
             .Returns(crunchyrollEpisode);
 
         _setEpisodeThumbnail
-            .GetAndSetThumbnailAsync(episode, crunchyrollEpisode.Thumbnail, Arg.Any<CancellationToken>())
+            .GetAndSetThumbnailAsync(episode, thumbnailImageSource, Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
         //Act
         await _sut.RunAsync(episode, CancellationToken.None);
 
         //Assert
-        await _session
+        await _repository
             .Received(1)
-            .GetEpisodeAsync(crunchyrollEpisode.Id);
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>());
         
         await _setEpisodeThumbnail
             .Received(1)
-            .GetAndSetThumbnailAsync(episode, crunchyrollEpisode.Thumbnail, Arg.Any<CancellationToken>());
+            .GetAndSetThumbnailAsync(episode, Arg.Is<ImageSource>(x => 
+                x.Uri == thumbnailImageSource.Uri &&
+                x.Height == thumbnailImageSource.Height &&
+                x.Width == thumbnailImageSource.Width), Arg.Any<CancellationToken>());
 
         episode.Name.Should().Be($"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}");
 
@@ -133,7 +149,8 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         //Arrange
         var season = SeasonFaker.Generate();
         var episode = EpisodeFaker.GenerateWithEpisodeId(season);
-        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode);
+        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode: episode);
+        var thumbnailImageSource = JsonSerializer.Deserialize<ImageSource>(crunchyrollEpisode.Thumbnail)!;
         episode.IndexNumber = null;
         
         crunchyrollEpisode = crunchyrollEpisode with { EpisodeNumber = string.Empty };
@@ -142,25 +159,30 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .GetItemById(episode.ParentId)
             .Returns(season);
 
-        _session
-            .GetEpisodeAsync(crunchyrollEpisode.Id)
+        _repository
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>())
             .Returns(crunchyrollEpisode);
 
         _setEpisodeThumbnail
-            .GetAndSetThumbnailAsync(episode, crunchyrollEpisode.Thumbnail, Arg.Any<CancellationToken>())
+            .GetAndSetThumbnailAsync(episode, thumbnailImageSource, Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
         //Act
         await _sut.RunAsync(episode, CancellationToken.None);
 
         //Assert
-        await _session
+        await _repository
             .Received(1)
-            .GetEpisodeAsync(crunchyrollEpisode.Id);
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>());
         
         await _setEpisodeThumbnail
             .Received(1)
-            .GetAndSetThumbnailAsync(episode, crunchyrollEpisode.Thumbnail, Arg.Any<CancellationToken>());
+            .GetAndSetThumbnailAsync(episode, Arg.Is<ImageSource>(x => 
+                x.Uri == thumbnailImageSource.Uri &&
+                x.Height == thumbnailImageSource.Height &&
+                x.Width == thumbnailImageSource.Width), Arg.Any<CancellationToken>());
 
         episode.Name.Should().Be(crunchyrollEpisode.Title);
 
@@ -179,7 +201,8 @@ public class OverwriteEpisodeJellyfinDataTaskTests
         //Arrange
         var season = SeasonFaker.Generate();
         var episode = EpisodeFaker.GenerateWithEpisodeId(season);
-        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode);
+        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode: episode);
+        var thumbnailImageSource = JsonSerializer.Deserialize<ImageSource>(crunchyrollEpisode.Thumbnail)!;
         episode.IndexNumber = null;
         
         crunchyrollEpisode = crunchyrollEpisode with
@@ -191,25 +214,30 @@ public class OverwriteEpisodeJellyfinDataTaskTests
             .GetItemById(episode.SeasonId)
             .Returns(season);
 
-        _session
-            .GetEpisodeAsync(crunchyrollEpisode.Id)
+        _repository
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>())
             .Returns(crunchyrollEpisode);
 
         _setEpisodeThumbnail
-            .GetAndSetThumbnailAsync(episode, crunchyrollEpisode.Thumbnail, Arg.Any<CancellationToken>())
+            .GetAndSetThumbnailAsync(episode, thumbnailImageSource, Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
         //Act
         await _sut.RunAsync(episode, CancellationToken.None);
 
         //Assert
-        await _session
+        await _repository
             .Received(1)
-            .GetEpisodeAsync(crunchyrollEpisode.Id);
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>());
         
         await _setEpisodeThumbnail
             .Received(1)
-            .GetAndSetThumbnailAsync(episode, crunchyrollEpisode.Thumbnail, Arg.Any<CancellationToken>());
+            .GetAndSetThumbnailAsync(episode, Arg.Is<ImageSource>(x => 
+                x.Uri == thumbnailImageSource.Uri &&
+                x.Height == thumbnailImageSource.Height &&
+                x.Width == thumbnailImageSource.Width), Arg.Any<CancellationToken>());
 
         episode.Name.Should().Be($"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}");
         episode.Overview.Should().Be(crunchyrollEpisode.Description);
@@ -231,27 +259,66 @@ public class OverwriteEpisodeJellyfinDataTaskTests
     {
         //Arrange
         var episode = EpisodeFaker.GenerateWithEpisodeId();
-        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode);
+        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode: episode);
+        var thumbnailImageSource = JsonSerializer.Deserialize<ImageSource>(crunchyrollEpisode.Thumbnail)!;
         
         _libraryManager
             .GetItemById(episode.ParentId)
             .Returns((BaseItem?)null);
 
-        _session
-            .GetEpisodeAsync(crunchyrollEpisode.Id)
+        _repository
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
 
         //Act
         await _sut.RunAsync(episode, CancellationToken.None);
 
         //Assert
-        await _session
+        await _repository
             .Received(1)
-            .GetEpisodeAsync(crunchyrollEpisode.Id);
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>());
         
         await _setEpisodeThumbnail
             .DidNotReceive()
-            .GetAndSetThumbnailAsync(episode, crunchyrollEpisode.Thumbnail, Arg.Any<CancellationToken>());
+            .GetAndSetThumbnailAsync(episode, thumbnailImageSource, Arg.Any<CancellationToken>());
+        
+        await _libraryManager
+            .DidNotReceive()
+            .UpdateItemAsync(episode, episode.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task SkipsItem_WhenRepositoryGetEpisodeReturnsNull_GivenEpisodeWithEpisodeId()
+    {
+        //Arrange
+        var episode = EpisodeFaker.GenerateWithEpisodeId();
+        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(episode: episode);
+        var thumbnailImageSource = JsonSerializer.Deserialize<ImageSource>(crunchyrollEpisode.Thumbnail)!;
+        
+        _libraryManager
+            .GetItemById(episode.ParentId)
+            .Returns((BaseItem?)null);
+
+        _repository
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<Episode?>(null));
+        
+
+        //Act
+        await _sut.RunAsync(episode, CancellationToken.None);
+
+        //Assert
+        await _repository
+            .Received(1)
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>());
+
+        await _setEpisodeThumbnail
+            .DidNotReceive()
+            .GetAndSetThumbnailAsync(episode, thumbnailImageSource, Arg.Any<CancellationToken>());
         
         await _libraryManager
             .DidNotReceive()

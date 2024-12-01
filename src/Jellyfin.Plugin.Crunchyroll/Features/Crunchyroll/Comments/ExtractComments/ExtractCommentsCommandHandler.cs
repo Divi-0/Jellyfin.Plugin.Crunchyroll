@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using FluentResults;
+using FluentResults.Extensions;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
@@ -21,7 +24,7 @@ public record ExtractCommentsCommand(string EpisodeId, string EpisodeSlugTitle, 
 public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsCommand, Result>
 {
     private readonly IHtmlCommentsExtractor _extractor;
-    private readonly IExtractCommentsSession _session;
+    private readonly IExtractCommentsRepository _repository;
     private readonly PluginConfiguration _config;
     private readonly IWaybackMachineClient _waybackMachineClient;
     private readonly IAddAvatarService _addAvatarService;
@@ -29,12 +32,12 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
 
     private static readonly DateTime DateWhenCommentsWereDeleted = new DateTime(2024, 07, 10);
 
-    public ExtractCommentsCommandHandler(IHtmlCommentsExtractor extractor, IExtractCommentsSession session,
+    public ExtractCommentsCommandHandler(IHtmlCommentsExtractor extractor, IExtractCommentsRepository repository,
         PluginConfiguration config, IWaybackMachineClient waybackMachineClient, IAddAvatarService addAvatarService,
         ILogger<ExtractCommentsCommandHandler> logger)
     {
         _extractor = extractor;
-        _session = session;
+        _repository = repository;
         _config = config;
         _waybackMachineClient = waybackMachineClient;
         _addAvatarService = addAvatarService;
@@ -43,7 +46,14 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
     
     public async ValueTask<Result> Handle(ExtractCommentsCommand request, CancellationToken cancellationToken)
     {
-        if (await _session.CommentsForEpisodeExists(request.EpisodeId))
+        var commentsExistsResult = await _repository.CommentsForEpisodeExistsAsync(request.EpisodeId, cancellationToken);
+
+        if (commentsExistsResult.IsFailed)
+        {
+            return commentsExistsResult.ToResult();
+        }
+        
+        if (commentsExistsResult.Value)
         {
             _logger.LogDebug("Comments already exist for episode with id {EpisodeId}. Skipping...", request.EpisodeId);
             return Result.Ok();
@@ -90,13 +100,17 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
         
         await HandleAvatarUris(comments, cancellationToken);
 
-        await _session.InsertComments(new EpisodeComments()
+        var dbResult = await _repository.AddCommentsAsync(new EpisodeComments()
         {
-            EpisodeId = request.EpisodeId,
-            Comments = comments
-        });
-        
-        return Result.Ok();
+            CrunchyrollEpisodeId = request.EpisodeId,
+            Comments = JsonSerializer.Serialize(comments.ToArray()),
+            Language = request.Language.Name
+        }, cancellationToken)
+        .Bind(async () => await _repository.SaveChangesAsync(cancellationToken));
+
+        return dbResult.IsFailed 
+            ? dbResult 
+            : Result.Ok();
     }
 
     private async ValueTask HandleAvatarUris(IReadOnlyCollection<CommentItem> comments, CancellationToken cancellationToken)

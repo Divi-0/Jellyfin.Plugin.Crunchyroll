@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -5,19 +6,20 @@ using Mediator;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetSeasonId;
 
-public record SeasonIdQueryByName(string TitleId, string SeasonName) : IRequest<Result<string?>>;
+public record SeasonIdQueryByName(string TitleId, string SeasonName, CultureInfo Language) : IRequest<Result<string?>>;
 
 public class SeasonIdQueryByNameHandler : IRequestHandler<SeasonIdQueryByName, Result<string?>>
 {
-    private readonly IGetSeasonSession _getSeasonSession;
+    private readonly IGetSeasonRepository _repository;
 
-    public SeasonIdQueryByNameHandler(IGetSeasonSession getSeasonSession)
+    public SeasonIdQueryByNameHandler(IGetSeasonRepository repository)
     {
-        _getSeasonSession = getSeasonSession;
+        _repository = repository;
     }
     
     public async ValueTask<Result<string?>> Handle(SeasonIdQueryByName request, CancellationToken cancellationToken)
     {
-        return await _getSeasonSession.GetSeasonIdByNameAsync(request.TitleId, request.SeasonName);
+        return await _repository.GetSeasonIdByNameAsync(request.TitleId, request.SeasonName, request.Language,
+            cancellationToken);
     }
 }

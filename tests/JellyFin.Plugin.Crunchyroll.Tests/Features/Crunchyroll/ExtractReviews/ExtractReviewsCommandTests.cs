@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using System.Web;
 using AutoFixture;
 using Bogus;
@@ -7,8 +8,9 @@ using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client.Dto;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Fixture;
@@ -24,8 +26,8 @@ public class ExtractReviewsCommandTests
     private readonly IWaybackMachineClient _waybackMachineClient;
     private readonly PluginConfiguration _config;
     private readonly IHtmlReviewsExtractor _htmlReviewsExtractor;
-    private readonly IAddReviewsSession _addReviewsSession;
-    private readonly IGetReviewsSession _getReviewsSession;
+    private readonly IAddReviewsRepistory _repistory;
+    private readonly IGetReviewsRepository _iGetReviewsRepository;
     private readonly IAddAvatarService _addAvatarService;
     
     public ExtractReviewsCommandTests()
@@ -36,12 +38,12 @@ public class ExtractReviewsCommandTests
         _waybackMachineClient = Substitute.For<IWaybackMachineClient>();
         _config = new PluginConfiguration();
         _htmlReviewsExtractor = Substitute.For<IHtmlReviewsExtractor>();
-        _addReviewsSession = Substitute.For<IAddReviewsSession>();
-        _getReviewsSession = Substitute.For<IGetReviewsSession>();
+        _repistory = Substitute.For<IAddReviewsRepistory>();
+        _iGetReviewsRepository = Substitute.For<IGetReviewsRepository>();
         var logger = Substitute.For<ILogger<ExtractReviewsCommandHandler>>();
         _addAvatarService = Substitute.For<IAddAvatarService>();
         _sut = new ExtractReviewsCommandHandler(_waybackMachineClient, _config, _htmlReviewsExtractor, 
-            _addReviewsSession, _getReviewsSession, logger, _addAvatarService);
+            _repistory, _iGetReviewsRepository, logger, _addAvatarService);
     }
 
     [Fact]
@@ -53,9 +55,9 @@ public class ExtractReviewsCommandTests
         
         var webArchiveOrgUri = new UriBuilder(Uri.UriSchemeHttp, "web.archive.org").ToString();
         
-        _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)
-            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+        _iGetReviewsRepository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         
@@ -91,10 +93,15 @@ public class ExtractReviewsCommandTests
             .GetReviewsAsync(url,  Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(reviews)));
 
-        IReadOnlyList<ReviewItem>? actualReviewItems = null;
-        _addReviewsSession
-            .AddReviewsForTitleIdAsync(titleId, Arg.Do<IReadOnlyList<ReviewItem>>(x => actualReviewItems = x))
-            .Returns(ValueTask.CompletedTask);
+        TitleReviews? actualTitleReviews = null;
+        _repistory
+            .AddReviewsForTitleIdAsync(Arg.Do<TitleReviews>(x => actualTitleReviews = x),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _repistory
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
         
         foreach (var review in reviews)
         {
@@ -127,12 +134,17 @@ public class ExtractReviewsCommandTests
             .Received(1)
             .GetReviewsAsync(Arg.Any<string>(), new CultureInfo("en-US"), Arg.Any<CancellationToken>());
         
-        await _addReviewsSession
+        await _repistory
             .Received(1)
-            .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>());
+            .AddReviewsForTitleIdAsync(Arg.Any<TitleReviews>(), Arg.Any<CancellationToken>());
 
-        actualReviewItems.Should().NotBeNull();
-        actualReviewItems!.Should().AllSatisfy(x =>
+        await _repistory
+            .Received(1)
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+
+        actualTitleReviews.Should().NotBeNull();
+        var actualReviews = JsonSerializer.Deserialize<ReviewItem[]>(actualTitleReviews!.Reviews);
+        actualReviews!.Should().AllSatisfy(x =>
         {
             x.Author.AvatarUri.Should().NotContain(webArchiveOrgUri);
         });
@@ -145,9 +157,9 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)
-            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+        _iGetReviewsRepository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
         
         _waybackMachineClient.SearchAsync(
                 Arg.Any<string>(),
@@ -155,10 +167,15 @@ public class ExtractReviewsCommandTests
                 Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IReadOnlyList<SearchResponse>>([])));
 
-        IReadOnlyList<ReviewItem>? actualReviewItems = null;
-        _addReviewsSession
-            .AddReviewsForTitleIdAsync(titleId, Arg.Do<IReadOnlyList<ReviewItem>>(x => actualReviewItems = x))
-            .Returns(ValueTask.CompletedTask);
+        TitleReviews? actualTitleReviews = null;
+        _repistory
+            .AddReviewsForTitleIdAsync(Arg.Do<TitleReviews>(x => actualTitleReviews = x),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _repistory
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
         
         //Act
         var command = new ExtractReviewsCommand()
@@ -184,12 +201,16 @@ public class ExtractReviewsCommandTests
             .DidNotReceive()
             .GetReviewsAsync(Arg.Any<string>(), new CultureInfo("en-US"), Arg.Any<CancellationToken>());
         
-        await _addReviewsSession
+        await _repistory
             .Received(1)
-            .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>());
+            .AddReviewsForTitleIdAsync(Arg.Any<TitleReviews>(), Arg.Any<CancellationToken>());
 
-        actualReviewItems.Should().NotBeNull();
-        actualReviewItems.Should().BeEmpty();
+        await _repistory
+            .Received(1)
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+
+        actualTitleReviews.Should().NotBeNull();
+        actualTitleReviews!.Reviews.Should().Be(JsonSerializer.Serialize(Array.Empty<ReviewItem>()));
     }
     
     [Fact]
@@ -199,9 +220,9 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)
-            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+        _iGetReviewsRepository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
 
         _waybackMachineClient.SearchAsync(
                 Arg.Any<string>(),
@@ -237,9 +258,9 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)
-            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+        _iGetReviewsRepository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         
@@ -264,9 +285,13 @@ public class ExtractReviewsCommandTests
             .GetReviewsAsync(url, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(reviews)));
         
-        _addReviewsSession
-            .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>())
-            .Returns(ValueTask.CompletedTask);
+        _repistory
+            .AddReviewsForTitleIdAsync(Arg.Any<TitleReviews>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+         _repistory
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
         
         foreach (var review in reviews)
         {
@@ -294,6 +319,14 @@ public class ExtractReviewsCommandTests
                 .Received(1)
                 .AddAvatarIfNotExists(x.Author.AvatarUri, Arg.Any<CancellationToken>());
         });
+        
+        await _repistory
+            .Received(1)
+            .AddReviewsForTitleIdAsync(Arg.Any<TitleReviews>(), Arg.Any<CancellationToken>());
+
+        await _repistory
+            .Received(1)
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -303,9 +336,9 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)
-            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+        _iGetReviewsRepository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
         
         var error = "error";
         _waybackMachineClient.SearchAsync(
@@ -343,9 +376,9 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)
-            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+        _iGetReviewsRepository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
         
         var searchResponse = _fixture.CreateMany<SearchResponse>(1).ToList();
         
@@ -369,6 +402,14 @@ public class ExtractReviewsCommandTests
         _htmlReviewsExtractor
             .GetReviewsAsync(url, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Fail<IReadOnlyList<ReviewItem>>(error)));
+
+        _repistory
+            .AddReviewsForTitleIdAsync(Arg.Any<TitleReviews>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _repistory
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
         
         //Act
         var command = new ExtractReviewsCommand()
@@ -390,9 +431,15 @@ public class ExtractReviewsCommandTests
                 Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
                 Arg.Any<CancellationToken>());
         
-        await _addReviewsSession
+        await _repistory
             .Received(1)
-            .AddReviewsForTitleIdAsync(titleId, Arg.Is<IReadOnlyList<ReviewItem>>(x => x.Count == 0));
+            .AddReviewsForTitleIdAsync(
+                Arg.Is<TitleReviews>(x => JsonSerializer.Deserialize<ReviewItem[]>(x.Reviews, new JsonSerializerOptions())!.Length == 0),
+                Arg.Any<CancellationToken>());
+
+        await _repistory
+            .Received(1)
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -402,9 +449,9 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)
-            .Returns(Result.Ok(_fixture.Create<IReadOnlyList<ReviewItem>?>()));
+        _iGetReviewsRepository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok(_fixture.Create<IReadOnlyList<ReviewItem>>()));
         
         //Act
         var command = new ExtractReviewsCommand()
@@ -420,9 +467,9 @@ public class ExtractReviewsCommandTests
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().Contain(x => x.Message == ExtractReviewsErrorCodes.TitleAlreadyHasReviews);
 
-        await _getReviewsSession
+        await _iGetReviewsRepository
             .Received(1)
-            .GetReviewsForTitleIdAsync(titleId);
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -432,9 +479,9 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)
-            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+        _iGetReviewsRepository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         
@@ -482,9 +529,13 @@ public class ExtractReviewsCommandTests
             .GetReviewsAsync(url, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(reviews)));
         
-        _addReviewsSession
-            .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>())
-            .Returns(ValueTask.CompletedTask);
+        _repistory
+            .AddReviewsForTitleIdAsync(Arg.Any<TitleReviews>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _repistory
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
         
         foreach (var review in reviews)
         {
@@ -512,6 +563,14 @@ public class ExtractReviewsCommandTests
                 .Received(1)
                 .GetReviewsAsync(expectedUrl, new CultureInfo("en-US"), Arg.Any<CancellationToken>());
         }
+        
+        await _repistory
+            .Received(1)
+            .AddReviewsForTitleIdAsync(Arg.Any<TitleReviews>(), Arg.Any<CancellationToken>());
+
+        await _repistory
+            .Received(1)
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -521,9 +580,9 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _getReviewsSession
-            .GetReviewsForTitleIdAsync(titleId)
-            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
+        _iGetReviewsRepository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         
@@ -571,9 +630,13 @@ public class ExtractReviewsCommandTests
             .GetReviewsAsync(url, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IReadOnlyList<ReviewItem>>(reviews)));
         
-        _addReviewsSession
-            .AddReviewsForTitleIdAsync(titleId, Arg.Any<IReadOnlyList<ReviewItem>>())
-            .Returns(ValueTask.CompletedTask);
+        _repistory
+            .AddReviewsForTitleIdAsync(Arg.Any<TitleReviews>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _repistory
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
         
         foreach (var review in reviews)
         {
@@ -601,5 +664,13 @@ public class ExtractReviewsCommandTests
                 .Received(1)
                 .GetReviewsAsync(expectedUrl, new CultureInfo("en-US"), Arg.Any<CancellationToken>());
         });
+        
+        await _repistory
+            .Received(1)
+            .AddReviewsForTitleIdAsync(Arg.Any<TitleReviews>(), Arg.Any<CancellationToken>());
+
+        await _repistory
+            .Received(1)
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }

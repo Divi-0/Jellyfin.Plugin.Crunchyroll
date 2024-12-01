@@ -841,7 +841,7 @@ public static class WireMockAdminApiExtensions
     {
         var faker = new Faker();
 
-        var title = $"{new Faker().Random.Words()}-{Random.Shared.Next(9999)}";
+        var title = $"{faker.Random.Words()}-{Random.Shared.Next(9999)}";
         var episodesResponse = new CrunchyrollEpisodeResponse
         {
             Data = [
@@ -870,7 +870,7 @@ public static class WireMockAdminApiExtensions
                         SeriesSlugTitle = CrunchyrollSlugFaker.Generate(),
                         SequenceNumber = 0,
                         SeasonNumber = Random.Shared.Next(1, 10),
-                        SeasonTitle = string.Empty,
+                        SeasonTitle = faker.Random.Words(3),
                         SeasonDisplayNumber = string.Empty,
                         SeasonSequenceNumber = 0
                     },
@@ -883,7 +883,7 @@ public static class WireMockAdminApiExtensions
         builder.Given(m => m
             .WithRequest(req => req
                 .UsingGet()
-                .WithPath($"/content/v2/cms/objects/{seasonId}/episodes")
+                .WithPath($"/content/v2/cms/objects/{episodeId}")
                 .WithParams(new List<ParamModel>()
                 {
                     new ParamModel()

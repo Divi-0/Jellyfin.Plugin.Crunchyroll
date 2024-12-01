@@ -7,8 +7,8 @@ internal static class OverwriteEpisodeJellyfinDataTaskServiceExtension
 {
     internal static IServiceCollection AddOverwriteEpisodeJellyfinData(this IServiceCollection serviceCollection)
     {
-        serviceCollection.AddSingleton<IPostEpisodeIdSetTask, OverwriteEpisodeJellyfinDataTask>();
-        serviceCollection.AddSingleton<IOverwriteEpisodeJellyfinDataTaskSession, CrunchyrollUnitOfWork>();
+        serviceCollection.AddScoped<IPostEpisodeIdSetTask, OverwriteEpisodeJellyfinDataTask>();
+        serviceCollection.AddScoped<IOverwriteEpisodeJellyfinDataTaskRepository, OverwriteEpisodeJellyfinDataTaskRepository>();
         
         return serviceCollection;
     }
