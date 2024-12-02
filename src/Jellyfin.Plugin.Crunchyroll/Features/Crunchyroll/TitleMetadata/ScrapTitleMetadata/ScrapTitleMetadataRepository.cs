@@ -45,7 +45,10 @@ public class ScrapTitleMetadataRepository : IScrapTitleMetadataRepository
     {
         try
         {
-            if (titleMetadata.Id == Guid.Empty)
+            var changesForTitleMetadata = _dbContext.ChangeTracker.Entries<Entities.TitleMetadata>()
+                .FirstOrDefault(x => x.Entity.Equals(titleMetadata));
+            
+            if (changesForTitleMetadata is null || changesForTitleMetadata.State == EntityState.Detached)
             {
                 await _dbContext.TitleMetadata
                     .AddAsync(titleMetadata, cancellationToken);
