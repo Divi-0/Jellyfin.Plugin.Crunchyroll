@@ -45,8 +45,16 @@ public class ScrapTitleMetadataRepository : IScrapTitleMetadataRepository
     {
         try
         {
-            await _dbContext.TitleMetadata
-                .AddAsync(titleMetadata, cancellationToken);
+            if (titleMetadata.Id == Guid.Empty)
+            {
+                await _dbContext.TitleMetadata
+                    .AddAsync(titleMetadata, cancellationToken);
+            }
+            else
+            {
+                _dbContext.TitleMetadata
+                    .Update(titleMetadata);
+            }
             
             return Result.Ok();
         }

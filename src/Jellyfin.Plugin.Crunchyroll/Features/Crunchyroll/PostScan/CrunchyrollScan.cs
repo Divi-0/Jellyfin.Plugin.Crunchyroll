@@ -84,13 +84,13 @@ public sealed class CrunchyrollScan : ILibraryPostScanTask
             }
         }
 
-        await Parallel.ForEachAsync(allItems.Where(x => x is Movie), cancellationToken, async (movie, _) =>
+        foreach (var movie in allItems.Where(x => x is Movie))
         {
             foreach (var postScanTask in serviceScope.ServiceProvider.GetServices<IPostMovieScanTask>())
             {
                 await postScanTask.RunAsync(movie, cancellationToken);
             }
-        });
+        }
 
         var elapsedTime = Stopwatch.GetElapsedTime(startTimestamp);
         _logger.LogInformation("CrunchyrollScan took {ElapsedTime}", elapsedTime.ToString("g"));
