@@ -20,14 +20,12 @@ Metadata that will be fetched from Crunchyroll
 - Episodes
   - Title/Name
   - Description
-  - Ratings
   - Thumbnail Image
   - Comments via WayBackMachine
 - Movies
   - Title/Name
   - Description
   - Studio
-  - Ratings
   - Reviews via WayBackMachine 
   - Thumbnail Image
   - Comments via WayBackMachine
@@ -2019,7 +2017,7 @@ if $(ConfigurationName) == Debug (
 ```
 
 #### Adding Code First EF-Migrations
-1. Remove `<IncludeAssets>compile</IncludeAssets>` from the Entity Framework Nuget Packages in `Jellyfin.Plugin.Crunchyroll.csproj` <br>
+1. Remove `<IncludeAssets>compile</IncludeAssets>` from the Entity Framework Nuget Packages & `Jellyfin.Controller & Jellyfin.Model` in `Jellyfin.Plugin.Crunchyroll.csproj` <br>
 Or just remove the nuget packages with a package manager and re-add them. (ef-tool needs the runtime binaries) <br>
 2. Run `dotnet ef migrations add <migrationname>` in `/src/Jellyfin.Plugin.Crunchyroll`
 3. Add `<IncludeAssets>compile</IncludeAssets>` back to the Entity Framework Nuget Packages, otherwise running this plugin on `Jellyfin.Server` will result in errors/dependency conflicts 

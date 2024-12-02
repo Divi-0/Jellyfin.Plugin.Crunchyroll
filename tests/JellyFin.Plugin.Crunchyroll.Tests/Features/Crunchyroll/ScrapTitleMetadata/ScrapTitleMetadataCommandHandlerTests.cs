@@ -110,6 +110,11 @@ public class ScrapTitleMetadataCommandHandlerTests
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesMetadataResponse);
+
+        var rating = 3.5f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
         
         _repository
             .GetTitleMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
@@ -159,6 +164,166 @@ public class ScrapTitleMetadataCommandHandlerTests
             Description = seriesMetadataResponse.Description,
             SlugTitle = seriesMetadataResponse.SlugTitle,
             Studio = seriesMetadataResponse.ContentProvider,
+            Rating = rating,
+            PosterTall = JsonSerializer.Serialize(new ImageSource
+            {
+                Uri = seriesMetadataResponse.Images.PosterTall.First().Last().Source,
+                Width = seriesMetadataResponse.Images.PosterTall.First().Last().Width,
+                Height = seriesMetadataResponse.Images.PosterTall.First().Last().Height
+            }),
+            PosterWide = JsonSerializer.Serialize(new ImageSource
+            {
+                Uri = seriesMetadataResponse.Images.PosterWide.First().Last().Source,
+                Width = seriesMetadataResponse.Images.PosterWide.First().Last().Width,
+                Height = seriesMetadataResponse.Images.PosterWide.First().Last().Height
+            }),
+            Language = language.Name
+        };
+        
+        actualTitleMetadata.Should().BeEquivalentTo(expectedTitleMetadata, opt => opt
+            .Excluding(x => x.Id)
+            .Excluding(x => x.Seasons));
+
+        actualTitleMetadata.Id.Should().NotBeEmpty();
+        
+        actualTitleMetadata.Seasons.Should().AllSatisfy(season =>
+        {
+            seasonsResponse.Data.Should().Contain(y => y.Id == season.CrunchyrollId);
+            season.Episodes.Should().NotBeEmpty();
+
+            season.Episodes.Should().AllSatisfy(episode =>
+            {
+                var thumbnail = JsonSerializer.Deserialize<ImageSource>(episode.Thumbnail)!;
+                thumbnail.Uri.Should().NotBeNullOrEmpty();
+                thumbnail.Width.Should().NotBe(0);
+                thumbnail.Height.Should().NotBe(0);
+            });
+        });
+        
+        await _crunchyrollEpisodesClient
+            .DidNotReceive()
+            .GetEpisodeAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task SetsTitleMetadataRatingToZero_WhenGetSeriesRatingFailed_GivenTitleId()
+    {
+        //Arrange
+        var titleId = _fixture.Create<string>();
+        var language = new CultureInfo("en-US");
+
+        _loginService
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
+        var seasonsResponse = _fixture.Create<CrunchyrollSeasonsResponse>();
+        _crunchyrollSeasonsClient
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(seasonsResponse);
+        
+        foreach (var season in seasonsResponse.Data)
+        {
+            var episodesResponse = _fixture.Create<CrunchyrollEpisodesResponse>();
+            _crunchyrollEpisodesClient
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+                .Returns(episodesResponse);
+        }
+
+        var seriesMetadataResponse = new CrunchyrollSeriesContentItem
+        {
+            Id = titleId,
+            Title = _faker.Random.Word(),
+            SlugTitle = _faker.Random.Word(),
+            Description = _faker.Lorem.Sentences(),
+            ContentProvider = _faker.Company.CompanyName(),
+            Images = new CrunchyrollSeriesImageItem()
+            {
+                PosterTall = [[new CrunchyrollSeriesImage
+                {
+                    Source = _faker.Internet.UrlWithPath(),
+                    Type = "poster_tall",
+                    Height = 0,
+                    Width = 0
+                },new CrunchyrollSeriesImage
+                {
+                    Source = _faker.Internet.UrlWithPath(),
+                    Type = "poster_tall",
+                    Height = 0,
+                    Width = 0
+                }]],
+                PosterWide = [[new CrunchyrollSeriesImage
+                {
+                    Source = _faker.Internet.UrlWithPath(),
+                    Type = "poster_wide",
+                    Height = 0,
+                    Width = 0
+                },new CrunchyrollSeriesImage
+                {
+                    Source = _faker.Internet.UrlWithPath(),
+                    Type = "poster_wide",
+                    Height = 0,
+                    Width = 0
+                }]],
+            }
+        };
+        
+        _crunchyrollSeriesClient
+            .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(seriesMetadataResponse);
+        
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Fail("error"));
+        
+        _repository
+            .GetTitleMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?>(null));
+
+        Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualTitleMetadata = null!;
+         _repository
+             .AddOrUpdateTitleMetadata(Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(
+                    x => actualTitleMetadata = x),
+                Arg.Any<CancellationToken>())
+             .Returns(Result.Ok());
+
+         _repository
+             .SaveChangesAsync(Arg.Any<CancellationToken>())
+             .Returns(Result.Ok());
+        
+        //Act
+        var command = new ScrapTitleMetadataCommand { TitleId = titleId, Language = new CultureInfo("en-US")};
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+
+        await _loginService
+            .Received(1)
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
+        
+        await _crunchyrollSeasonsClient
+            .Received(1)
+            .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+
+        foreach (var season in seasonsResponse.Data)
+        {
+            await _crunchyrollEpisodesClient
+                .Received(1)
+                .GetEpisodesAsync(season.Id, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+        }
+
+        await _crunchyrollSeriesClient
+            .Received(1)
+            .GetSeriesMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+
+        var expectedTitleMetadata = new Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata()
+        {
+            CrunchyrollId = titleId,
+            Title = seriesMetadataResponse.Title,
+            Description = seriesMetadataResponse.Description,
+            SlugTitle = seriesMetadataResponse.SlugTitle,
+            Studio = seriesMetadataResponse.ContentProvider,
+            Rating = 0,
             PosterTall = JsonSerializer.Serialize(new ImageSource
             {
                 Uri = seriesMetadataResponse.Images.PosterTall.First().Last().Source,
@@ -382,6 +547,11 @@ public class ScrapTitleMetadataCommandHandlerTests
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesContentItem);
+        
+        var rating = 0.1f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
 
         _repository
             .AddOrUpdateTitleMetadata(
@@ -514,6 +684,11 @@ public class ScrapTitleMetadataCommandHandlerTests
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
+        
+        const float rating = 4.1f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
 
         _repository
             .AddOrUpdateTitleMetadata(
@@ -622,6 +797,11 @@ public class ScrapTitleMetadataCommandHandlerTests
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
+        
+        const float rating = 1.9f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
         
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
         _repository
@@ -765,6 +945,11 @@ public class ScrapTitleMetadataCommandHandlerTests
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesMetadataResponse);
         
+        const float rating = 1.1f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
+        
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
         _repository
             .AddOrUpdateTitleMetadata(
@@ -811,6 +996,7 @@ public class ScrapTitleMetadataCommandHandlerTests
         actualMetadata.Title.Should().Be(seriesMetadataResponse.Title);
         actualMetadata.Description.Should().Be(seriesMetadataResponse.Description);
         actualMetadata.Studio.Should().Be(seriesMetadataResponse.ContentProvider);
+        actualMetadata.Rating.Should().Be(rating);
         var posterTall = JsonSerializer.Deserialize<ImageSource>(actualMetadata.PosterTall)!;
         var posterWide = JsonSerializer.Deserialize<ImageSource>(actualMetadata.PosterWide)!;
         posterTall.Uri.Should().Be(seriesMetadataResponse.Images.PosterTall.First().Last().Source);
@@ -888,6 +1074,11 @@ public class ScrapTitleMetadataCommandHandlerTests
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
+        
+        const float rating = 0.1f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
         
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
         _repository
@@ -998,6 +1189,11 @@ public class ScrapTitleMetadataCommandHandlerTests
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
+        const float rating = 4.9f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
+        
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
         _repository
             .AddOrUpdateTitleMetadata(
@@ -1104,6 +1300,11 @@ public class ScrapTitleMetadataCommandHandlerTests
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
         
+        const float rating = 3.3f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
+        
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
         _repository.AddOrUpdateTitleMetadata(
             Arg.Do<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata>(x => actualMetadata = x),
@@ -1164,6 +1365,11 @@ public class ScrapTitleMetadataCommandHandlerTests
         _repository
             .GetTitleMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(titleMetadata);
+        
+        const float rating = 2.2f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
         
         _crunchyrollSeasonsClient
             .GetSeasonsAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
@@ -1280,6 +1486,11 @@ public class ScrapTitleMetadataCommandHandlerTests
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesMetadataResponse);
         
+        var rating = 4.7f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
+        
         _repository
             .GetTitleMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?>(null));
@@ -1369,6 +1580,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             Description = seriesMetadataResponse.Description,
             SlugTitle = seriesMetadataResponse.SlugTitle,
             Studio = seriesMetadataResponse.ContentProvider,
+            Rating = rating,
             PosterTall = JsonSerializer.Serialize(new ImageSource
             {
                 Uri = seriesMetadataResponse.Images.PosterTall.First().Last().Source,
@@ -1479,6 +1691,11 @@ public class ScrapTitleMetadataCommandHandlerTests
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesMetadataResponse);
         
+        var rating = 5.0f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
+        
         _repository
             .GetTitleMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?>(null));
@@ -1568,6 +1785,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             Description = seriesMetadataResponse.Description,
             SlugTitle = seriesMetadataResponse.SlugTitle,
             Studio = seriesMetadataResponse.ContentProvider,
+            Rating = rating,
             PosterTall = JsonSerializer.Serialize(new ImageSource
             {
                 Uri = seriesMetadataResponse.Images.PosterTall.First().Last().Source,
@@ -1689,6 +1907,11 @@ public class ScrapTitleMetadataCommandHandlerTests
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(_fixture.Create<CrunchyrollSeriesContentItem>());
+        
+        const float rating = 5.0f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
         
         Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata actualMetadata = null!;
         _repository
@@ -1825,6 +2048,11 @@ public class ScrapTitleMetadataCommandHandlerTests
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesMetadataResponse);
         
+        var rating = 2.9f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
+        
         _repository
             .GetTitleMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?>(null));
@@ -1884,6 +2112,7 @@ public class ScrapTitleMetadataCommandHandlerTests
             Description = seriesMetadataResponse.Description,
             SlugTitle = seriesMetadataResponse.SlugTitle,
             Studio = seriesMetadataResponse.ContentProvider,
+            Rating = rating,
             PosterTall = JsonSerializer.Serialize(new ImageSource
             {
                 Uri = seriesMetadataResponse.Images.PosterTall.First().Last().Source,
@@ -1990,6 +2219,11 @@ public class ScrapTitleMetadataCommandHandlerTests
         _crunchyrollSeriesClient
             .GetSeriesMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(seriesMetadataResponse);
+        
+        var rating = 2.5f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
         
         _repository
             .GetTitleMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
@@ -2104,6 +2338,11 @@ public class ScrapTitleMetadataCommandHandlerTests
         _repository
             .GetTitleMetadataAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?>(null)));
+        
+        var rating = 1.2f;
+        _crunchyrollSeriesClient
+            .GetRatingAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(rating);
         
         _repository
             .AddOrUpdateTitleMetadata(

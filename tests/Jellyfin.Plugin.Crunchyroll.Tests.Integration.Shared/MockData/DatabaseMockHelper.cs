@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
@@ -105,7 +106,8 @@ public static class DatabaseMockHelper
         imageStream.CopyTo(fileStream);
     }
     
-    public static void ShouldHaveMetadata(string titleId, CrunchyrollSeriesContentItem seriesContentResponse)
+    public static void ShouldHaveMetadata(string titleId, CrunchyrollSeriesContentItem seriesContentResponse, 
+        CrunchyrollSeriesRatingResponse ratingResponse)
     {
         using var dbContext = new CrunchyrollDbContext();
 
@@ -120,6 +122,7 @@ public static class DatabaseMockHelper
         metadata.Title.Should().Be(seriesContentResponse.Title);
         metadata.Description.Should().Be(seriesContentResponse.Description);
         metadata.Studio.Should().Be(seriesContentResponse.ContentProvider);
+        metadata.Rating.Should().Be(float.Parse(ratingResponse.Average, CultureInfo.InvariantCulture));
         var posteTall = JsonSerializer.Deserialize<ImageSource>(metadata.PosterTall)!;
         var posteWide = JsonSerializer.Deserialize<ImageSource>(metadata.PosterWide)!;
         posteTall.Uri.Should().Be(seriesContentResponse.Images.PosterTall.First().Last().Source);

@@ -12,4 +12,5 @@ public interface ICrunchyrollSeriesClient
     public Task<Result<CrunchyrollSeriesContentItem>> GetSeriesMetadataAsync(string titleId, CultureInfo language, 
         CancellationToken cancellationToken);
     public Task<Result<Stream>> GetPosterImagesAsync(string url, CancellationToken cancellationToken);
+    public Task<Result<float>> GetRatingAsync(string titleId, CancellationToken cancellationToken);
 }

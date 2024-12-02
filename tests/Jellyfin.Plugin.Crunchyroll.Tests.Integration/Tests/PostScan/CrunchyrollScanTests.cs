@@ -26,7 +26,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Tests.PostScan;
 public class CrunchyrollScanTests
 {
     private readonly WireMockFixture _wireMockFixture;
-    private readonly CrunchyrollDatabaseFixture _databaseFixture;
     
     private readonly CrunchyrollScan _crunchyrollScan;
     private readonly ILibraryManager _libraryManager;
@@ -35,10 +34,9 @@ public class CrunchyrollScanTests
     private readonly IMediaSourceManager _mediaSourceManager;
     private readonly PluginConfiguration _config;
 
-    public CrunchyrollScanTests(WireMockFixture wireMockFixture, CrunchyrollDatabaseFixture databaseFixture)
+    public CrunchyrollScanTests(WireMockFixture wireMockFixture)
     {
         _wireMockFixture = wireMockFixture;
-        _databaseFixture = databaseFixture;
         
         _crunchyrollScan =
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<CrunchyrollScan>();
@@ -74,12 +72,17 @@ public class CrunchyrollScanTests
         await _wireMockAdminApi.MockAnonymousAuthAsync();
 
         var seriesResponses = new Dictionary<Guid, CrunchyrollSeriesContentItem>();
+        var seriesRatingResponses = new Dictionary<Guid, CrunchyrollSeriesRatingResponse>();
         var seasonResponses = new Dictionary<Guid, CrunchyrollSeasonsItem>();
         foreach (var series in seriesItems)
         {
             var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], 
                 language.Name, $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
             seriesResponses.Add(series.Id, seriesResponse);
+            
+            var seriesRatingResponse = await _wireMockAdminApi.MockCrunchyrollSeriesRatingResponse(
+                series.ProviderIds[CrunchyrollExternalKeys.SeriesId]);
+            seriesRatingResponses.Add(series.Id, seriesRatingResponse);
             
             await _wireMockAdminApi.MockCrunchyrollImagePosterResponse(
                 seriesResponse.Images.PosterTall.First().Last().Source);            
@@ -127,7 +130,7 @@ public class CrunchyrollScanTests
             
             DatabaseMockHelper.ShouldHaveMetadata( 
                 series.ProviderIds[CrunchyrollExternalKeys.SeriesId],
-                seriesResponses[series.Id]);
+                seriesResponses[series.Id], seriesRatingResponses[series.Id]);
             
             series.Name.Should().Be(seriesResponses[series.Id].Title);
             series.Overview.Should().Be(seriesResponses[series.Id].Description);
@@ -269,6 +272,8 @@ public class CrunchyrollScanTests
         
         var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(seriesId, language.Name, 
             $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+        
+        var seriesRatingResponse = await _wireMockAdminApi.MockCrunchyrollSeriesRatingResponse(seriesId);
 
         var season = SeasonFaker.GenerateWithSeasonId();
         var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse([season], seriesId, language.Name);
@@ -298,6 +303,6 @@ public class CrunchyrollScanTests
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeasonId);
         movie.ProviderIds[CrunchyrollExternalKeys.SeasonId].Should().Be(seasonId);
         
-        DatabaseMockHelper.ShouldHaveMetadata(seriesId, seriesResponse);
+        DatabaseMockHelper.ShouldHaveMetadata(seriesId, seriesResponse, seriesRatingResponse);
     }
 }

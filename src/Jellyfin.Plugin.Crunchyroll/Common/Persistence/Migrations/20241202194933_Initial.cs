@@ -49,6 +49,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Common.Persistence.Migrations
                     Description = table.Column<string>(type: "TEXT", nullable: false),
                     Studio = table.Column<string>(type: "TEXT", nullable: false),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
+                    Rating = table.Column<float>(type: "REAL", nullable: false),
                     PosterTall = table.Column<string>(type: "TEXT", nullable: false),
                     PosterWide = table.Column<string>(type: "TEXT", nullable: false),
                     Language = table.Column<string>(type: "TEXT", nullable: false)

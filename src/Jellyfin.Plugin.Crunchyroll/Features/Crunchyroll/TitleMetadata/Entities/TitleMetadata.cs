@@ -12,6 +12,7 @@ public record TitleMetadata
     public required string Description { get; set; }
     public required string Studio { get; set; }
     public required string Title { get; set; }
+    public required float Rating { get; set; }
     /// <summary>
     /// <see cref="ImageSource"/> as json serialized
     /// </summary>

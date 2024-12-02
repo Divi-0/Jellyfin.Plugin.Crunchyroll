@@ -18,6 +18,7 @@ public static class CrunchyrollTitleMetadataFaker
             Description = faker.Lorem.Sentences(),
             Studio = faker.Company.CompanyName(),
             SlugTitle = CrunchyrollSlugFaker.Generate(title),
+            Rating = faker.Random.Float(),
             CrunchyrollId = seasonOrMovie?.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out var id) ?? false 
                 ? id 
                 : CrunchyrollIdFaker.Generate(),

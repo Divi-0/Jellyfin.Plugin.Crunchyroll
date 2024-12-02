@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Net;
+using System.Text.Json;
 using AutoFixture;
+using Bogus;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
@@ -9,6 +11,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleM
 using Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ScrapTitleMetadata.MockHelper;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 using RichardSzalay.MockHttp;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ScrapTitleMetadata;
@@ -16,6 +19,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ScrapTitleMetad
 public class CrunchyrollSeriesClientTests
 {
     private readonly Fixture _fixture;
+    private readonly Faker _faker;
     
     private readonly CrunchyrollSeriesClient _sut;
     private readonly MockHttpMessageHandler _mockHttpMessageHandler;
@@ -25,6 +29,7 @@ public class CrunchyrollSeriesClientTests
     public CrunchyrollSeriesClientTests()
     {
         _fixture = new Fixture();
+        _faker = new Faker();
         
         _mockHttpMessageHandler = new MockHttpMessageHandler();
         _config = new PluginConfiguration();
@@ -280,5 +285,184 @@ public class CrunchyrollSeriesClientTests
         stream.ToArray().Should().BeEquivalentTo(content);
         
         _mockHttpMessageHandler.GetMatchCount(seasonsMock).Should().Be(1);
+    }
+    
+    [Fact]
+    public async Task GetRatingAsync_ReturnsAverageRating_WhenSuccess_GivenTitleId()
+    {
+        //Arrange
+        var titleId = CrunchyrollIdFaker.Generate();
+        var rating = _faker.Random.Float(max: 5);
+        
+        var bearerToken = _fixture.Create<string>();
+        _crunchyrollSessionRepository
+            .GetAsync(Arg.Any<CancellationToken>())
+            .Returns(bearerToken);
+        
+        var crunchyrollResponse = new CrunchyrollSeriesRatingResponse { Average = rating.ToString("0.#", CultureInfo.InvariantCulture) };
+        var url = $"https://www.crunchyroll.com/content-reviews/v2/rating/series/{titleId}";
+        var mockedRequest = _mockHttpMessageHandler
+            .When(url)
+            .WithHeaders(HeaderNames.Authorization, $"Bearer {bearerToken}")
+            .Respond("application/json", JsonSerializer.Serialize(crunchyrollResponse));
+        
+        //Act
+        var result = await _sut.GetRatingAsync(titleId, CancellationToken.None);
+        
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(float.Round(rating, 1));
+
+        await _crunchyrollSessionRepository
+            .Received(1)
+            .GetAsync(Arg.Any<CancellationToken>());
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
+    }
+    
+    [Fact]
+    public async Task GetRatingAsync_ReturnsFailed_WhenSessionReturnedEmpty_GivenTitleId()
+    {
+        //Arrange
+        var titleId = CrunchyrollIdFaker.Generate();
+        
+        _crunchyrollSessionRepository
+            .GetAsync(Arg.Any<CancellationToken>())
+            .Returns((string?)null);
+        
+        //Act
+        var result = await _sut.GetRatingAsync(titleId, CancellationToken.None);
+        
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(x => x.Message == SeriesErrorCodes.NoSession);
+
+        await _crunchyrollSessionRepository
+            .Received(1)
+            .GetAsync(Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task GetRatingAsync_ReturnsFailed_WhenRequestWasNotSuccessful_GivenTitleId()
+    {
+        //Arrange
+        var titleId = CrunchyrollIdFaker.Generate();
+        
+        var bearerToken = _fixture.Create<string>();
+        _crunchyrollSessionRepository
+            .GetAsync(Arg.Any<CancellationToken>())
+            .Returns(bearerToken);
+        
+        var url = $"https://www.crunchyroll.com/content-reviews/v2/rating/series/{titleId}";
+        var mockedRequest = _mockHttpMessageHandler
+            .When(url)
+            .WithHeaders(HeaderNames.Authorization, $"Bearer {bearerToken}")
+            .Respond(HttpStatusCode.BadRequest);
+        
+        //Act
+        var result = await _sut.GetRatingAsync(titleId, CancellationToken.None);
+        
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(x => x.Message == SeriesErrorCodes.RequestFailed);
+
+        await _crunchyrollSessionRepository
+            .Received(1)
+            .GetAsync(Arg.Any<CancellationToken>());
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
+    }
+    
+    [Fact]
+    public async Task GetRatingAsync_ReturnsFailed_WhenRequestThrows_GivenTitleId()
+    {
+        //Arrange
+        var titleId = CrunchyrollIdFaker.Generate();
+        
+        var bearerToken = _fixture.Create<string>();
+        _crunchyrollSessionRepository
+            .GetAsync(Arg.Any<CancellationToken>())
+            .Returns(bearerToken);
+        
+        var url = $"https://www.crunchyroll.com/content-reviews/v2/rating/series/{titleId}";
+        var mockedRequest = _mockHttpMessageHandler
+            .When(url)
+            .WithHeaders(HeaderNames.Authorization, $"Bearer {bearerToken}")
+            .Throw(new Exception());
+        
+        //Act
+        var result = await _sut.GetRatingAsync(titleId, CancellationToken.None);
+        
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(x => x.Message == SeriesErrorCodes.RequestFailed);
+
+        await _crunchyrollSessionRepository
+            .Received(1)
+            .GetAsync(Arg.Any<CancellationToken>());
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
+    }
+    
+    [Fact]
+    public async Task GetRatingAsync_ReturnsFailed_WhenJsonIsNotValid_GivenTitleId()
+    {
+        //Arrange
+        var titleId = CrunchyrollIdFaker.Generate();
+        
+        var bearerToken = _fixture.Create<string>();
+        _crunchyrollSessionRepository
+            .GetAsync(Arg.Any<CancellationToken>())
+            .Returns(bearerToken);
+        
+        var url = $"https://www.crunchyroll.com/content-reviews/v2/rating/series/{titleId}";
+        var mockedRequest = _mockHttpMessageHandler
+            .When(url)
+            .WithHeaders(HeaderNames.Authorization, $"Bearer {bearerToken}")
+            .Respond("application/json", "invalid");
+        
+        //Act
+        var result = await _sut.GetRatingAsync(titleId, CancellationToken.None);
+        
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(x => x.Message == SeriesErrorCodes.InvalidResponse);
+
+        await _crunchyrollSessionRepository
+            .Received(1)
+            .GetAsync(Arg.Any<CancellationToken>());
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
+    }
+    
+    [Fact]
+    public async Task GetRatingAsync_ReturnsFailed_WhenJsonIsNull_GivenTitleId()
+    {
+        //Arrange
+        var titleId = CrunchyrollIdFaker.Generate();
+        
+        var bearerToken = _fixture.Create<string>();
+        _crunchyrollSessionRepository
+            .GetAsync(Arg.Any<CancellationToken>())
+            .Returns(bearerToken);
+        
+        var url = $"https://www.crunchyroll.com/content-reviews/v2/rating/series/{titleId}";
+        var mockedRequest = _mockHttpMessageHandler
+            .When(url)
+            .WithHeaders(HeaderNames.Authorization, $"Bearer {bearerToken}")
+            .Respond("application/json", "null");
+        
+        //Act
+        var result = await _sut.GetRatingAsync(titleId, CancellationToken.None);
+        
+        //Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(x => x.Message == SeriesErrorCodes.InvalidResponse);
+
+        await _crunchyrollSessionRepository
+            .Received(1)
+            .GetAsync(Arg.Any<CancellationToken>());
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
     }
 }

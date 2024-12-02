@@ -74,6 +74,7 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
         seriesItem.Name = titleMetadata.Title;
         seriesItem.Overview = titleMetadata.Description;
         seriesItem.SetStudios([titleMetadata.Studio]);
+        seriesItem.CommunityRating = titleMetadata.Rating;
 
         await _libraryManager
             .UpdateItemAsync(seriesItem, seriesItem.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);

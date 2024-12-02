@@ -163,6 +163,9 @@ public class CrunchyrollScanTests
         
         var seriesResponse = await _wireMockAdminApi.MockCrunchyrollSeriesResponse(seriesId, language.Name, 
             $"{_wireMockFixture.Hostname}:{_wireMockFixture.MappedPublicPort}");
+        
+        var seriesRatingResponse = await _wireMockAdminApi.MockCrunchyrollSeriesRatingResponse(
+            seriesId);
 
         var season = SeasonFaker.GenerateWithSeasonId();
         var seasonsResponse = await _wireMockAdminApi.MockCrunchyrollSeasonsResponse([season], seriesId, language.Name);
@@ -206,7 +209,7 @@ public class CrunchyrollScanTests
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeasonId);
         movie.ProviderIds[CrunchyrollExternalKeys.SeasonId].Should().Be(seasonId);
         
-        DatabaseMockHelper.ShouldHaveMetadata(seriesId, seriesResponse);
+        DatabaseMockHelper.ShouldHaveMetadata(seriesId, seriesResponse, seriesRatingResponse);
         DatabaseMockHelper.ShouldHaveReviews(seriesId);
         DatabaseMockHelper.ShouldHaveComments(episodeId);
     }

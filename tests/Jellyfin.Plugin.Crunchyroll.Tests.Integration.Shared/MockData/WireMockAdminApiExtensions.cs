@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -1029,6 +1030,28 @@ public static class WireMockAdminApiExtensions
         await builder.BuildAndPostAsync();
 
         return seriesMetadataResponse;
+    }
+    
+    public static async Task<CrunchyrollSeriesRatingResponse> MockCrunchyrollSeriesRatingResponse(this IWireMockAdminApi wireMockAdminApi, 
+        string seriesId)
+    {
+        var faker = new Faker();
+        var builder = wireMockAdminApi.GetMappingBuilder();
+
+        var response = new CrunchyrollSeriesRatingResponse { Average = faker.Random.Float(max: 5).ToString("0.#", CultureInfo.InvariantCulture) };
+        builder.Given(m => m
+            .WithRequest(req => req
+                .UsingGet()
+                .WithPath($"/content-reviews/v2/rating/series/{seriesId}")
+            )
+            .WithResponse(rsp => rsp
+                .WithStatusCode(HttpStatusCode.OK)
+                .WithBody(JsonSerializer.Serialize(response))
+            ));
+
+        await builder.BuildAndPostAsync();
+
+        return response;
     }
     
     public static async Task<byte[]> MockCrunchyrollImagePosterResponse(this IWireMockAdminApi wireMockAdminApi, 

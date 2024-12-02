@@ -81,6 +81,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Description = _faker.Lorem.Sentences(),
             Title = _faker.Random.Words(),
             Studio = _faker.Random.Words(),
+            Rating = _faker.Random.Float(),
             PosterTall = JsonSerializer.Serialize(posterTall),
             PosterWide = JsonSerializer.Serialize(posterWide),
             Language = language.Name
@@ -111,6 +112,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         series.Name.Should().Be(titleMetadata.Title);
         series.Overview.Should().Be(titleMetadata.Description);
         series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        series.CommunityRating.Should().Be(titleMetadata.Rating);
         
         await _repository
             .Received(1)
@@ -185,6 +187,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Description = _faker.Lorem.Sentences(),
             Title = _faker.Random.Words(),
             Studio = _faker.Random.Words(),
+            Rating = _faker.Random.Float(),
             PosterTall = JsonSerializer.Serialize(posterTall),
             PosterWide = JsonSerializer.Serialize(posterWide),
             Language = language.Name
@@ -205,6 +208,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         series.Name.Should().Be(titleMetadata.Title);
         series.Overview.Should().Be(titleMetadata.Description);
         series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        series.CommunityRating.Should().Be(titleMetadata.Rating);
         
         await _repository
             .Received(1)
@@ -265,6 +269,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Description = _faker.Lorem.Sentences(),
             Title = _faker.Random.Words(),
             Studio = _faker.Random.Words(),
+            Rating = _faker.Random.Float(),
             PosterTall = JsonSerializer.Serialize(posterTall),
             PosterWide = JsonSerializer.Serialize(posterWide),
             Language = language.Name
@@ -309,6 +314,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         series.Name.Should().Be(titleMetadata.Title);
         series.Overview.Should().Be(titleMetadata.Description);
         series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        series.CommunityRating.Should().Be(titleMetadata.Rating);
         
         await _repository
             .Received(1)
@@ -368,6 +374,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Description = _faker.Lorem.Sentences(),
             Title = _faker.Random.Words(),
             Studio = _faker.Random.Words(),
+            Rating = _faker.Random.Float(),
             PosterTall = JsonSerializer.Serialize(posterTall),
             PosterWide = JsonSerializer.Serialize(posterWide),
             Language = language.Name
@@ -418,6 +425,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         series.Name.Should().Be(titleMetadata.Title);
         series.Overview.Should().Be(titleMetadata.Description);
         series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        series.CommunityRating.Should().Be(titleMetadata.Rating);
         
         await _repository
             .Received(1)
@@ -551,6 +559,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Description = _faker.Lorem.Sentences(),
             Title = _faker.Random.Words(),
             Studio = _faker.Random.Words(),
+            Rating = _faker.Random.Float(),
             PosterTall = JsonSerializer.Serialize(posterTall),
             PosterWide = JsonSerializer.Serialize(posterWide),
             Language = language.Name
@@ -576,6 +585,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         series.Name.Should().Be(titleMetadata.Title);
         series.Overview.Should().Be(titleMetadata.Description);
         series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        series.CommunityRating.Should().Be(titleMetadata.Rating);
         
         await _repository
             .Received(1)
@@ -641,6 +651,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Description = _faker.Lorem.Sentences(),
             Title = _faker.Random.Words(),
             Studio = _faker.Random.Words(),
+            Rating = _faker.Random.Float(),
             PosterTall = JsonSerializer.Serialize(posterTall),
             PosterWide = JsonSerializer.Serialize(posterWide),
             Language = language.Name
@@ -666,6 +677,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         series.Name.Should().Be(titleMetadata.Title);
         series.Overview.Should().Be(titleMetadata.Description);
         series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        series.CommunityRating.Should().Be(titleMetadata.Rating);
         
         await _repository
             .Received(1)
@@ -733,6 +745,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Description = _faker.Lorem.Sentences(),
             Title = _faker.Random.Words(),
             Studio = _faker.Random.Words(),
+            Rating = _faker.Random.Float(),
             PosterTall = JsonSerializer.Serialize(posterTall),
             PosterWide = JsonSerializer.Serialize(posterWide),
             Language = language.Name
@@ -768,6 +781,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         series.Name.Should().Be(titleMetadata.Title);
         series.Overview.Should().Be(titleMetadata.Description);
         series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        series.CommunityRating.Should().Be(titleMetadata.Rating);
         
         await _repository
             .Received(1)
@@ -829,6 +843,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Description = _faker.Lorem.Sentences(),
             Title = _faker.Random.Words(),
             Studio = _faker.Random.Words(),
+            Rating = _faker.Random.Float(),
             PosterTall = JsonSerializer.Serialize(posterTall),
             PosterWide = JsonSerializer.Serialize(posterWide),
             Language = language.Name
@@ -860,6 +875,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         series.Name.Should().Be(titleMetadata.Title);
         series.Overview.Should().Be(titleMetadata.Description);
         series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+        series.CommunityRating.Should().Be(titleMetadata.Rating);
         
         await _repository
             .Received(1)

@@ -1,5 +1,6 @@
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
 using Jellyfin.Plugin.Crunchyroll;
+using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Serialization;
@@ -17,6 +18,14 @@ public class PluginFixture : IAsyncLifetime
     
     public Task InitializeAsync()
     {
+        var location = typeof(CrunchyrollDbContext).Assembly.Location;
+        var filePath = Path.Combine(Path.GetDirectoryName(location)!, "Crunchyroll.db");
+        
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+        
         PluginWebApplicationFactory.CreateInstance();
         var applicationPaths = PluginWebApplicationFactory.Instance.Services.GetRequiredService<IApplicationPaths>();
         var xmlSerializer = PluginWebApplicationFactory.Instance.Services.GetRequiredService<IXmlSerializer>();

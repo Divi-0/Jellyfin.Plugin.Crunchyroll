@@ -15,7 +15,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Common.Persistence.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
 
             modelBuilder.Entity("Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites.EpisodeComments", b =>
                 {
@@ -181,6 +181,9 @@ namespace Jellyfin.Plugin.Crunchyroll.Common.Persistence.Migrations
                     b.Property<string>("PosterWide")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<float>("Rating")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("SlugTitle")
                         .IsRequired()

@@ -112,4 +112,69 @@ public class CrunchyrollSeriesClient : ICrunchyrollSeriesClient
         
         return await response.Content.ReadAsStreamAsync(cancellationToken);
     }
+
+    public async Task<Result<float>> GetRatingAsync(string titleId, CancellationToken cancellationToken)
+    {
+        var path =
+            $"content-reviews/v2/rating/series/{titleId}";
+
+        var bearerToken = await _crunchyrollSessionRepository.GetAsync(cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(bearerToken))
+        {
+            return Result.Fail(SeriesErrorCodes.NoSession);
+        }
+        
+        var requestMessage = new HttpRequestMessage
+        {
+            RequestUri = new Uri($"{_config.CrunchyrollUrl}{path}", UriKind.Absolute),
+            Method = HttpMethod.Get,
+            Headers = { { HeaderNames.Authorization, $"Bearer {bearerToken}" } }
+        };
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _httpClient.SendAsync(requestMessage, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "request for title rating with titleId {TitleId} was not successful", 
+                titleId);
+            return Result.Fail(SeriesErrorCodes.RequestFailed);
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("request for title rating with titleId {TitleId} was not successful. StatusCode: {StatusCode}", 
+                titleId, response.StatusCode);
+            return Result.Fail(SeriesErrorCodes.RequestFailed);
+        }
+        
+        CrunchyrollSeriesRatingResponse? seriesRatingResponse;
+        try
+        {
+            seriesRatingResponse = await response.Content.ReadFromJsonAsync<CrunchyrollSeriesRatingResponse>(cancellationToken);
+        }
+        catch (JsonException e)
+        {
+            _logger.LogError(e, "invalid json format");
+            return Result.Fail(SeriesErrorCodes.InvalidResponse);
+        }
+
+        if (seriesRatingResponse is null)
+        {
+            _logger.LogError("invalid json format");
+            return Result.Fail(SeriesErrorCodes.InvalidResponse);
+        }
+
+        var isParsed = float.TryParse(seriesRatingResponse.Average, CultureInfo.InvariantCulture, out var rating);
+
+        if (!isParsed)
+        {
+            _logger.LogError("value {Value} could not be parsed to float", seriesRatingResponse.Average);
+        }
+        
+        return float.Round(rating, 1); //return 0.0f if was not parsable
+    }
 }

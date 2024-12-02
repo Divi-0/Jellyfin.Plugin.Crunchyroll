@@ -11,14 +11,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jellyfin.Plugin.Crunchyroll.Common.Persistence.Migrations
 {
     [DbContext(typeof(CrunchyrollDbContext))]
-    [Migration("20241201145039_Initial")]
+    [Migration("20241202194933_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
 
             modelBuilder.Entity("Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites.EpisodeComments", b =>
                 {
@@ -184,6 +184,9 @@ namespace Jellyfin.Plugin.Crunchyroll.Common.Persistence.Migrations
                     b.Property<string>("PosterWide")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<float>("Rating")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("SlugTitle")
                         .IsRequired()

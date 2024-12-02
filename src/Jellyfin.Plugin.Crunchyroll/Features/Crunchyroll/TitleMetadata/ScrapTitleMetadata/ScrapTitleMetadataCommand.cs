@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -15,7 +14,6 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleM
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
 using Mediator;
-using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
@@ -82,6 +80,9 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         {
             return seriesMetadataResult.ToResult();
         }
+
+        var seriesRating = await _crunchyrollSeriesClient.GetRatingAsync(request.TitleId,
+            cancellationToken);
         
         if (titleMetadata is null)
         {
@@ -95,6 +96,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
                 Description = seriesMetadataResult.Value.Description,
                 Title = seriesMetadataResult.Value.Title,
                 Studio = seriesMetadataResult.Value.ContentProvider,
+                Rating = seriesRating.ValueOrDefault, //ignore if failed
                 PosterTall = JsonSerializer.Serialize(new ImageSource
                 {
                     Uri = crunchyrollPosterTall.Source,
@@ -113,7 +115,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         }
         else
         {
-            ApplyNewSeriesMetadataToTitleMetadata(titleMetadata, seriesMetadataResult.Value);
+            ApplyNewSeriesMetadataToTitleMetadata(titleMetadata, seriesMetadataResult.Value, seriesRating.ValueOrDefault);
         }
 
         var seasons = crunchyrollSeasons.Select(x =>
@@ -186,12 +188,14 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         }
     }
 
-    private static void ApplyNewSeriesMetadataToTitleMetadata(Entities.TitleMetadata titleMetadata, CrunchyrollSeriesContentItem seriesContentResponse)
+    private static void ApplyNewSeriesMetadataToTitleMetadata(Entities.TitleMetadata titleMetadata, 
+        CrunchyrollSeriesContentItem seriesContentResponse, float rating)
     {
         titleMetadata.Title = seriesContentResponse.Title;
         titleMetadata.SlugTitle = seriesContentResponse.SlugTitle;
         titleMetadata.Description = seriesContentResponse.Description;
         titleMetadata.Studio = seriesContentResponse.ContentProvider;
+        titleMetadata.Rating = rating;
         
         var crunchyrollPosterTall = seriesContentResponse.Images.PosterTall.First().Last();
         var crunchyrollPosterWide = seriesContentResponse.Images.PosterWide.First().Last();
