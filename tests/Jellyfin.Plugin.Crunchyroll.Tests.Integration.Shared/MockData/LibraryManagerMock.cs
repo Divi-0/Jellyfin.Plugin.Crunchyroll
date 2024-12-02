@@ -4,6 +4,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
 using NSubstitute;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
@@ -11,19 +12,42 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
 public static class LibraryManagerMock
 {
     public static List<Series> MockCrunchyrollTitleIdScan(this ILibraryManager libraryManager,
-        string libraryPath, List<Series>? items = null)
+        IItemRepository itemRepository, string libraryName, List<Series>? items = null)
     {
         var itemList = items?.ToList() ?? Enumerable.Range(0, Random.Shared.Next(1, 10))
             .Select(_ => SeriesFaker.Generate())
             .ToList();
         
-        var topParentId = Guid.NewGuid();
-        libraryManager
-            .GetItemIds(Arg.Is<InternalItemsQuery>(x => x.Path == libraryPath))
-            .Returns([topParentId]);
+        var folderList = new List<BaseItem>();
+        foreach (var series in itemList)
+        {
+            var folder = new Folder
+            {
+                Id = Guid.NewGuid()
+            };
 
+            libraryManager
+                .GetItemById(folder.Id)
+                .Returns(folder);
+            
+            itemRepository
+                .GetItemList(Arg.Is<InternalItemsQuery>(x => x.ParentId == folder.Id))
+                .Returns([series]);
+            
+            folderList.Add(folder);
+        }
+
+        var collectionFolder = new CollectionFolder()
+        {
+            Id = Guid.NewGuid(),
+            PhysicalFolderIds = folderList.Select(x => x.Id).ToArray()
+        };
         libraryManager
-            .GetItemList(Arg.Is<InternalItemsQuery>(x => x.TopParentIds.Contains(topParentId)))
+            .GetItemList(Arg.Is<InternalItemsQuery>(x => x.Name == libraryName))
+            .Returns([collectionFolder]);
+
+        itemRepository
+            .GetItemList(Arg.Is<InternalItemsQuery>(x => x.ParentId == collectionFolder.Id))
             .Returns(itemList.ToList<BaseItem>());
 
         foreach (var item in itemList)
@@ -41,20 +65,40 @@ public static class LibraryManagerMock
     }
     
     public static List<Movie> MockCrunchyrollTitleIdScanMovies(this ILibraryManager libraryManager,
-        string libraryPath, List<Movie>? items = null)
+        IItemRepository itemRepository, string libraryName, List<Movie>? items = null)
     {
         var itemList = items?.ToList() ?? Enumerable.Range(0, Random.Shared.Next(1, 10))
             .Select(_ => MovieFaker.Generate())
             .ToList();
-        
-        var topParentId = Guid.NewGuid();
-        libraryManager
-            .GetItemIds(Arg.Is<InternalItemsQuery>(x => x.Path == libraryPath))
-            .Returns([topParentId]);
 
+        var folderList = new List<BaseItem>();
+        foreach (var movie in itemList)
+        {
+            var folder = new Folder
+            {
+                Id = Guid.NewGuid()
+            };
+
+            libraryManager
+                .GetItemById(folder.Id)
+                .Returns(folder);
+            
+            itemRepository
+                .GetItemList(Arg.Is<InternalItemsQuery>(x => x.ParentId == folder.Id))
+                .Returns([movie]);
+            
+            folderList.Add(folder);
+        }
+
+        var collectionFolder = new CollectionFolder()
+        {
+            Id = Guid.NewGuid(),
+            PhysicalFolderIds = folderList.Select(x => x.Id).ToArray()
+        };
+        
         libraryManager
-            .GetItemList(Arg.Is<InternalItemsQuery>(x => x.TopParentIds.Contains(topParentId)))
-            .Returns(itemList.ToList<BaseItem>());
+            .GetItemList(Arg.Is<InternalItemsQuery>(x => x.Name == libraryName))
+            .Returns([collectionFolder]);
 
         foreach (var item in itemList)
         {

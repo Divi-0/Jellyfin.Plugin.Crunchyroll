@@ -5,12 +5,13 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.E2E.Pages;
 
 public static class WizardPage
 {
-    public static async Task<IPage> FinishWizardAsync(this IPage page, string jellyfinUrl, string videoPath)
+    public static async Task<IPage> FinishWizardAsync(this IPage page, string jellyfinUrl, string videoPath, 
+        string animeCollectionName)
     {
         await page.GoToWizardAsync(jellyfinUrl);
         await page.FinishStepStartAsync();
         await page.FinishStepUserAsync();
-        await page.FinishStepLibrariesAsync(videoPath);
+        await page.FinishStepLibrariesAsync(videoPath, animeCollectionName);
         await page.FinishStepMetadataLanguageAsync();
         await page.FinishStepMiscOptionsAsync();
         await page.FinishStepFinishPageAsync();
@@ -48,7 +49,7 @@ public static class WizardPage
         await wizardUserForm.Locator(".button-submit").ClickAsync();
     }
 
-    private static async Task FinishStepLibrariesAsync(this IPage page, string videoPath)
+    private static async Task FinishStepLibrariesAsync(this IPage page, string videoPath, string animeCollectionName)
     {
         var librarySetupForm = page.Locator("div#wizardLibraryPage");
         await librarySetupForm.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
@@ -57,7 +58,7 @@ public static class WizardPage
         var addLibraryForm = page.Locator(".addLibraryForm");
         await addLibraryForm.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         await addLibraryForm.Locator("select#selectCollectionType").SelectOptionAsync("mixed");
-        await addLibraryForm.Locator("input#txtValue").FillAsync("Anime");
+        await addLibraryForm.Locator("input#txtValue").FillAsync(animeCollectionName);
         await addLibraryForm.Locator(".btnAddFolder").ClickAsync();
         
         var directoryPicker = page.Locator(".directoryPicker");

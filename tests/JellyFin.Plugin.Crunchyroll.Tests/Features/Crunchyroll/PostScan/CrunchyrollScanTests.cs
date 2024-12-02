@@ -50,7 +50,7 @@ public class CrunchyrollScanTests
             .Returns(_postMovieScanTasks);
 
         _config = new PluginConfiguration();
-        _config.LibraryPath = "/mnt/Crunchyroll";
+        _config.LibraryName = "/mnt/Crunchyroll";
         
         _sut = new CrunchyrollScan(logger, _libraryManager, _config);
     }
@@ -74,7 +74,7 @@ public class CrunchyrollScanTests
 
         var topParentId = Guid.NewGuid();
         _libraryManager
-            .GetItemIds(Arg.Is<InternalItemsQuery>(x => x.Path == _config.LibraryPath))
+            .GetItemIds(Arg.Is<InternalItemsQuery>(x => x.Path == _config.LibraryName))
             .Returns([topParentId]);
 
         _libraryManager
@@ -124,7 +124,7 @@ public class CrunchyrollScanTests
         items.AddRange(movies);
         
         _libraryManager
-            .GetItemIds(Arg.Is<InternalItemsQuery>(x => x.Path == _config.LibraryPath))
+            .GetItemIds(Arg.Is<InternalItemsQuery>(x => x.Path == _config.LibraryName))
             .Returns([]);
 
         _libraryManager
@@ -173,7 +173,7 @@ public class CrunchyrollScanTests
         items.AddRange(series);
         items.AddRange(movies);
 
-        _config.LibraryPath = string.Empty;
+        _config.LibraryName = string.Empty;
         
         _libraryManager
             .GetItemList(Arg.Is<InternalItemsQuery>(x => x.TopParentIds.Length == 0))

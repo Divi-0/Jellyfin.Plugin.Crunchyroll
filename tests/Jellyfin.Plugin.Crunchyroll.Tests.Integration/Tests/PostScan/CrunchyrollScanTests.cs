@@ -50,7 +50,7 @@ public class CrunchyrollScanTests
         _config = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
 
         _config.IsWaybackMachineEnabled = false;
-        _config.LibraryPath = "/mnt/whatever";
+        _config.LibraryName = new Faker().Random.Word();
         
         _libraryManager.ClearSubstitute();
         _itemRepository.ClearSubstitute();
@@ -66,7 +66,7 @@ public class CrunchyrollScanTests
             .Select(_ => SeriesFaker.GenerateWithTitleId())
             .ToList();
         
-        _libraryManager.MockCrunchyrollTitleIdScan(_config.LibraryPath, seriesItems);
+        _libraryManager.MockCrunchyrollTitleIdScan(_itemRepository, _config.LibraryName, seriesItems);
         
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
@@ -178,7 +178,7 @@ public class CrunchyrollScanTests
         //Arrange
         var language = new CultureInfo("en-US");
         var series = SeriesFaker.GenerateWithTitleId();
-        _libraryManager.MockCrunchyrollTitleIdScan(_config.LibraryPath, [series]);
+        _libraryManager.MockCrunchyrollTitleIdScan(_itemRepository, _config.LibraryName, [series]);
         
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
@@ -254,7 +254,7 @@ public class CrunchyrollScanTests
         var seasonId = CrunchyrollIdFaker.Generate();
         var episodeId = CrunchyrollIdFaker.Generate();
         var seriesId = CrunchyrollIdFaker.Generate();
-        _libraryManager.MockCrunchyrollTitleIdScanMovies(_config.LibraryPath, [movie]);
+        _libraryManager.MockCrunchyrollTitleIdScanMovies(_itemRepository, _config.LibraryName, [movie]);
         
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();

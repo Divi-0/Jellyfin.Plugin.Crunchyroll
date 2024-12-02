@@ -12,7 +12,7 @@ public static class DashboardPage
         await adminMenuOptions.Locator("[data-itemid='dashboard']").ClickAsync();
     }
     
-    public static async Task SetCrunchyrollPluginConfigAsync(this IPage page, string jellyfinUrl, string animeVideoPath)
+    public static async Task SetCrunchyrollPluginConfigAsync(this IPage page, string jellyfinUrl, string animeCollectionName)
     {
         const string crunchyrollPluginGuid = "c6f8461a9a6f4c658bb9825866cabc91";
         
@@ -23,9 +23,9 @@ public static class DashboardPage
 
         var crunchyrollPluginConfigForm = page.Locator("form#CrunchyrollPluginConfigForm");
         
-        var libraryPathInputElement = crunchyrollPluginConfigForm.Locator("input#LibraryPath");
+        var libraryPathInputElement = crunchyrollPluginConfigForm.Locator("input#LibraryName");
         await libraryPathInputElement.WaitForAsync(new LocatorWaitForOptions() { State = WaitForSelectorState.Visible });
-        await libraryPathInputElement.FillAsync(animeVideoPath);
+        await libraryPathInputElement.FillAsync(animeCollectionName);
         
         await crunchyrollPluginConfigForm.Locator(".button-submit").ClickAsync();
 

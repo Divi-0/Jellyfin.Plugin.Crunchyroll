@@ -24,10 +24,11 @@ public class RunScanTests
 
         try
         {
-            await page.FinishWizardAsync(_jellyfinFixture.Url, JellyfinFixture.VideoContainerPath);
+            var animeCollectioName = "Anime 123";
+            await page.FinishWizardAsync(_jellyfinFixture.Url, JellyfinFixture.VideoContainerPath, animeCollectioName);
             await page.LoginAsync();
             await page.GoToDashboardAsync();
-            await page.SetCrunchyrollPluginConfigAsync(_jellyfinFixture.Url, JellyfinFixture.VideoContainerPath);
+            await page.SetCrunchyrollPluginConfigAsync(_jellyfinFixture.Url, animeCollectioName);
             await page.StartLibraryScan(_jellyfinFixture.Url);
 
             //One Piece

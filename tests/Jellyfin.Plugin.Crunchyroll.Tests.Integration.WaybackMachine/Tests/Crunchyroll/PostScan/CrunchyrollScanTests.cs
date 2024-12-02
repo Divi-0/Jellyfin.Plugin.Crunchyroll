@@ -46,7 +46,7 @@ public class CrunchyrollScanTests
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<IMediaSourceManager>();
         _wireMockAdminApi = wireMockFixture.AdminApiClient;
         _config = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
-        _config.LibraryPath = "/mnt/abc";
+        _config.LibraryName = "/mnt/abc";
         
         _libraryManager.ClearSubstitute();
         _itemRepository.ClearSubstitute();
@@ -74,7 +74,7 @@ public class CrunchyrollScanTests
             await _wireMockAdminApi.MockAvatarUriRequest(uri);
         }
         
-        var itemList = _libraryManager.MockCrunchyrollTitleIdScan(_config.LibraryPath, [SeriesFaker.GenerateWithTitleId()]);
+        var itemList = _libraryManager.MockCrunchyrollTitleIdScan(_itemRepository, _config.LibraryName, [SeriesFaker.GenerateWithTitleId()]);
         
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();
@@ -145,7 +145,7 @@ public class CrunchyrollScanTests
         var seasonId = CrunchyrollIdFaker.Generate();
         var episodeId = CrunchyrollIdFaker.Generate();
         var seriesId = CrunchyrollIdFaker.Generate();
-        _libraryManager.MockCrunchyrollTitleIdScanMovies(_config.LibraryPath, [movie]);
+        _libraryManager.MockCrunchyrollTitleIdScanMovies(_itemRepository, _config.LibraryName, [movie]);
         
         await _wireMockAdminApi.MockRootPageAsync();
         await _wireMockAdminApi.MockAnonymousAuthAsync();

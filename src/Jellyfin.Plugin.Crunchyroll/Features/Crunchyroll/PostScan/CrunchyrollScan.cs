@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -46,21 +47,20 @@ public sealed class CrunchyrollScan : ILibraryPostScanTask
         
         var startTimestamp = Stopwatch.GetTimestamp();
         
-        Guid? topParentId = null;
-        if (!string.IsNullOrWhiteSpace(_config.LibraryPath))
+        CollectionFolder? collectionFolder = null;
+        if (!string.IsNullOrWhiteSpace(_config.LibraryName))
         {
-            var result = _libraryManager.GetItemIds(new InternalItemsQuery()
+            var result = _libraryManager.GetItemList(new InternalItemsQuery()
             {
-                Path = _config.LibraryPath
+                Name = _config.LibraryName
             });
 
-            topParentId = result.Count != 0 ? result[0] : null;
+            collectionFolder = result.FirstOrDefault(x => x is CollectionFolder) as CollectionFolder;
         }
         
-        var allItems = _libraryManager.GetItemList(new InternalItemsQuery()
-            {                                                                                                                                                                                                                      
-                TopParentIds = topParentId.HasValue ? [topParentId.Value] : []
-            });
+        var allItems = collectionFolder is not null 
+            ? GetAllSeriesAndMoviesRecursive(collectionFolder.Children) : 
+            _libraryManager.GetItemList(new InternalItemsQuery());
 
         var percent = 0.0;
 
@@ -111,5 +111,24 @@ public sealed class CrunchyrollScan : ILibraryPostScanTask
         }
         
         return true;
+    }
+
+    private static List<BaseItem> GetAllSeriesAndMoviesRecursive(IEnumerable<BaseItem> items)
+    {
+        var list = new List<BaseItem>();
+        foreach (var item in items)
+        {
+            if (item is Series or Movie)
+            {
+                list.Add(item);
+            }
+            else if(item is Folder folder)
+            {
+                var children = GetAllSeriesAndMoviesRecursive(folder.Children);
+                list.AddRange(children);
+            }
+        }
+
+        return list;
     }
 }

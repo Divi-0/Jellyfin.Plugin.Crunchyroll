@@ -42,11 +42,11 @@
                         or refused due to the ddos protection</div>
                 </div>
                 <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="LibraryPath">LibraryPath</label>
-                    <input id="LibraryPath" name="LibraryPath" type="text" is="emby-input" />
-                    <div class="fieldDescription">It is recommended to specify which folders to scan for. 
-                        Good if you have an Anime-Library and specify only the path to the library here.
-                        Keep it empty to scan in all folders</div>
+                    <label class="inputLabel inputLabelUnfocused" for="LibraryName">LibraryName</label>
+                    <input id="LibraryName" name="LibraryName" type="text" is="emby-input" />
+                    <div class="fieldDescription">It is recommended to specify which collection/library to scan for. 
+                        Good if you have an Anime-Library and specify only the name here.
+                        Keep it empty to scan in all collections</div>
                 </div>
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
@@ -80,7 +80,7 @@
                     document.querySelector('#ArchiveOrgUrl').value = config.ArchiveOrgUrl;
                     document.querySelector('#LocalDatabasePath').value = config.LocalDatabasePath;
                     document.querySelector('#IsWaybackMachineEnabled').checked = config.IsWaybackMachineEnabled;
-                    document.querySelector('#LibraryPath').value = config.LibraryPath;
+                    document.querySelector('#LibraryName').value = config.LibraryName;
                     document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value = config.WaybackMachineWaitTimeoutInSeconds;
                     document.querySelector('#IsOrderSeasonsByCrunchyrollOrderEnabled').checked = config.IsOrderSeasonsByCrunchyrollOrderEnabled;
                     Dashboard.hideLoadingMsg();
@@ -94,7 +94,7 @@
                     config.CrunchyrollUrl = document.querySelector('#CrunchyrollUrl').value;
                     config.ArchiveOrgUrl = document.querySelector('#ArchiveOrgUrl').value;
                     config.LocalDatabasePath = document.querySelector('#LocalDatabasePath').value;
-                    config.LibraryPath = document.querySelector('#LibraryPath').value;
+                    config.LibraryName = document.querySelector('#LibraryName').value;
                     config.WaybackMachineWaitTimeoutInSeconds = document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value;
                     config.IsWaybackMachineEnabled = document.querySelector('#IsWaybackMachineEnabled').checked;
                     config.IsOrderSeasonsByCrunchyrollOrderEnabled = document.querySelector('#IsOrderSeasonsByCrunchyrollOrderEnabled').checked;
