@@ -130,7 +130,7 @@ public class SetEpisodeThumbnailTests
     }
 
     [Fact]
-    public async Task SkipsSetImage_WhenTheSameThumbnailIsAlreadySet_GivenEpisodeAndImageSource()
+    public async Task SkipsDownloadAndOnlySetsPrimaryImage_WhenTheSameThumbnailIsAlreadySet_GivenEpisodeAndImageSource()
     {
         //Arrange
         var episode = EpisodeFaker.Generate();
@@ -147,6 +147,9 @@ public class SetEpisodeThumbnailTests
             .Returns(MediaProtocol.File);
         
         var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(imageSource.Uri));
+
+        _fileSystem.Directory.CreateDirectory(_directory);
+        _ = _fileSystem.File.Create(thumbnailFilePath);
         
         episode.SetImage(new ItemImageInfo()
         {
@@ -158,10 +161,10 @@ public class SetEpisodeThumbnailTests
             
         episode.SetImage(new ItemImageInfo()
         {
-            Path = thumbnailFilePath,
+            Path = "abc123",
             Type = ImageType.Primary,
-            Width = imageSource.Width,
-            Height = imageSource.Height
+            Width = 1,
+            Height = 1
         }, 0);
         
         var mockedRequest = _mockHttpMessageHandler
@@ -177,7 +180,55 @@ public class SetEpisodeThumbnailTests
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(0, "it should not download the thumbnail");
         
         _fileSystem.AllDirectories.Should().Contain(path => path == _directory);
-        _fileSystem.File.Exists(thumbnailFilePath).Should().BeFalse();
+        
+        var imageInfoPrimary = episode.GetImageInfo(ImageType.Primary, 0);
+        imageInfoPrimary.Should().NotBeNull();
+        imageInfoPrimary.Path.Should().Be(thumbnailFilePath);
+        imageInfoPrimary.Width.Should().Be(imageSource.Width);
+        imageInfoPrimary.Height.Should().Be(imageSource.Height);
+        
+        var imageInfoThumb = episode.GetImageInfo(ImageType.Thumb, 0);
+        imageInfoThumb.Should().NotBeNull();
+        imageInfoThumb.Path.Should().Be(thumbnailFilePath);
+        imageInfoThumb.Width.Should().Be(imageSource.Width);
+        imageInfoThumb.Height.Should().Be(imageSource.Height);
+    }
+
+    [Fact]
+    public async Task SkipsDownloadAndOnlySetsImagesFromFileSystem_WhenNoMatchingImageInfoOnEpisodeFoundButImageStoredInFileSystem_GivenEpisodeAndImageSource()
+    {
+        //Arrange
+        var episode = EpisodeFaker.Generate();
+        var imageBytes = _faker.Random.Bytes(1024);
+        var imageSource = new ImageSource
+        {
+            Uri = _faker.Internet.UrlWithPath(fileExt: "png"),
+            Width = Random.Shared.Next(1, 99999),
+            Height = Random.Shared.Next(1, 99999)
+        };
+        
+        _mediaSourceManager
+            .GetPathProtocol(episode.Path)
+            .Returns(MediaProtocol.File);
+        
+        var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(imageSource.Uri));
+
+        _fileSystem.Directory.CreateDirectory(_directory);
+        _ = _fileSystem.File.Create(thumbnailFilePath);
+        
+        var mockedRequest = _mockHttpMessageHandler
+            .When(imageSource.Uri)
+            .Respond(new StreamContent(new MemoryStream(imageBytes)));
+        
+        //Act
+        var result = await _sut.GetAndSetThumbnailAsync(episode, imageSource, CancellationToken.None);
+        
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(0, "it should not download the thumbnail");
+        
+        _fileSystem.AllDirectories.Should().Contain(path => path == _directory);
         
         var imageInfoPrimary = episode.GetImageInfo(ImageType.Primary, 0);
         imageInfoPrimary.Should().NotBeNull();
@@ -211,6 +262,9 @@ public class SetEpisodeThumbnailTests
         
         var thumbnailFilePath = Path.Combine(_directory, Path.GetFileName(imageSource.Uri));
         
+        _fileSystem.Directory.CreateDirectory(_directory);
+        _ = _fileSystem.File.Create(thumbnailFilePath);
+        
         movie.SetImage(new ItemImageInfo()
         {
             Path = thumbnailFilePath,
@@ -240,7 +294,6 @@ public class SetEpisodeThumbnailTests
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(0, "it should not download the thumbnail");
         
         _fileSystem.AllDirectories.Should().Contain(path => path == _directory);
-        _fileSystem.File.Exists(thumbnailFilePath).Should().BeFalse();
         
         var imageInfoPrimary = movie.GetImageInfo(ImageType.Primary, 0);
         imageInfoPrimary.Should().NotBeNull();

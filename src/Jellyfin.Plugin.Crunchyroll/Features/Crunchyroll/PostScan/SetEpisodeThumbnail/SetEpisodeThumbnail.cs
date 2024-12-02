@@ -64,29 +64,41 @@ public class SetEpisodeThumbnail : ISetEpisodeThumbnail
             .Replace(".jpe", ".jpeg");
         
         var currentThumbImage = video.GetImageInfo(ImageType.Thumb, imageIndex: 0);
-        var currentPrimaryImage = video.GetImageInfo(ImageType.Primary, imageIndex: 0);
         
-        if (IsImageEqualToCurrentThumbnail(currentThumbImage, filePath, ImageType.Thumb, imageSource) && 
-            IsImageEqualToCurrentThumbnail(currentPrimaryImage, filePath, ImageType.Primary, imageSource))
+        if (IsImageEqualToCurrentThumbnail(currentThumbImage, filePath, ImageType.Thumb, imageSource) &&
+            _file.Exists(filePath))
         {
             _logger.LogDebug("Image with type {Type} for item with Name {Name} already exists, skipping...", 
                 ImageType.Thumb,
                 video.FileNameWithoutExtension);
+            
+            //Overwrite "Primary" image, because jellyfin overwrites index 0 everytime, during normal scan
+            video.SetImage(new ItemImageInfo()
+            {
+                Path = currentThumbImage.Path,
+                Type = ImageType.Primary,
+                Width = imageSource.Width,
+                Height = imageSource.Height
+            }, 0);
+            
             return Result.Ok();
         }
-        
-        var imageStreamResult = await GetThumbnailImageStreamAsync(imageSource.Uri, cancellationToken);
 
-        if (imageStreamResult.IsFailed)
+        if (!_file.Exists(filePath))
         {
-            return imageStreamResult.ToResult();
-        }
-        
-        var createImageResult = await CreateFileAsync(filePath, imageStreamResult.Value, cancellationToken);
+            var imageStreamResult = await GetThumbnailImageStreamAsync(imageSource.Uri, cancellationToken);
 
-        if (createImageResult.IsFailed)
-        {
-            return Result.Fail(Domain.Constants.ErrorCodes.Internal);
+            if (imageStreamResult.IsFailed)
+            {
+                return imageStreamResult.ToResult();
+            }
+        
+            var createImageResult = await CreateFileAsync(filePath, imageStreamResult.Value, cancellationToken);
+
+            if (createImageResult.IsFailed)
+            {
+                return Result.Fail(Domain.Constants.ErrorCodes.Internal);
+            }
         }
             
         video.SetImage(new ItemImageInfo()

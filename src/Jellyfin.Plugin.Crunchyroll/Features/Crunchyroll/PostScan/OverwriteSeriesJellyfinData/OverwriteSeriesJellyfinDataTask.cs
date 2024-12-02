@@ -90,39 +90,24 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
         
         var currentImage = series.GetImageInfo(imageType, imageIndex: 0);
         
-        if (currentImage is not null &&
-            currentImage.Path == filePath && 
-            currentImage.Type == imageType &&
-            currentImage.Width == imageSource.Width &&
-            currentImage.Height == imageSource.Height)
+        if (IsImageEqualToCurrent(currentImage, filePath, imageType, imageSource) && 
+            _file.Exists(filePath))
         {
             _logger.LogDebug("Image with type {Type} for item with Name {Name} already exists, skipping...", 
                 imageType,
                 series.Name);
             return Result.Ok();
         }
-        
-        var posterImageResult = await _crunchyrollSeriesClient.GetPosterImagesAsync(imageSource.Uri, cancellationToken);
 
-        if (posterImageResult.IsFailed)
+        if (!_file.Exists(filePath))
         {
-            return posterImageResult.ToResult();
-        }
-        
-        try
-        {
-            if (!_directory.Exists(directory))
+            var donwloadImageResult = await DonwloadImageAndStoreToFileSystem(imageSource, directory, filePath,
+                cancellationToken);
+
+            if (donwloadImageResult.IsFailed)
             {
-                _directory.CreateDirectory(directory);
+                return donwloadImageResult;
             }
-            
-            await using var fileStream = _file.Create(filePath);
-            await posterImageResult.Value.CopyToAsync(fileStream, cancellationToken);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "unknown error, while creating poster image on filesystem");
-            return Result.Fail("FileSystem error");
         }
 
         series.SetImage(new ItemImageInfo()
@@ -134,5 +119,44 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
         }, 0);
         
         return Result.Ok();
+    }
+    
+    private static bool IsImageEqualToCurrent(ItemImageInfo? imageInfo, string path, ImageType imageType, 
+        ImageSource imageSource)
+    {
+        return imageInfo is not null &&
+               imageInfo.Path == path &&
+               imageInfo.Type == imageType &&
+               imageInfo.Width == imageSource.Width &&
+               imageInfo.Height == imageSource.Height;
+    }
+
+    private async Task<Result> DonwloadImageAndStoreToFileSystem(ImageSource imageSource, string directoryPath,
+        string filePath, CancellationToken cancellationToken)
+    {
+        var posterImageResult = await _crunchyrollSeriesClient.GetPosterImagesAsync(imageSource.Uri, cancellationToken);
+
+        if (posterImageResult.IsFailed)
+        {
+            return posterImageResult.ToResult();
+        }
+        
+        try
+        {
+            if (!_directory.Exists(directoryPath))
+            {
+                _directory.CreateDirectory(directoryPath);
+            }
+            
+            await using var fileStream = _file.Create(filePath);
+            await posterImageResult.Value.CopyToAsync(fileStream, cancellationToken);
+            
+            return Result.Ok();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "unknown error, while creating poster image on filesystem");
+            return Result.Fail("FileSystem error");
+        }
     }
 }
