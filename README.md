@@ -88,6 +88,22 @@ Attack on Titan/
 │  ├─ E01
 ```
 
+**_Episodes with decimals/specials between normal episodes_** <br>
+If an episode has a decimal number like `E1.5` or a letter `E13A`, just add it to the episode filename. <br>
+The plugin will detect it and if it can be matched to a crunchyroll episode, it will automatically be sorted to air
+between those episodes.
+
+Example:
+```
+├─ Season 1/
+│  ├─ S01E0001.5
+```
+
+```
+├─ Season 1/
+│  ├─ S01E13A
+```
+
 **_Complete Examples_** <br>
 
 <details>
