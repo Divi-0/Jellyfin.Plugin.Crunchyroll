@@ -82,6 +82,56 @@ public class OverwriteMovieJellyfinDataTaskTests
     }
 
     [Fact]
+    public async Task SetsTitleNameWithoutBrackets_WhenTitleHasBracketsAtStart_GivenMovieWithIds()
+    {
+        //Arrange
+        var movie = MovieFaker.GenerateWithCrunchyrollIds();
+        var episode = CrunchyrollEpisodeFaker.Generate();
+        var title = episode.Title;
+        episode = episode with
+        {
+            CrunchyrollId = movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId],
+            Title = $"(OMU) {episode.Title}"
+        };
+        var thumbnailImageSource = JsonSerializer.Deserialize<ImageSource>(episode.Thumbnail)!;
+        
+        var season = CrunchyrollSeasonFaker.Generate();
+        season.Episodes.Add(episode);
+        var titleMetadata = CrunchyrollTitleMetadataFaker.Generate(movie, [season]);
+        
+        _libraryManager
+            .GetItemById(movie.ParentId)
+            .Returns((BaseItem?)null);
+
+        _repository
+            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(titleMetadata);
+        
+        _setEpisodeThumbnail
+            .GetAndSetThumbnailAsync(movie, thumbnailImageSource, Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        //Act
+        await _sut.RunAsync(movie, CancellationToken.None);
+
+        //Assert
+        movie.Name.Should().Be(title);
+        movie.Overview.Should().Be(episode.Description);
+        movie.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
+
+        await _setEpisodeThumbnail
+            .Received(1)
+            .GetAndSetThumbnailAsync(movie, Arg.Is<ImageSource>(x => 
+                x.Uri == thumbnailImageSource.Uri &&
+                x.Height == thumbnailImageSource.Height &&
+                x.Width == thumbnailImageSource.Width), Arg.Any<CancellationToken>());
+        
+        await _libraryManager
+            .Received(1)
+            .UpdateItemAsync(movie, movie.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task SetsMetadataAndThumbnail_WhenSetEpisodeThumbnailFails_GivenMovieWithIds()
     {
         //Arrange

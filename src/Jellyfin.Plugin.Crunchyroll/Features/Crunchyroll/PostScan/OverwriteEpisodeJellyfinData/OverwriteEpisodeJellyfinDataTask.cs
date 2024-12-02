@@ -66,8 +66,12 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         var thumbnail = JsonSerializer.Deserialize<ImageSource>(crunchyrollEpisode.Thumbnail)!;
         _ = await _setEpisodeThumbnail
             .GetAndSetThumbnailAsync((Episode)episodeItem, thumbnail, cancellationToken);
-
-        episodeItem.Name = crunchyrollEpisode.Title;
+        
+        var match = NameWithBracketsRegex().Match(crunchyrollEpisode.Title);
+        episodeItem.Name = match.Success 
+            ? match.Groups[1].Value 
+            : crunchyrollEpisode.Title;
+        
         episodeItem.Overview = crunchyrollEpisode.Description;
 
         if (!episodeItem.IndexNumber.HasValue)
@@ -117,4 +121,6 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
 
     [GeneratedRegex(@"\d+")]
     private static partial Regex EpisodeNumberRegex();
+    [GeneratedRegex(@"\(.*\) (.*)")]
+    private static partial Regex NameWithBracketsRegex();
 }

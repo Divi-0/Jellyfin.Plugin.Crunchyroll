@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Crunchyroll.Common;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteMovieJellyfinData;
 
-public class OverwriteMovieJellyfinDataTask : IPostMovieIdSetTask
+public partial class OverwriteMovieJellyfinDataTask : IPostMovieIdSetTask
 {
     private readonly IOverwriteMovieJellyfinDataRepository _repository;
     private readonly ILogger<OverwriteMovieJellyfinDataTask> _logger;
@@ -66,8 +67,12 @@ public class OverwriteMovieJellyfinDataTask : IPostMovieIdSetTask
             _logger.LogError("No episode found for episode with id {EpisodeId} and seriesId {SeriesId}", episodeId, seriesId);
             return;
         }
-
-        movie.Name = crunchyrollMovieEpisode.Title;
+        
+        var match = NameWithBracketsRegex().Match(crunchyrollMovieEpisode.Title);
+        movie.Name = match.Success 
+            ? match.Groups[1].Value 
+            : crunchyrollMovieEpisode.Title;
+        
         movie.Overview = crunchyrollMovieEpisode.Description;
         movie.SetStudios([titleMetadataResult.Value.Studio]);
 
@@ -76,4 +81,7 @@ public class OverwriteMovieJellyfinDataTask : IPostMovieIdSetTask
 
         await _libraryManager.UpdateItemAsync(movie, movie.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
     }
+    
+    [GeneratedRegex(@"\(.*\) (.*)")]
+    private static partial Regex NameWithBracketsRegex();
 }
