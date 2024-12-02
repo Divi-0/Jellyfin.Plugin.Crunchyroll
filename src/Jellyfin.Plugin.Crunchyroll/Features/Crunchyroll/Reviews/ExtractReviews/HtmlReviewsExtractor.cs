@@ -77,6 +77,11 @@ public class HtmlReviewsExtractor : IHtmlReviewsExtractor
     
         foreach (var reviewElement in reviewElements)
         {
+            if (reviewElement.SelectSingleNode(".//div[contains(@class, 'review-spoiler-body')]") != null)
+            {
+                continue;
+            }
+            
             var imageUrl = reviewElement.SelectSingleNode(".//img")?.GetAttributeValue("src", string.Empty);
             var username = reviewElement.SelectSingleNode(".//h5")?.GetDirectInnerText();
             var title = reviewElement.SelectSingleNode(".//h3")?.GetDirectInnerText();
@@ -114,7 +119,7 @@ public class HtmlReviewsExtractor : IHtmlReviewsExtractor
         return reviewItems;
     }
 
-    private DateTime TryParseDate(string dateString, CultureInfo language)
+    private static DateTime TryParseDate(string dateString, CultureInfo language)
     {
         var hasParsed = DateTime.TryParse(dateString, language, out var date);
         return hasParsed ? date : default;

@@ -58,6 +58,24 @@ public class HtmlReviewsExtractorTests
     }
 
     [Fact]
+    public async Task ReturnsZeroReviews_WhenAllHaveSpoilers_GivenUrl()
+    {
+        //Arrange
+        var url = _fixture.Create<Uri>().AbsoluteUri;
+
+        var mockedRequest = _mockHttpMessageHandler.MockWaybackMachineUrlHtmlReviewsResponseWithSpoiler(url);
+        
+        //Act
+        var result = await _sut.GetReviewsAsync(url, new CultureInfo("en-US"), CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEmpty();
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().BePositive();
+    }
+
+    [Fact]
     public async Task ReturnsFailed_WhenUrlRequestIsNotSuccessfull_GivenUrl()
     {
         //Arrange

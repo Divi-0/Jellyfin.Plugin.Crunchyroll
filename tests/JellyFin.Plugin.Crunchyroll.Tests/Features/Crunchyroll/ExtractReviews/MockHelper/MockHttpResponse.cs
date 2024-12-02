@@ -14,6 +14,16 @@ public static class MockHttpResponse
 
         return mockedRequest;
     }
+    public static MockedRequest MockWaybackMachineUrlHtmlReviewsResponseWithSpoiler(this MockHttpMessageHandler mockHttpMessageHandler, string url)
+    {
+        var mockedRequest = mockHttpMessageHandler
+            .When(url)
+            .Respond("text/html", Properties.Resources.WaybackHtmlCrunchyrollReviews
+                .Replace("expandable-section__wrapper--G-ttI", "review-spoiler-body_adcb"));
+
+        return mockedRequest;
+    }
+    
     public static MockedRequest MockWaybackMachineUrlHtmlReviewsResponseInvalidDate(this MockHttpMessageHandler mockHttpMessageHandler, string url)
     {
         var mockedRequest = mockHttpMessageHandler
