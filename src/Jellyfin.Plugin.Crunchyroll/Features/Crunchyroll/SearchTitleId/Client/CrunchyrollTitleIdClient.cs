@@ -56,6 +56,7 @@ public class CrunchyrollTitleIdClient : ICrunchyrollTitleIdClient
 
         if (string.IsNullOrWhiteSpace(bearerToken))
         {
+            _logger.LogError("no session found");
             return Result.Fail(ErrorCodes.CrunchyrollSessionMissing);
         }
 
@@ -79,6 +80,7 @@ public class CrunchyrollTitleIdClient : ICrunchyrollTitleIdClient
 
         if (crunchyrollSearchResponse is null)
         {
+            _logger.LogError("crunchyroll search response for title {Title} was empty", title);
             return Result.Fail(ErrorCodes.CrunchyrollSearchContentIncompatible);
         }
         

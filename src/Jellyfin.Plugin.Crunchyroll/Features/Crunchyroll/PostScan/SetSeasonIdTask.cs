@@ -5,6 +5,7 @@ using Mediator;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Crunchyroll.Common;
@@ -13,7 +14,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetSeasonId
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 
-public class SetSeasonIdTask : IPostTitleIdSetTask
+public partial class SetSeasonIdTask : IPostTitleIdSetTask
 {
     private readonly IMediator _mediator;
     private readonly IEnumerable<IPostSeasonIdSetTask> _postSeasonIdSetTasks;
@@ -116,6 +117,11 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
 
     private async Task<Result<string?>> GetSeasonIdByName(string titleId, BaseItem season, CancellationToken cancellationToken)
     {
+        if (SeasonFolderNameHasOnlyNumberRegex().IsMatch(season.FileNameWithoutExtension))
+        {
+            return Result.Ok<string?>(null);
+        }
+        
         var byNameQuery = new SeasonIdQueryByName(titleId, season.FileNameWithoutExtension, 
             season.GetPreferredMetadataCultureInfo());
         return await _mediator.Send(byNameQuery, cancellationToken);
@@ -142,4 +148,7 @@ public class SetSeasonIdTask : IPostTitleIdSetTask
             await task.RunAsync(item, cancellationToken);
         }
     }
+
+    [GeneratedRegex(@"^Season \d*$")]
+    private static partial Regex SeasonFolderNameHasOnlyNumberRegex();
 }

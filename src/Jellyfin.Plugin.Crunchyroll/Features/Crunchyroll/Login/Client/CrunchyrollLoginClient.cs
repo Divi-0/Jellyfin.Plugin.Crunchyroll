@@ -89,6 +89,7 @@ public class CrunchyrollLoginClient : ICrunchyrollLoginClient
 
         if (authResponse is null)
         {
+            _logger.LogError("crunchyroll auth response is null");
             return Result.Fail(ErrorCodes.CrunchyrollLoginFailed);
         }
 
