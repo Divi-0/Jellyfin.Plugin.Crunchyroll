@@ -38,7 +38,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine.Propertie
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine.Properties.Reso" +
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Jellyfin.Plugin.Crunchyroll.Tests1.Integration.WaybackMachine.Properties.Reso" +
                             "urces", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }

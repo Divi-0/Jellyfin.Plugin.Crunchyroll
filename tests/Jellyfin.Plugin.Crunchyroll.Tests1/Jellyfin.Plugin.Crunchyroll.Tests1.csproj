@@ -9,9 +9,8 @@
         <IsTestProject>true</IsTestProject>
         <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
-        <AssemblyName>Jellyfin.Plugin.Crunchyroll.Tests</AssemblyName>
         <RootNamespace>Jellyfin.Plugin.Crunchyroll.Tests</RootNamespace>
-        <PackageId>Jellyfin.Plugin.Crunchyroll.Tests</PackageId>
+        <PackageId>Jellyfin.Plugin.Crunchyroll.Tests1</PackageId>
         <Authors>Jellyfin.Plugin.Crunchyroll.Tests</Authors>
         <Company>Jellyfin.Plugin.Crunchyroll.Tests</Company>
         <Product>Jellyfin.Plugin.Crunchyroll.Tests</Product>
