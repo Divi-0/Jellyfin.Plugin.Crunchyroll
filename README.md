@@ -2024,6 +2024,16 @@ Example:
 ### Select Metadata Language
 The plugin uses the metadata language that was set in Jellyfin. Refer to the Jellyfin documentation.
 
+### Add a Crunchyroll reference/id manually
+If a series could not be found via crunchyroll search, but you find it via Google or other search engine <br>
+then you can add it manually by editing the metadata of the series.
+1. Go and find the anime on Crunchyroll.
+2. Copy the Crunchyroll id from the url `https://www.crunchyroll.com/series/<id>/one-piece`
+3. Edit the metadata of your anime in the jellyfin ui
+4. You will find a textarea, in the "External IDs" section with the name "Crunchyroll Series Id" (it's the first one, if there are two)
+5. Paste the id into the textarea and save
+6. Run a library scan
+
 ## Build
 
 Install the dotnet 8 sdk and run `dotnet build` 
