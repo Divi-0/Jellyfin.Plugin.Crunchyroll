@@ -51,17 +51,15 @@ jobs:
           echo checksum=${MD5HASH} >> $GITHUB_OUTPUT
 
       # Add Release to manifest.json
-      - name: Add version to manifest.json
+      - name: Add version to manifest.json & commit
+        id: manifest
         run: |
           VERSION='${{ inputs.version}}'
           TIMESTAMP=$(date --utc +%FT%TZ)
           CHECKSUM=${{ steps.artifact.outputs.checksum }}
           jq '.[0].versions += [{"version": ''"'"${VERSION//v}"'"'', "changelog": "${{ inputs.release-notes}}", "targetAbi": "${{ inputs.jellyfin-release}}", "sourceUrl": "https://github.com/Divi-0/Jellyfin.Plugin.Crunchyroll/releases/download/${{ inputs.version}}/Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip", "checksum": ''"'"${CHECKSUM}"'"'', "timestamp": ''"'"${TIMESTAMP}"'"''}]' manifest.json
           echo $(cat manifest.json)
-
-      - name: Commit manifest.json
-        id: manifest
-        run: |
+          
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           
