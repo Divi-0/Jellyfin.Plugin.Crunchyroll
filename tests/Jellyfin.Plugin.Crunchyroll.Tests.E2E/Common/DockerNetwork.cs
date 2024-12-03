@@ -7,7 +7,7 @@ public class DockerNetwork : IAsyncLifetime
 {
     private INetwork _network;
     
-    public const string NetworkName = "Jellyfin.Plugin.Crunchyroll.Tests1.E2E";
+    public const string NetworkName = "Jellyfin.Plugin.Crunchyroll.Tests.E2E";
 
     public DockerNetwork()
     {

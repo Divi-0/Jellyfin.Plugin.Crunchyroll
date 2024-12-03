@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jellyfin.Plugin.Crunchyroll", "src\Jellyfin.Plugin.Crunchyroll\Jellyfin.Plugin.Crunchyroll.csproj", "{7FA19845-B49D-4694-B630-B85599EC50B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jellyfin.Plugin.Crunchyroll.Tests1", "tests\Jellyfin.Plugin.Crunchyroll.Tests1\Jellyfin.Plugin.Crunchyroll.Tests1.csproj", "{E4035CA2-5FEC-4757-A5AD-17DB79CE8B86}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jellyfin.Plugin.Crunchyroll.Tests", "tests\Jellyfin.Plugin.Crunchyroll.Tests\Jellyfin.Plugin.Crunchyroll.Tests.csproj", "{E4035CA2-5FEC-4757-A5AD-17DB79CE8B86}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A1583A04-1039-4B89-B8EB-7B96A38BBE05}"
 EndProject

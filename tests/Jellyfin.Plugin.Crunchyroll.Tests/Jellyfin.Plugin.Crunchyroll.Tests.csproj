@@ -10,7 +10,7 @@
         <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
         <RootNamespace>Jellyfin.Plugin.Crunchyroll.Tests</RootNamespace>
-        <PackageId>Jellyfin.Plugin.Crunchyroll.Tests1</PackageId>
+        <PackageId>Jellyfin.Plugin.Crunchyroll.Tests</PackageId>
         <Authors>Jellyfin.Plugin.Crunchyroll.Tests</Authors>
         <Company>Jellyfin.Plugin.Crunchyroll.Tests</Company>
         <Product>Jellyfin.Plugin.Crunchyroll.Tests</Product>
