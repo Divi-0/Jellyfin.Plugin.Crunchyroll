@@ -43,7 +43,9 @@ More details of the features can be found in the wiki [Features](https://github.
 6. Done. Run a library scan
 
 ## Usage
-The Plugin runs as a post task on a library scan, so to get the metadata from Crunchyroll just run a library scan. The first scan can take multiple minutes or even hours, depending on your collection size. (On a test with 1000 episodes, the scan took 30min)
+The Plugin runs as a post task on a library scan, so to get the metadata from Crunchyroll just run a library scan. 
+The first scan can take multiple minutes or even hours, depending on your collection/library size.
+You can enable debug logging in Jellyfin to see the logs.
 
 ### Folder structure
 Crunchyroll has some clusterfuck season-numbers, some are correct, some are completely off, almost every big anime is different... To assign the Crunchyroll series and episodes to the Jellyfin items, the folder structure must be adapted to the Crunchyroll structure.
