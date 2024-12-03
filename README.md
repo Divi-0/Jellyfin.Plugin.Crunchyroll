@@ -4,6 +4,10 @@ This plugin is a third party plugin and was not created by the official Jellyfin
 It collects metadata from Crunchyroll and sets Description, Images, ... to the existing Jellyfin Items.
 It also brings back reviews and comments, in a read-only mode. (Scraped from WaybackMachine)
 
+Disclaimer: I could not test every anime because Crunchyroll is region locked. So please take this into consideration, 
+some animes might not be recognized correctly. 
+If you find any bugs you are welcome to create an issue.
+
 ## Features
 Metadata that will be fetched from Crunchyroll
 - Series
