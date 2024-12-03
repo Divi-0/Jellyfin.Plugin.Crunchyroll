@@ -49,11 +49,16 @@ function featureSelect(){
             
             if((itemSetWatchedButton.hasAttribute("data-itemtype") && itemSetWatchedButton.attributes["data-itemtype"].value === "Series") ||
                 (itemSetWatchedButton.hasAttribute("data-type") && itemSetWatchedButton.attributes["data-type"].value === "Series")){
-                let _ = showReviews(id)
+                _ = showReviews(id)
             }
             else if((itemSetWatchedButton.hasAttribute("data-itemtype") && itemSetWatchedButton.attributes["data-itemtype"].value === "Episode") ||
                 (itemSetWatchedButton.hasAttribute("data-type") && itemSetWatchedButton.attributes["data-type"].value === "Episode")){
-                let _ = showComments(id)
+                _ = showComments(id)
+            }
+            else if((itemSetWatchedButton.hasAttribute("data-itemtype") && itemSetWatchedButton.attributes["data-itemtype"].value === "Movie") ||
+                (itemSetWatchedButton.hasAttribute("data-type") && itemSetWatchedButton.attributes["data-type"].value === "Movie")){
+                _ = showReviews(id)
+                _ = showComments(id)
             }
             
             bodyObserver.disconnect();
@@ -64,6 +69,12 @@ function featureSelect(){
 }
 
 async function showReviews(id) {
+    let element = document.querySelector("div.itemDetailPage:not(.hide) div.detailPageContent")
+
+    if(element.querySelector('div#crunchyroll-reviews-wrapper') !== null){
+        return;
+    }
+    
     const url = `${window.location.origin}/api/crunchyrollPlugin/crunchyroll/reviews/${id}`
     let json;
     try {
@@ -79,11 +90,16 @@ async function showReviews(id) {
 
 
     let reviewsElement = getReviewsHtml(json.Reviews);
-    let element = document.querySelector("div.itemDetailPage:not(.hide) div.detailPageContent")
     element.appendChild(reviewsElement);
 }
 
 async function showComments(id) {
+    let element = document.querySelector("div.itemDetailPage:not(.hide) div.detailPageContent")
+
+    if(element.querySelector('div#crunchyroll-comments') !== null){
+        return;
+    }
+    
     const url = `${window.location.origin}/api/crunchyrollPlugin/crunchyroll/comments/${id}?pageNumber=1&pageSize=50`
     let json;
     try {
@@ -99,7 +115,6 @@ async function showComments(id) {
 
 
     let commentsElement = getCommentsHtml(json.Comments);
-    let element = document.querySelector("div.itemDetailPage:not(.hide) div.detailPageContent")
     element.appendChild(commentsElement);
 }
 

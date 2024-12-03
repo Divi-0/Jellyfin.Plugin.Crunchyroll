@@ -74,9 +74,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="Features\Script\crunchyrollPlugin.js">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </EmbeddedResource>
+      <EmbeddedResource Include="Features\Script\crunchyrollPlugin.js" />
       <None Remove="crunchyrollPlugin.js" />
       <None Remove="Configuration\configPage.html" />
       <EmbeddedResource Include="Configuration\configPage.html" />
