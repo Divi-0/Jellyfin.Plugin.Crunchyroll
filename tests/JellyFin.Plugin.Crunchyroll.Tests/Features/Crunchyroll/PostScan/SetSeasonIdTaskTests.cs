@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Bogus;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Common;
@@ -27,6 +28,8 @@ public class SetSeasonIdTaskTests
     private readonly IItemRepository _itemRepository;
     private readonly IMediaSourceManager _mediaSourceManager;
 
+    private readonly Faker _faker;
+
     public SetSeasonIdTaskTests()
     {
         _postSeasonIdSetTasks = Enumerable.Range(0, Random.Shared.Next(1, 10))
@@ -40,6 +43,8 @@ public class SetSeasonIdTaskTests
         var logger = Substitute.For<ILogger<SetSeasonIdTask>>();
         
         _sut = new SetSeasonIdTask(_mediator, _postSeasonIdSetTasks, logger, _libraryManager);
+
+        _faker = new Faker();
     }
 
     [Fact]
@@ -80,6 +85,78 @@ public class SetSeasonIdTaskTests
             .Received(1)
             .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], child.FileNameWithoutExtension,
                     child.GetPreferredMetadataCultureInfo()),
+                Arg.Any<CancellationToken>());
+
+        await _libraryManager
+            .Received(1)
+            .UpdateItemAsync(
+                Arg.Is<BaseItem>(x => x == child), 
+                Arg.Is<BaseItem>(x => x == series), 
+                ItemUpdateType.MetadataEdit, 
+                Arg.Any<CancellationToken>());
+
+        child.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeasonId, out var seasonId).Should().BeTrue();
+        seasonId.Should().Be(crunchyrollSeasonId);
+
+        foreach (var seasonItem in series.Children)
+        {
+            _postSeasonIdSetTasks.Should().AllSatisfy(x =>
+            {
+                x.Received(1).RunAsync(seasonItem, Arg.Any<CancellationToken>());
+            });
+        }
+    }
+
+    [Fact]
+    public async Task SetsSeasonIdAndRunsPostTasksButDoesNotGetItByName_WhenFileNameAsDefaultFormat_GivenItemWithUniqueName()
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+        var season = SeasonFaker.Generate(series);
+        season.Path = $"/{_faker.Random.Words(3)}/Season {season.IndexNumber}";
+
+        _libraryManager
+            .GetItemById(series.Id)
+            .Returns(series);
+        
+        _itemRepository
+            .GetItemList(Arg.Is<InternalItemsQuery>(x =>
+                x.ParentId == series.Id &&
+                x.GroupByPresentationUniqueKey == false &&
+                x.DtoOptions.Fields.Count != 0))
+            .Returns([season]);
+        
+        _mediaSourceManager
+            .GetPathProtocol(season.Path)
+            .Returns(MediaProtocol.File);
+
+        var crunchyrollSeasonId = CrunchyrollIdFaker.Generate();
+        _mediator
+            .Send(Arg.Is<SeasonIdQueryByNumber>(x => 
+                    x.TitleId == series.ProviderIds[CrunchyrollExternalKeys.SeriesId] &&
+                    x.SeasonNumber == season.IndexNumber!.Value &&
+                    x.DuplicateCounter == 0), 
+                Arg.Any<CancellationToken>())
+            .Returns(crunchyrollSeasonId);
+
+        //Act
+        await _sut.RunAsync(series, CancellationToken.None);
+
+        //Assert
+        var child = series.Children.First();
+
+        await _mediator
+            .DidNotReceive()
+            .Send(new SeasonIdQueryByName(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], child.FileNameWithoutExtension,
+                    child.GetPreferredMetadataCultureInfo()),
+                Arg.Any<CancellationToken>());
+
+        await _mediator
+            .Received(1)
+            .Send(Arg.Is<SeasonIdQueryByNumber>(x =>
+                    x.TitleId == series.ProviderIds[CrunchyrollExternalKeys.SeriesId] &&
+                    x.SeasonNumber == season.IndexNumber!.Value &&
+                    x.DuplicateCounter == 0),
                 Arg.Any<CancellationToken>());
 
         await _libraryManager

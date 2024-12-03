@@ -36,6 +36,7 @@ public class GetSeasonRepository : IGetSeasonRepository
                         x.Series!.CrunchyrollId == crunchyrollTitleId &&
                         x.Language == language.Name &&
                         x.SeasonNumber == seasonNumber)
+                .OrderBy(x => x.SeasonSequenceNumber)
                 .Skip(duplicateCounter)
                 .Select(x => x.CrunchyrollId)
                 .FirstOrDefaultAsync(cancellationToken);

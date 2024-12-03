@@ -5,6 +5,7 @@ using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.DeleteTitleMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Library;
@@ -40,6 +41,8 @@ public class CrunchyrollPlugin : MediaBrowser.Common.Plugins.BasePlugin<PluginCo
         InjectClientSideScriptIntoIndexFile(applicationPaths);
 
         RunMigrations();
+        
+        ServiceProvider.UseDeleteTitleMetadata();
         
         Instance = this;
     }

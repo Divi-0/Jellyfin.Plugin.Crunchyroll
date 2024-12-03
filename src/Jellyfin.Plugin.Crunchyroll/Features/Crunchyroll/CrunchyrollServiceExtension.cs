@@ -1,6 +1,7 @@
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.DeleteTitleMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
@@ -32,6 +33,7 @@ public static class CrunchyrollServiceExtension
         serviceCollection.AddCrunchyrollGetEpisodeId();
         serviceCollection.AddCrunchyrollPostScanTasks();
         serviceCollection.AddSetEpisodeThumbnail();
+        serviceCollection.AddDeleteTitleMetadata();
         
         return serviceCollection;
     }
