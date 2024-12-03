@@ -26,8 +26,9 @@ public class CommentsController : ControllerBase
             logger.LogError("{ClassName} instance is not set, can not continue", nameof(CrunchyrollPlugin));
             throw new ArgumentNullException(nameof(CrunchyrollPlugin.Instance));
         }
-        
-        _mediator = CrunchyrollPlugin.Instance.ServiceProvider.GetRequiredService<IMediator>();
+
+        var scope = CrunchyrollPlugin.Instance.ServiceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
+        _mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
     }
     
     [HttpGet("{title}")]
