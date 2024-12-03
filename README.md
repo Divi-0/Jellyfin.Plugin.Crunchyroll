@@ -2050,6 +2050,14 @@ if $(ConfigurationName) == Debug (
 )
 ```
 
+E2E tests:
+Add this as post build event, to copy automatically changes from source code to the docker image
+```
+rd /s /q "$(TargetDir)plugin"
+mkdir $(TargetDir)plugin
+xcopy /y "$(SolutionDir)src/Jellyfin.Plugin.Crunchyroll/$(OutDir)*.*" $(TargetDir)plugin
+```
+
 #### Adding Code First EF-Migrations
 1. Remove `<IncludeAssets>compile</IncludeAssets>` from the Entity Framework Nuget Packages & `Jellyfin.Controller & Jellyfin.Model` in `Jellyfin.Plugin.Crunchyroll.csproj` <br>
 Or just remove the nuget packages with a package manager and re-add them. (ef-tool needs the runtime binaries) <br>

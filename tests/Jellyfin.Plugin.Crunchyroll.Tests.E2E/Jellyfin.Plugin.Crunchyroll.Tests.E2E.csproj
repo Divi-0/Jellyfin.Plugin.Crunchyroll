@@ -29,8 +29,4 @@
       <ProjectReference Include="..\..\src\Jellyfin.Plugin.Crunchyroll\Jellyfin.Plugin.Crunchyroll.csproj" />
     </ItemGroup>
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="rd /s /q &quot;$(TargetDir)plugin&quot;&#xA;mkdir $(TargetDir)plugin&#xA;xcopy /y &quot;$(SolutionDir)src/Jellyfin.Plugin.Crunchyroll/$(OutDir)*.*&quot; $(TargetDir)plugin" />
-    </Target>
-
 </Project>
