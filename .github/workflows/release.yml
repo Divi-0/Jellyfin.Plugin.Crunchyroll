@@ -56,7 +56,7 @@ jobs:
       - name: Create artifact
         id: artifact
         run: |
-          zip -r Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip src/Jellyfin.Plugin.Crunchyroll/bin/Release
+          zip -r -j Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip src/Jellyfin.Plugin.Crunchyroll/bin/Release/net8.0/*
           MD5HASH=($(md5sum Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip))
           echo checksum=${MD5HASH} >> $GITHUB_OUTPUT
 
