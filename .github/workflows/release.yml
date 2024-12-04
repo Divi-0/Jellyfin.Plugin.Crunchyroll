@@ -87,10 +87,11 @@ jobs:
         # uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5
         uses: ncipollo/release-action@v1.14.0
         with:
-          artifact: Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip
+          artifacts: Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip
           # An optional body for the release.
           body: ${{ inputs.release-notes}}
           # An optional commit reference. This will be used to create the tag if it does not exist.
           commit: ${{ steps.manifest.outputs.commit }}
           # An optional name for the release. If this is omitted the tag will be used.
           name: ${{ inputs.version}}
+          tag: ${{ inputs.version}}
