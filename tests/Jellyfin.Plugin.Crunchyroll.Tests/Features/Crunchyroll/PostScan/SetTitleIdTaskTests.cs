@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Bogus;
+using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
@@ -22,6 +23,8 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
         private readonly IPostTitleIdSetTask[] _postTitleIdSetTasks;
         private readonly ILibraryManager _libraryManager;
         private readonly IMediaSourceManager _mediaSourceManager;
+        
+        private readonly Faker _faker;
 
         public SetTitleIdTaskTests()
         {
@@ -35,6 +38,8 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             _mediaSourceManager = MockHelper.MediaSourceManager;
 
             _sut = new SetTitleIdTask(_mediator, _postTitleIdSetTasks, logger, _libraryManager);
+
+            _faker = new Faker();
         }
 
         [Fact]
@@ -73,6 +78,60 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
                 .Received(1)
                 .Send(Arg.Is<TitleIdQuery>(x => 
                     x.Title == item.FileNameWithoutExtension),
+                    Arg.Any<CancellationToken>());
+            
+            await _libraryManager
+                .Received(1)
+                .UpdateItemAsync(
+                    Arg.Is<BaseItem>(x => x.Id == item.Id), 
+                    Arg.Any<BaseItem>(), 
+                    ItemUpdateType.MetadataEdit, 
+                    Arg.Any<CancellationToken>());
+            
+            item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out var actualCrunchyrollId).Should().BeTrue();
+            item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesSlugTitle, out var actualCrunchyrollSlugTitle).Should().BeTrue();
+            actualCrunchyrollId.Should().Be(crunchrollId);
+            actualCrunchyrollSlugTitle.Should().Be(crunchrollSlugTitle);
+        }
+
+        [Fact]
+        public async Task CallsTitleIdQueryOnlyWithSeriesName_WhenFileNameHasYearAndDbId_GivenFileNameWithExtraLetters()
+        {
+            //Arrange
+            var crunchrollId = CrunchyrollIdFaker.Generate();
+            var crunchrollSlugTitle = CrunchyrollSlugFaker.Generate();
+            var item = SeriesFaker.Generate();
+            var seriesName = _faker.Random.Words(3);
+            item.Path = $"{_faker.Random.Word()}/{seriesName} ({_faker.Random.Number()}) [tmdbid-{_faker.Random.Number()}]";
+
+            _mediator
+                .Send(Arg.Any<TitleIdQuery>(), Arg.Any<CancellationToken>())
+                .Returns(Result.Ok<SearchResponse?>(new SearchResponse
+                {
+                    Id = crunchrollId,
+                    SlugTitle = crunchrollSlugTitle
+                }));
+            
+            _libraryManager
+                .UpdateItemAsync(Arg.Is<BaseItem>(x => x.Id == item.Id), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
+                .Returns(Task.CompletedTask);
+
+            _libraryManager
+                .GetItemById(item.DisplayParentId)
+                .Returns(SeriesFaker.Generate());
+
+            _mediaSourceManager
+                .GetPathProtocol(item.Path)
+                .Returns(MediaProtocol.File);
+
+            //Act
+            await _sut.RunAsync(item, CancellationToken.None);
+
+            //Assert
+            await _mediator
+                .Received(1)
+                .Send(Arg.Is<TitleIdQuery>(x => 
+                    x.Title == seriesName),
                     Arg.Any<CancellationToken>());
             
             await _libraryManager

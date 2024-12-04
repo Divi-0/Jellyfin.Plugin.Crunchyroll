@@ -5,6 +5,7 @@ using Mediator;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Crunchyroll.Common;
@@ -13,7 +14,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 
-public class SetTitleIdTask : IPostSeriesScanTask
+public partial class SetTitleIdTask : IPostSeriesScanTask
 {
     private readonly IMediator _mediator;
     private readonly IEnumerable<IPostTitleIdSetTask> _postTitleIdSetTasks;
@@ -51,8 +52,15 @@ public class SetTitleIdTask : IPostSeriesScanTask
 
         try
         {
+            var seriesFileNameExtraDataInNameRegex = SeriesFileNameExtraDataInNameRegex();
+            var match = seriesFileNameExtraDataInNameRegex.Match(item.FileNameWithoutExtension);
+
+            var title = match.Success
+                ? match.Groups[1].Value
+                : item.FileNameWithoutExtension;
+                
             var titleIdResult = await _mediator.Send(new TitleIdQuery(
-                item.FileNameWithoutExtension,
+                    title,
                 item.GetPreferredMetadataCultureInfo()), 
                 cancellationToken);
 
@@ -82,4 +90,7 @@ public class SetTitleIdTask : IPostSeriesScanTask
             await task.RunAsync(baseItem, cancellationToken);
         }
     }
+
+    [GeneratedRegex(@"^(.*) \(| \[")]
+    private static partial Regex SeriesFileNameExtraDataInNameRegex();
 }
