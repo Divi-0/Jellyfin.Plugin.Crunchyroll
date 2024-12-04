@@ -51,7 +51,8 @@ jobs:
         run: |
           VERSION='${{ inputs.version}}'
           TIMESTAMP=$(date --utc +%FT%TZ)
-          jq '.[0].versions += [{"version": ''"'"${VERSION//v}"'"'', "changelog": "${{ inputs.release-notes}}", "targetAbi": "${{ inputs.jellyfin-release}}", "sourceUrl": "https://github.com/Divi-0/Jellyfin.Plugin.Crunchyroll/releases/download/${{ inputs.version}}/Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip", "checksum": ''"'"${{ steps.artifact.outputs.checksum }}"'"'', "timestamp": ''"'"${TIMESTAMP}"'"''}]' manifest.json > manifest.json
+          MANIFEST_CONTENT=$(jq '.[0].versions += [{"version": ''"'"${VERSION//v}"'"'', "changelog": "${{ inputs.release-notes}}", "targetAbi": "${{ inputs.jellyfin-release}}", "sourceUrl": "https://github.com/Divi-0/Jellyfin.Plugin.Crunchyroll/releases/download/${{ inputs.version}}/Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip", "checksum": ''"'"${{ steps.artifact.outputs.checksum }}"'"'', "timestamp": ''"'"${TIMESTAMP}"'"''}]' manifest.json)
+          echo -E $MANIFEST_CONTENT > manifest.json
           echo $(cat manifest.json)
 
       - name: Commit manifest.json
