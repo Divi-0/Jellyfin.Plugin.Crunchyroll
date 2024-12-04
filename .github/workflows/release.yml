@@ -6,10 +6,6 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      commit:
-        type: string
-        required: true
-        description: commit hash
       version:
         type: string
         required: true
