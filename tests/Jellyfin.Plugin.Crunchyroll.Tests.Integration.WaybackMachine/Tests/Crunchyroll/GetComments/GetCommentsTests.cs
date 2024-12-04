@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
@@ -58,7 +59,7 @@ public class GetCommentsTests
     }
 
     [Fact]
-    public async Task ReturnsEmpty_WhenWaybackMachineIsEnabled_GivenCommentsInDatabase()
+    public async Task ReturnsNotFound_WhenWaybackMachineIsEnabled_GivenNoCommentsInDatabase()
     {
         //Arrange
         var episode = EpisodeFaker.GenerateWithEpisodeId();
@@ -71,11 +72,6 @@ public class GetCommentsTests
         var response = await _httpClient.GetAsync($"api/crunchyrollPlugin/crunchyroll/comments/{episode.Id}");
         
         //Assert
-        response.IsSuccessStatusCode.Should().BeTrue();
-        var commentsResponse = await response.Content.ReadFromJsonAsync<CommentsResponse>();
-
-        commentsResponse.Should().NotBeNull();
-        commentsResponse!.Comments.Should().BeEmpty();
-        commentsResponse.Total.Should().Be(0);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

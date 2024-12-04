@@ -51,6 +51,11 @@ public class GetReviewsController : ControllerBase
             
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
+
+        if (reviewsResult.Value is null)
+        {
+            return NotFound();
+        }
         
         return Ok(reviewsResult.Value);
     }

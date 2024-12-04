@@ -151,6 +151,11 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
         {
             return result.ToResult();
         }
+
+        if (result.Value is null)
+        {
+            return false;
+        }
         
         return result.Value.Count != 0;
     }

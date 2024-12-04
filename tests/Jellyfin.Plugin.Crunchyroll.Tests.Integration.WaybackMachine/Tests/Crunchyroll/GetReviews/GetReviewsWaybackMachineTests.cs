@@ -70,4 +70,25 @@ public class GetReviewsWaybackMachineTests
 
         locacle.IsNeutralCulture.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task ReturnsNotFound_WhenNoReviewsExist_GivenSeriesItemId()
+    {
+        //Arrange
+        var itemId = Guid.NewGuid();
+        var series = SeriesFaker.GenerateWithTitleId();
+        const int pageNumber = 1;
+        const int pageSize = 10;
+
+        PluginWebApplicationFactory.LibraryManagerMock
+            .RetrieveItem(itemId)
+            .Returns(series);
+        
+        //Act
+        var path = $"api/crunchyrollPlugin/crunchyroll/reviews/{itemId}?pageNumber={pageNumber}&pageSize={pageSize}";
+        var response = await _httpClient.GetAsync(path);
+
+        //Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
 }

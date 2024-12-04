@@ -189,7 +189,7 @@ public class GetReviewsQueryTests
         var reviewsResponse = _fixture.Create<ReviewsResponse>();
         _getReviewsRepository
             .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], Arg.Any<CultureInfo>(),
-                Arg.Any<CancellationToken>())
+                Arg.Any<CancellationToken>())!
             .Returns(Result.Ok(reviewsResponse.Reviews));
         
         //Act
@@ -217,7 +217,7 @@ public class GetReviewsQueryTests
                Arg.Any<CultureInfo>(), 
                 Arg.Any<CancellationToken>());
 
-        result.Value.Reviews.Should().AllSatisfy(actual =>
+        result.Value!.Reviews.Should().AllSatisfy(actual =>
         {
             reviewsResponse.Reviews.Should().Contain(expected => expected.Title == actual.Title);
             reviewsResponse.Reviews.Should().Contain(expected => expected.Body == actual.Body);
@@ -234,7 +234,7 @@ public class GetReviewsQueryTests
     }
     
     [Fact]
-    public async Task ForwardsError_WhenReviewsNotFound_GivenItemId()
+    public async Task ReturnsNull_WhenWaybackMachineIsEnabledAndRepositoryReturnsNull_GivenItemId()
     {
         //Arrange
         var id = Guid.NewGuid();
@@ -248,10 +248,11 @@ public class GetReviewsQueryTests
             .RetrieveItem(id)
             .Returns(series);
         
+        var reviewsResponse = _fixture.Create<ReviewsResponse>();
         _getReviewsRepository
             .GetReviewsForTitleIdAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())!
-            .Returns(Result.Ok<IReadOnlyList<ReviewItem>>(null!));
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>?>(null));
         
         //Act
         var query = new GetReviewsQuery(id.ToString(), pageNumber, pageSize);
@@ -259,8 +260,8 @@ public class GetReviewsQueryTests
 
         //Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Reviews.Should().BeEmpty();
-
+        result.Value.Should().BeNull();
+        
         _libraryManager
             .Received(1)
             .RetrieveItem(id);
@@ -276,8 +277,12 @@ public class GetReviewsQueryTests
                 Arg.Any<string>(), 
                 Arg.Any<int>(), 
                 Arg.Any<int>(), 
-                Arg.Any<CultureInfo>(), 
+               Arg.Any<CultureInfo>(), 
                 Arg.Any<CancellationToken>());
+        
+        await _loginService
+            .DidNotReceive()
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
     }
     
     [Fact]

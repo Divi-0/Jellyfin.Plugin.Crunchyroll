@@ -9,6 +9,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews;
 
 public interface IGetReviewsRepository
 {
-    public Task<Result<IReadOnlyList<ReviewItem>>> GetReviewsForTitleIdAsync(string titleId, CultureInfo language,
+    public Task<Result<IReadOnlyList<ReviewItem>?>> GetReviewsForTitleIdAsync(string titleId, CultureInfo language,
         CancellationToken cancellationToken);
 }

@@ -27,7 +27,7 @@ public class ExtractReviewsCommandTests
     private readonly PluginConfiguration _config;
     private readonly IHtmlReviewsExtractor _htmlReviewsExtractor;
     private readonly IAddReviewsRepistory _repistory;
-    private readonly IGetReviewsRepository _iGetReviewsRepository;
+    private readonly IGetReviewsRepository _repository;
     private readonly IAddAvatarService _addAvatarService;
     
     public ExtractReviewsCommandTests()
@@ -39,11 +39,11 @@ public class ExtractReviewsCommandTests
         _config = new PluginConfiguration();
         _htmlReviewsExtractor = Substitute.For<IHtmlReviewsExtractor>();
         _repistory = Substitute.For<IAddReviewsRepistory>();
-        _iGetReviewsRepository = Substitute.For<IGetReviewsRepository>();
+        _repository = Substitute.For<IGetReviewsRepository>();
         var logger = Substitute.For<ILogger<ExtractReviewsCommandHandler>>();
         _addAvatarService = Substitute.For<IAddAvatarService>();
         _sut = new ExtractReviewsCommandHandler(_waybackMachineClient, _config, _htmlReviewsExtractor, 
-            _repistory, _iGetReviewsRepository, logger, _addAvatarService);
+            _repistory, _repository, logger, _addAvatarService);
     }
 
     [Fact]
@@ -55,8 +55,8 @@ public class ExtractReviewsCommandTests
         
         var webArchiveOrgUri = new UriBuilder(Uri.UriSchemeHttp, "web.archive.org").ToString();
         
-        _iGetReviewsRepository
-            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
@@ -157,8 +157,8 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _iGetReviewsRepository
-            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
         
         _waybackMachineClient.SearchAsync(
@@ -220,8 +220,8 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _iGetReviewsRepository
-            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
 
         _waybackMachineClient.SearchAsync(
@@ -258,8 +258,8 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _iGetReviewsRepository
-            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
@@ -336,8 +336,8 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _iGetReviewsRepository
-            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
         
         var error = "error";
@@ -376,8 +376,8 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _iGetReviewsRepository
-            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
         
         var searchResponse = _fixture.CreateMany<SearchResponse>(1).ToList();
@@ -449,8 +449,8 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _iGetReviewsRepository
-            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok(_fixture.Create<IReadOnlyList<ReviewItem>>()));
         
         //Act
@@ -467,7 +467,7 @@ public class ExtractReviewsCommandTests
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().Contain(x => x.Message == ExtractReviewsErrorCodes.TitleAlreadyHasReviews);
 
-        await _iGetReviewsRepository
+        await _repository
             .Received(1)
             .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
     }
@@ -479,8 +479,8 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _iGetReviewsRepository
-            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
@@ -580,8 +580,8 @@ public class ExtractReviewsCommandTests
         var titleId = _fixture.Create<string>();
         var slugTitle = _fixture.Create<string>();
         
-        _iGetReviewsRepository
-            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+        _repository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();

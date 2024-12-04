@@ -9,6 +9,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.GetComments;
 
 public interface IGetCommentsRepository
 {
-    public Task<Result<IReadOnlyList<CommentItem>>> GetCommentsAsync(string crunchyrollEpisodeId, int pageSize, int pageNumber, 
+    public Task<Result<IReadOnlyList<CommentItem>?>> GetCommentsAsync(string crunchyrollEpisodeId, int pageSize, int pageNumber, 
         CultureInfo language, CancellationToken cancellationToken);
 }

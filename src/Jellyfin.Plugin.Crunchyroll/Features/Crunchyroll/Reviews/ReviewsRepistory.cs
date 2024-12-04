@@ -46,7 +46,7 @@ public class ReviewsRepistory : IAddReviewsRepistory, IGetReviewsRepository
         }
     }
 
-    public async Task<Result<IReadOnlyList<ReviewItem>>> GetReviewsForTitleIdAsync(string titleId, CultureInfo language,
+    public async Task<Result<IReadOnlyList<ReviewItem>?>> GetReviewsForTitleIdAsync(string titleId, CultureInfo language,
         CancellationToken cancellationToken)
     {
         try
@@ -59,9 +59,12 @@ public class ReviewsRepistory : IAddReviewsRepistory, IGetReviewsRepository
                 .Select(x => x.Reviews)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            return string.IsNullOrWhiteSpace(reviews)
-                ? Result.Ok<IReadOnlyList<ReviewItem>>([]) 
-                : Result.Ok(JsonSerializer.Deserialize<IReadOnlyList<ReviewItem>>(reviews) ?? []);
+            if (string.IsNullOrWhiteSpace(reviews))
+            {
+                return Result.Ok<IReadOnlyList<ReviewItem>?>(null);
+            }
+
+            return Result.Ok(JsonSerializer.Deserialize<IReadOnlyList<ReviewItem>?>(reviews) ?? [])!;
         }
         catch (Exception e)
         {

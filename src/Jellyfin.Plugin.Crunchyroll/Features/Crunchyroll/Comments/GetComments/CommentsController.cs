@@ -50,6 +50,11 @@ public class CommentsController : ControllerBase
             
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
+
+        if (commentsResult.Value is null)
+        {
+            return NotFound();
+        }
         
         return Ok(commentsResult.Value);
     }

@@ -79,6 +79,10 @@ async function showReviews(id) {
     let json;
     try {
         const response = await fetch(url);
+        if(response.status === 404){
+            //don't show review html, on items where no reviews could be found
+            return;
+        }
         if (!response.ok) {
             throw new Error(`fetch reviews failed`);
         }
@@ -104,6 +108,10 @@ async function showComments(id) {
     let json;
     try {
         const response = await fetch(url);
+        if(response.status === 404){
+            //don't show review html, on items where no comments could be found
+            return;
+        }
         if (!response.ok) {
             throw new Error(`fetch comments failed`);
         }

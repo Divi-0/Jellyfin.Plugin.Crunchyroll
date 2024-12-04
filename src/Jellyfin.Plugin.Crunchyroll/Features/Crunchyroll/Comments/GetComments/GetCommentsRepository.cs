@@ -25,7 +25,7 @@ public class GetCommentsRepository : IGetCommentsRepository
         _logger = logger;
     }
     
-    public async Task<Result<IReadOnlyList<CommentItem>>> GetCommentsAsync(string crunchyrollEpisodeId, int pageSize, 
+    public async Task<Result<IReadOnlyList<CommentItem>?>> GetCommentsAsync(string crunchyrollEpisodeId, int pageSize, 
         int pageNumber, CultureInfo language, CancellationToken cancellationToken)
     {
         try
@@ -39,7 +39,7 @@ public class GetCommentsRepository : IGetCommentsRepository
 
             if (string.IsNullOrWhiteSpace(comments))
             {
-                return Result.Ok<IReadOnlyList<CommentItem>>([]);
+                return Result.Ok<IReadOnlyList<CommentItem>?>(null);
             }
 
             var array = JsonSerializer.Deserialize<IReadOnlyList<CommentItem>>(comments)!;

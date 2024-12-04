@@ -156,7 +156,7 @@ public class GetCommentsQueryTests
         //Assert
         result.IsSuccess.Should().BeTrue();
         var commentsResponse = result.Value;
-        commentsResponse.Comments.Should().BeEquivalentTo(comments, o => 
+        commentsResponse!.Comments.Should().BeEquivalentTo(comments, o => 
             o.Excluding(x => x.AvatarIconUri));
 
         commentsResponse.Comments.Should().AllSatisfy(comment =>
@@ -176,9 +176,51 @@ public class GetCommentsQueryTests
         await _crunchyrollClient
             .DidNotReceive()
             .GetCommentsAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<int>(), 
-                Arg.Any<CultureInfo>(),
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ReturnsNull_WhenRepositoryReturnedNull_GivenEpisodeJellyfinId()
+    {
+        //Arrange
+        var jellyfinId = Guid.NewGuid().ToString();
+        const int pageNumber = 1;
+        const int pageSize = 10;
+            
+        _config.IsWaybackMachineEnabled = true;
+
+        var episode = EpisodeFaker.GenerateWithEpisodeId();
+        _libraryManager
+            .RetrieveItem(Guid.Parse(jellyfinId))
+            .Returns(episode);
+
+        var comments = _fixture.Create<List<CommentItem>>();
+        _repository
+            .GetCommentsAsync(Arg.Any<string>(), pageSize, pageNumber, Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<IReadOnlyList<CommentItem>?>(null));
+
+        //Act
+        var query = new GetCommentsQuery(jellyfinId, pageNumber, pageSize);
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeNull();
+
+        _libraryManager
+            .Received(1)
+            .RetrieveItem(Guid.Parse(jellyfinId));
+
+        await _repository
+            .Received(1)
+            .GetCommentsAsync(episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId], pageSize, pageNumber, Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>());
 
+        await _crunchyrollClient
+            .DidNotReceive()
+            .GetCommentsAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<int>(), 
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
     }
     
     [Fact]
