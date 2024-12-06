@@ -34,8 +34,10 @@ public class CrunchyrollMovieEpisodeIdClientTests
             _crunchyrollSessionRepository);
     }
 
-    [Fact]
-    public async Task ReturnsSearchResponse_WhenSomethingWasFound_GivenValidName()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ReturnsSearchResponse_WhenSomethingWasFound_GivenValidName(bool isNameInLowerCase)
     {
         //Arrange
         var name = new Faker().Random.Words();
@@ -64,7 +66,7 @@ public class CrunchyrollMovieEpisodeIdClientTests
         searchDataItems.Add(new CrunchyrollSearchDataItem
         {
             Id = crunchyrollepisodeId,
-            Title = name,
+            Title = isNameInLowerCase ? name.ToLower() : name,
             SlugTitle = CrunchyrollSlugFaker.Generate(name),
             EpisodeMetadata = new CrunchyrollSearchDataEpisodeMetadata()
             {

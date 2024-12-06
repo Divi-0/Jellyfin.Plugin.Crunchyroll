@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Net.Http;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -17,7 +18,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId.Client;
 public class CrunchyrollTitleIdClient : ICrunchyrollTitleIdClient
 {
     private readonly HttpClient _httpClient;
-    private readonly PluginConfiguration _pluginConfiguration;
     private readonly ILogger<CrunchyrollTitleIdClient> _logger;
     private readonly ICrunchyrollSessionRepository _crunchyrollSessionRepository;
 
@@ -27,7 +27,6 @@ public class CrunchyrollTitleIdClient : ICrunchyrollTitleIdClient
         ICrunchyrollSessionRepository crunchyrollSessionRepository)
     {
         _httpClient = httpClient;
-        _pluginConfiguration = pluginConfiguration;
         _logger = logger;
         _crunchyrollSessionRepository = crunchyrollSessionRepository;
 
@@ -84,11 +83,12 @@ public class CrunchyrollTitleIdClient : ICrunchyrollTitleIdClient
             return Result.Fail(ErrorCodes.CrunchyrollSearchContentIncompatible);
         }
         
+        var regex = new Regex($"^{title.Replace(" ", ".*")}.?$", RegexOptions.IgnoreCase);
         foreach (var searchData in crunchyrollSearchResponse.Data)
         {
             foreach (var item in searchData.Items)
             {
-                if (item.Title.Equals(title, StringComparison.OrdinalIgnoreCase))
+                if (regex.IsMatch(item.Title))
                 {
                     return new SearchResponse()
                     {

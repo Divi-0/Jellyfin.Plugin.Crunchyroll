@@ -77,11 +77,11 @@ public class CrunchyrollMovieEpisodeIdClient : ICrunchyrollMovieEpisodeIdClient
             return Result.Fail(Domain.Constants.ErrorCodes.CrunchyrollSearchContentIncompatible);
         }
         
+        var regex = new Regex($"^{name.Replace(" ", ".*")}.?$", RegexOptions.IgnoreCase);
         foreach (var searchData in crunchyrollSearchResponse.Data)
         {
             foreach (var item in searchData.Items)
             {
-                var regex = new Regex(name.Replace(" ", ".*"));
                 if (regex.IsMatch(item.Title) && item.EpisodeMetadata is not null)
                 {
                     return new SearchResponse
