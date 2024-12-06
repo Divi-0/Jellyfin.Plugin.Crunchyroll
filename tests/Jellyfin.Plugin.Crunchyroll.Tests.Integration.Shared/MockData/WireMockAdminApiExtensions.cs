@@ -582,7 +582,8 @@ public static class WireMockAdminApiExtensions
             .WithResponse(rsp => rsp
                 .WithStatusCode(HttpStatusCode.OK)
                 .WithBody(Properties.Resources.CrunchyrollTitleHtml
-                    .Replace("http://web.archive.org", mockedArchiveOrgUrl))
+                    .Replace("http://web.archive.org", mockedArchiveOrgUrl)
+                    .Replace("https://web.archive.org", mockedArchiveOrgUrl))
             ));
 
         await builder.BuildAndPostAsync();
@@ -600,7 +601,8 @@ public static class WireMockAdminApiExtensions
             .WithResponse(rsp => rsp
                 .WithStatusCode(HttpStatusCode.OK)
                 .WithBody(Properties.Resources.CrunchyrollEpisodeHtml
-                    .Replace("http://web.archive.org", mockedArchiveOrgUrl))
+                    .Replace("http://web.archive.org", mockedArchiveOrgUrl)
+                    .Replace("https://web.archive.org", mockedArchiveOrgUrl))
             ));
 
         await builder.BuildAndPostAsync();
