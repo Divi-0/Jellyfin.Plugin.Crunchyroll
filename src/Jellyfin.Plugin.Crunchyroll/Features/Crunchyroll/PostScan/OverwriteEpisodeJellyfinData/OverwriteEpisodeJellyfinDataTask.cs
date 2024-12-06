@@ -1,20 +1,16 @@
 using System;
-using System.IO;
-using System.IO.Abstractions;
-using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Common;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
@@ -25,15 +21,17 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
     private readonly ILibraryManager _libraryManager;
     private readonly IOverwriteEpisodeJellyfinDataTaskRepository _repository;
     private readonly ISetEpisodeThumbnail _setEpisodeThumbnail;
+    private readonly PluginConfiguration _config;
 
     public OverwriteEpisodeJellyfinDataTask(ILogger<OverwriteEpisodeJellyfinDataTask> logger,
         ILibraryManager libraryManager, IOverwriteEpisodeJellyfinDataTaskRepository repository,
-        ISetEpisodeThumbnail setEpisodeThumbnail)
+        ISetEpisodeThumbnail setEpisodeThumbnail, PluginConfiguration config)
     {
         _logger = logger;
         _libraryManager = libraryManager;
         _repository = repository;
         _setEpisodeThumbnail = setEpisodeThumbnail;
+        _config = config;
     }
     
     public async Task RunAsync(BaseItem episodeItem, CancellationToken cancellationToken)
@@ -63,16 +61,10 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
             return;
         }
 
-        var thumbnail = JsonSerializer.Deserialize<ImageSource>(crunchyrollEpisode.Thumbnail)!;
-        _ = await _setEpisodeThumbnail
-            .GetAndSetThumbnailAsync((Episode)episodeItem, thumbnail, cancellationToken);
+        await SetEpisodeThumbnailAsync(episodeItem, crunchyrollEpisode, cancellationToken);
         
-        var match = NameWithBracketsRegex().Match(crunchyrollEpisode.Title);
-        episodeItem.Name = match.Success 
-            ? match.Groups[1].Value 
-            : crunchyrollEpisode.Title;
-        
-        episodeItem.Overview = crunchyrollEpisode.Description;
+        SetEpisodeTitle(episodeItem, crunchyrollEpisode);
+        SetEpisodeOverview(episodeItem, crunchyrollEpisode);
 
         if (!episodeItem.IndexNumber.HasValue)
         {
@@ -82,8 +74,13 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         await _libraryManager.UpdateItemAsync(episodeItem, episodeItem.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
     }
 
-    private static void SetIndexNumberAndName(Episode episode, TitleMetadata.Entities.Episode crunchyrollEpisode)
+    private void SetIndexNumberAndName(Episode episode, TitleMetadata.Entities.Episode crunchyrollEpisode)
     {
+        if (!_config.IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled)
+        {
+            return;
+        }
+        
         if (string.IsNullOrWhiteSpace(crunchyrollEpisode.EpisodeNumber))
         {
             return;
@@ -117,6 +114,42 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         episode.AirsBeforeEpisodeNumber = Convert.ToInt32(crunchyrollSequenceNumber + 0.5);
         episode.AirsBeforeSeasonNumber = episode.Season.IndexNumber;
         episode.ParentIndexNumber = 0; //Manipulate ParentIndex to Season 0 so that Jellyfin thinks it is a special
+    }
+
+    private void SetEpisodeTitle(BaseItem item, TitleMetadata.Entities.Episode crunchyrollEpisode)
+    {
+        if (!_config.IsFeatureEpisodeTitleEnabled)
+        {
+            return;
+        }
+        
+        var match = NameWithBracketsRegex().Match(crunchyrollEpisode.Title);
+        item.Name = match.Success 
+            ? match.Groups[1].Value 
+            : crunchyrollEpisode.Title;
+    }
+
+    private void SetEpisodeOverview(BaseItem item, TitleMetadata.Entities.Episode crunchyrollEpisode)
+    {
+        if (!_config.IsFeatureEpisodeDescriptionEnabled)
+        {
+            return;
+        }
+        
+        item.Overview = crunchyrollEpisode.Description;
+    }
+
+    private async Task SetEpisodeThumbnailAsync(BaseItem item, TitleMetadata.Entities.Episode crunchyrollEpisode,
+        CancellationToken cancellationToken)
+    {
+        if (!_config.IsFeatureEpisodeThumbnailImageEnabled)
+        {
+            return;
+        }
+        
+        var thumbnail = JsonSerializer.Deserialize<ImageSource>(crunchyrollEpisode.Thumbnail)!;
+        _ = await _setEpisodeThumbnail
+            .GetAndSetThumbnailAsync((Episode)item, thumbnail, cancellationToken);
     }
 
     [GeneratedRegex(@"\d+")]

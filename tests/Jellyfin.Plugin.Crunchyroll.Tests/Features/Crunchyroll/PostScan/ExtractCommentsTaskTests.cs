@@ -21,7 +21,10 @@ public class ExtractCommentsTaskTests
     public ExtractCommentsTaskTests()
     {
         _mediator = Substitute.For<IMediator>();
-        _config = new PluginConfiguration();
+        _config = new PluginConfiguration
+        {
+            IsWaybackMachineEnabled = true
+        };
         var logger = Substitute.For<ILogger<ExtractCommentsTask>>();
 
         _sut = new ExtractCommentsTask(_mediator, _config, logger);

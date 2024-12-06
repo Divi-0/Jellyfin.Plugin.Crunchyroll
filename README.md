@@ -40,13 +40,12 @@ More details of the features can be found in the wiki [Features](https://github.
 #### Steps
 1. In the Jellyfin Dashboard select the `Plugins -> Repositories` Tab and add the manifest `https://raw.githubusercontent.com/Divi-0/Jellyfin.Plugin.Crunchyroll/refs/heads/main/manifest.json`
 2. Go to the `Catalog` and install `"Crunchyroll"`
-3. Optional but recommended: Go to the configuration page of the "Crunchyroll" plugin ``Plugins -> My Plugins -> Crunchyroll``
-   <br>3.1. Enter the name of your anime jellyfin collection/library you want to scan (Example: `Anime`)
-   <br>3.2. If you decide, to not want to order you seasons analog to the Crunchyroll listing, you can disable it.
-   <br>Be aware that if you decide to delete the plugin, this can leave a mess, when enabled (You probably need to recreate the library/collection)
-4. Change your folder structure to reflect the structure of Crunchyroll [Usage](#Usage)
-5. Restart Jellyfin-Server if you made some changes to the config
-6. Done. Run a library scan
+3. Go to the configuration page of the "Crunchyroll" plugin `Plugins -> My Plugins -> Crunchyroll`
+4. Optional but recommended: Enter the name of your anime jellyfin collection/library you want to scan (Example: `Anime`)
+5. Enable all the features you would like to have, in the "Features" section
+6. Change your folder structure to reflect the structure of Crunchyroll [Usage](#Usage)
+7. Restart Jellyfin-Server if you made some changes to the config
+8. Done. Run a library scan
 
 ## Usage
 The Plugin runs as a post task on a library scan, so to get the metadata from Crunchyroll just run a library scan. 

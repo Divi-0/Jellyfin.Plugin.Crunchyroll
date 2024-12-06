@@ -25,40 +25,161 @@
                     <div class="fieldDescription">default: empty; if you want a different path instead of the plugin folder, enter here the absolute path</div>
                 </div>
                 <div class="inputContainer">
-                    <label class="emby-checkbox-label">
-                        <input id="IsWaybackMachineEnabled" name="IsWaybackMachineEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>IsWaybackMachineEnabled</span>
-                    </label>
-                    <div class="fieldDescription">
-                        Uncheck if you want to use the Crunchyroll Api.
-                        It was developed before the reviews & comments were disabled, but currently it only returns an empty response.
-                        If someday the reviews & comments are enabled again, you can use this feature instead.
-                    </div>
-                </div>
-                <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="WaybackMachineWaitTimeoutInSeconds">WaybackMachineWaitTimeoutInSeconds</label>
-                    <input id="WaybackMachineWaitTimeoutInSeconds" name="WaybackMachineWaitTimeoutInSeconds" type="number" is="emby-input" min="0" />
-                    <div class="fieldDescription">Timeout in seconds; This timeout only occurs when the request to wayback machine are throttled
-                        or refused due to the ddos protection</div>
-                </div>
-                <div class="inputContainer">
                     <label class="inputLabel inputLabelUnfocused" for="LibraryName">LibraryName</label>
                     <input id="LibraryName" name="LibraryName" type="text" is="emby-input" />
                     <div class="fieldDescription">It is recommended to specify which collection/library to scan for. 
                         Good if you have an Anime-Library and specify only the name here.
                         Keep it empty to scan in all collections</div>
                 </div>
+                
+                <hr/>
+                
+                <h1>Features</h1>
+                <h3>Series</h3>
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
-                        <input id="IsOrderSeasonsByCrunchyrollOrderEnabled" name="IsOrderSeasonsByCrunchyrollOrderEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>OrderSeasonsByCrunchyrollOrder</span>
+                        <input id="IsFeatureSeriesTitleEnabled" name="IsFeatureSeriesTitleEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Use Crunchyroll title name</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureSeriesDescriptionEnabled" name="IsFeatureSeriesDescriptionEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Use Crunchyroll description</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureSeriesStudioEnabled" name="IsFeatureSeriesStudioEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Use Crunchyroll studio info</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureSeriesRatingsEnabled" name="IsFeatureSeriesRatingsEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Use Crunchyroll ratings as community ratings</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureSeriesCoverImageEnabled" name="IsFeatureSeriesCoverImageEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Download and use Crunchyroll cover image</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureSeriesBackgroundImageEnabled" name="IsFeatureSeriesBackgroundImageEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Download and use Crunchyroll background image</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+
+                <h3>Season</h3>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureSeasonTitleEnabled" name="IsFeatureSeasonTitleEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Use Crunchyroll title name</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureSeasonOrderByCrunchyrollOrderEnabled" name="IsFeatureSeasonOrderByCrunchyrollOrderEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Order seasons by Crunchyroll order/listing</span>
                     </label>
                     <div class="fieldDescription">
-                        Feature to order your seasons in the the crunchyroll order. For exmaple, Seasons with 
+                        Feature to order your seasons in the the crunchyroll order. For exmaple, Seasons with
                         OADs or movies will be ordered in between season 1 and 2.
-                        Default: enabled
+                        Be aware that if you decide to delete the plugin, this option can leave a mess (You probably need to recreate the library/collection)
                     </div>
                 </div>
+                
+                <h3>Episode</h3>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureEpisodeTitleEnabled" name="IsFeatureEpisodeTitleEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Use Crunchyroll title name</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureEpisodeDescriptionEnabled" name="IsFeatureEpisodeDescriptionEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Use Crunchyroll description</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureEpisodeThumbnailImageEnabled" name="IsFeatureEpisodeThumbnailImageEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Download and use Crunchyroll thumbnail image</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled" name="IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Use Crunchyroll description</span>
+                    </label>
+                    <div class="fieldDescription">
+                        Enables special/ova episodes in normal seasons. An example would be One Piece season 13, episode: "S13: E-SP".
+                        Basically, you will be able to put the episode file into the season 13 folder and not need to put it in "Season 0" folder.
+                        It also automatically sets the episode to air in between those episodes.
+                    </div>
+                </div>
+
+                <h3>Movie</h3>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureMovieTitleEnabled" name="IsFeatureMovieTitleEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Use Crunchyroll title name</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureMovieDescriptionEnabled" name="IsFeatureMovieDescriptionEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Use Crunchyroll description</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureMovieStudioEnabled" name="IsFeatureMovieStudioEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Use Crunchyroll studio info</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureMovieThumbnailImageEnabled" name="IsFeatureMovieThumbnailImageEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Download and use Crunchyroll thumbnail image</span>
+                    </label>
+                    <div class="fieldDescription"></div>
+                </div>
+
+                <h3>Reviews & Comments</h3>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsWaybackMachineEnabled" name="IsWaybackMachineEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>IsWaybackMachineEnabled</span>
+                    </label>
+                    <div class="fieldDescription">
+                        Enables reviews on detail page for series and comments on detail page for episodes
+                    </div>
+                </div>
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="WaybackMachineWaitTimeoutInSeconds">WaybackMachineWaitTimeoutInSeconds</label>
+                    <input id="WaybackMachineWaitTimeoutInSeconds" name="WaybackMachineWaitTimeoutInSeconds" type="number" is="emby-input" min="0" />
+                    <div class="fieldDescription">Timeout in seconds; This timeout only occurs when the request to wayback machine is throttled
+                        or refused due to the ddos protection</div>
+                </div>
+                
                 <div>
                     <button is="emby-button" type="submit" class="raised button-submit block emby-button">
                         <span>Save</span>
@@ -82,7 +203,26 @@
                     document.querySelector('#IsWaybackMachineEnabled').checked = config.IsWaybackMachineEnabled;
                     document.querySelector('#LibraryName').value = config.LibraryName;
                     document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value = config.WaybackMachineWaitTimeoutInSeconds;
-                    document.querySelector('#IsOrderSeasonsByCrunchyrollOrderEnabled').checked = config.IsOrderSeasonsByCrunchyrollOrderEnabled;
+
+                    document.querySelector('#IsFeatureSeriesTitleEnabled').checked = config.IsFeatureSeriesTitleEnabled;
+                    document.querySelector('#IsFeatureSeriesDescriptionEnabled').checked = config.IsFeatureSeriesDescriptionEnabled;
+                    document.querySelector('#IsFeatureSeriesStudioEnabled').checked = config.IsFeatureSeriesStudioEnabled;
+                    document.querySelector('#IsFeatureSeriesRatingsEnabled').checked = config.IsFeatureSeriesRatingsEnabled;
+                    document.querySelector('#IsFeatureSeriesCoverImageEnabled').checked = config.IsFeatureSeriesCoverImageEnabled;
+                    document.querySelector('#IsFeatureSeriesBackgroundImageEnabled').checked = config.IsFeatureSeriesBackgroundImageEnabled;
+                    
+                    document.querySelector('#IsFeatureSeasonTitleEnabled').checked = config.IsFeatureSeasonTitleEnabled;
+                    document.querySelector('#IsFeatureSeasonOrderByCrunchyrollOrderEnabled').checked = config.IsFeatureSeasonOrderByCrunchyrollOrderEnabled;
+                    
+                    document.querySelector('#IsFeatureEpisodeTitleEnabled').checked = config.IsFeatureEpisodeTitleEnabled;
+                    document.querySelector('#IsFeatureEpisodeDescriptionEnabled').checked = config.IsFeatureEpisodeDescriptionEnabled;
+                    document.querySelector('#IsFeatureEpisodeThumbnailImageEnabled').checked = config.IsFeatureEpisodeThumbnailImageEnabled;
+                    document.querySelector('#IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled').checked = config.IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled;
+                    
+                    document.querySelector('#IsFeatureMovieTitleEnabled').checked = config.IsFeatureMovieTitleEnabled;
+                    document.querySelector('#IsFeatureMovieDescriptionEnabled').checked = config.IsFeatureMovieDescriptionEnabled;
+                    document.querySelector('#IsFeatureMovieStudioEnabled').checked = config.IsFeatureMovieStudioEnabled;
+                    document.querySelector('#IsFeatureMovieThumbnailImageEnabled').checked = config.IsFeatureMovieThumbnailImageEnabled;
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -97,7 +237,26 @@
                     config.LibraryName = document.querySelector('#LibraryName').value;
                     config.WaybackMachineWaitTimeoutInSeconds = document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value;
                     config.IsWaybackMachineEnabled = document.querySelector('#IsWaybackMachineEnabled').checked;
-                    config.IsOrderSeasonsByCrunchyrollOrderEnabled = document.querySelector('#IsOrderSeasonsByCrunchyrollOrderEnabled').checked;
+                    
+                    config.IsFeatureSeriesTitleEnabled = document.querySelector('#IsFeatureSeriesTitleEnabled').checked;
+                    config.IsFeatureSeriesDescriptionEnabled = document.querySelector('#IsFeatureSeriesDescriptionEnabled').checked;
+                    config.IsFeatureSeriesStudioEnabled = document.querySelector('#IsFeatureSeriesStudioEnabled').checked;
+                    config.IsFeatureSeriesRatingsEnabled = document.querySelector('#IsFeatureSeriesRatingsEnabled').checked;
+                    config.IsFeatureSeriesCoverImageEnabled = document.querySelector('#IsFeatureSeriesCoverImageEnabled').checked;
+                    config.IsFeatureSeriesBackgroundImageEnabled = document.querySelector('#IsFeatureSeriesBackgroundImageEnabled').checked;
+                    
+                    config.IsFeatureSeasonTitleEnabled = document.querySelector('#IsFeatureSeasonTitleEnabled').checked;
+                    config.IsFeatureSeasonOrderByCrunchyrollOrderEnabled = document.querySelector('#IsFeatureSeasonOrderByCrunchyrollOrderEnabled').checked;
+                    
+                    config.IsFeatureEpisodeTitleEnabled = document.querySelector('#IsFeatureEpisodeTitleEnabled').checked;
+                    config.IsFeatureEpisodeDescriptionEnabled = document.querySelector('#IsFeatureEpisodeDescriptionEnabled').checked;
+                    config.IsFeatureEpisodeThumbnailImageEnabled = document.querySelector('#IsFeatureEpisodeThumbnailImageEnabled').checked;
+                    config.IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled = document.querySelector('#IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled').checked;
+                    
+                    config.IsFeatureMovieTitleEnabled = document.querySelector('#IsFeatureMovieTitleEnabled').checked;
+                    config.IsFeatureMovieDescriptionEnabled = document.querySelector('#IsFeatureMovieDescriptionEnabled').checked;
+                    config.IsFeatureMovieStudioEnabled = document.querySelector('#IsFeatureMovieStudioEnabled').checked;
+                    config.IsFeatureMovieThumbnailImageEnabled = document.querySelector('#IsFeatureMovieThumbnailImageEnabled').checked;
                     ApiClient.updatePluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });

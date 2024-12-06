@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Common;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
@@ -25,10 +26,11 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
     private readonly ICrunchyrollSeriesClient _crunchyrollSeriesClient;
     private readonly ILogger<OverwriteSeriesJellyfinDataTask> _logger;
     private readonly IDirectory _directory;
+    private readonly PluginConfiguration _config;
 
     public OverwriteSeriesJellyfinDataTask(ILibraryManager libraryManager, IGetTitleMetadataRepository repository,
         IFile file, ICrunchyrollSeriesClient crunchyrollSeriesClient, ILogger<OverwriteSeriesJellyfinDataTask> logger,
-        IDirectory directory)
+        IDirectory directory, PluginConfiguration config)
     {
         _libraryManager = libraryManager;
         _repository = repository;
@@ -36,6 +38,7 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
         _crunchyrollSeriesClient = crunchyrollSeriesClient;
         _logger = logger;
         _directory = directory;
+        _config = config;
     }
     
     public async Task RunAsync(BaseItem seriesItem, CancellationToken cancellationToken)
@@ -68,16 +71,38 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
         var posterTall = JsonSerializer.Deserialize<ImageSource>(titleMetadata.PosterTall)!;
         var posterWide = JsonSerializer.Deserialize<ImageSource>(titleMetadata.PosterWide)!;
 
-        _ = await GetAndAddImage(seriesItem, posterTall, ImageType.Primary, cancellationToken);
-        _ = await GetAndAddImage(seriesItem, posterWide, ImageType.Backdrop, cancellationToken);
-        
-        seriesItem.Name = titleMetadata.Title;
-        seriesItem.Overview = titleMetadata.Description;
-        seriesItem.SetStudios([titleMetadata.Studio]);
-        seriesItem.CommunityRating = titleMetadata.Rating;
+        await GetAndAddImageCoverAsync(seriesItem, posterTall, ImageType.Primary, cancellationToken);
+        await GetAndAddImageBackdropAsync(seriesItem, posterWide, ImageType.Backdrop, cancellationToken);
+
+        SetSeriesItemName(seriesItem, titleMetadata);
+        SetSeriesItemOverview(seriesItem, titleMetadata);
+        SetSeriesItemStudios(seriesItem, titleMetadata);
+        SetSeriesItemCommunityRating(seriesItem, titleMetadata);
 
         await _libraryManager
             .UpdateItemAsync(seriesItem, seriesItem.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
+    }
+
+    private async Task GetAndAddImageCoverAsync(BaseItem series, ImageSource posterTall, ImageType imageType, 
+        CancellationToken cancellationToken)
+    {
+        if (!_config.IsFeatureSeriesCoverImageEnabled)
+        {
+            return;
+        }
+        
+        _ = await GetAndAddImage(series, posterTall, ImageType.Primary, cancellationToken);
+    }
+
+    private async Task GetAndAddImageBackdropAsync(BaseItem series, ImageSource posterWide, ImageType imageType, 
+        CancellationToken cancellationToken)
+    {
+        if (!_config.IsFeatureSeriesBackgroundImageEnabled)
+        {
+            return;
+        }
+        
+        _ = await GetAndAddImage(series, posterWide, ImageType.Backdrop, cancellationToken);
     }
 
     private async Task<Result> GetAndAddImage(BaseItem series, ImageSource imageSource, ImageType imageType, CancellationToken cancellationToken)
@@ -159,5 +184,45 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
             _logger.LogError(e, "unknown error, while creating poster image on filesystem");
             return Result.Fail("FileSystem error");
         }
+    }
+
+    private void SetSeriesItemName(BaseItem item, TitleMetadata.Entities.TitleMetadata titleMetadata)
+    {
+        if (!_config.IsFeatureSeriesTitleEnabled)
+        {
+            return;
+        }
+        
+        item.Name = titleMetadata.Title;
+    }
+
+    private void SetSeriesItemOverview(BaseItem item, TitleMetadata.Entities.TitleMetadata titleMetadata)
+    {
+        if (!_config.IsFeatureSeriesDescriptionEnabled)
+        {
+            return;
+        }
+        
+        item.Overview = titleMetadata.Description;
+    }
+
+    private void SetSeriesItemStudios(BaseItem item, TitleMetadata.Entities.TitleMetadata titleMetadata)
+    {
+        if (!_config.IsFeatureSeriesStudioEnabled)
+        {
+            return;
+        }
+        
+        item.SetStudios([titleMetadata.Studio]);
+    }
+
+    private void SetSeriesItemCommunityRating(BaseItem item, TitleMetadata.Entities.TitleMetadata titleMetadata)
+    {
+        if (!_config.IsFeatureSeriesRatingsEnabled)
+        {
+            return;
+        }
+        
+        item.CommunityRating = titleMetadata.Rating;
     }
 }

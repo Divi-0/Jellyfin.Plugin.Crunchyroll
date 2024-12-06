@@ -11,12 +11,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine;
 
 public class PluginFixture : IAsyncLifetime
 {
-    private static void ExtendServiceCollection(IServiceCollection serviceCollection)
-    {
-
-    }
-    
-    public Task InitializeAsync()
+    public PluginFixture()
     {
         var location = typeof(CrunchyrollDbContext).Assembly.Location;
         var filePath = Path.Combine(Path.GetDirectoryName(location)!, "Crunchyroll.db");
@@ -33,7 +28,15 @@ public class PluginFixture : IAsyncLifetime
         var loggerFactory = PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILoggerFactory>();
         var libraryManager = PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILibraryManager>();
         _ = new CrunchyrollPlugin(logger, loggerFactory, applicationPaths, xmlSerializer, libraryManager, ExtendServiceCollection);
-        
+    }
+    
+    private static void ExtendServiceCollection(IServiceCollection serviceCollection)
+    {
+
+    }
+    
+    public Task InitializeAsync()
+    {
         return Task.CompletedTask;
     }
 
@@ -49,6 +52,7 @@ public class PluginFixture : IAsyncLifetime
 public class PluginCollection : 
     ICollectionFixture<WireMockFixture>,
     ICollectionFixture<CrunchyrollDatabaseFixture>,
+    ICollectionFixture<ConfigFixture>,
     ICollectionFixture<PluginFixture>
 {
     // This class has no code, and is never created. Its purpose is simply

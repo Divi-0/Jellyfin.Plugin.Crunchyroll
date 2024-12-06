@@ -28,7 +28,11 @@ public class OverwriteSeasonJellyfinDataTaskTests
         _libraryManager = MockHelper.LibraryManager;
         _itemRepository = MockHelper.ItemRepository;
         _repository = Substitute.For<IOverwriteSeasonJellyfinDataRepository>();
-        _config = new PluginConfiguration();
+        _config = new PluginConfiguration
+        {
+            IsFeatureSeasonTitleEnabled = true,
+            IsFeatureSeasonOrderByCrunchyrollOrderEnabled = true
+        };
 
         _sut = new OverwriteSeasonJellyfinDataTask(logger, _repository, _libraryManager, _config);
     }
@@ -215,7 +219,7 @@ public class OverwriteSeasonJellyfinDataTaskTests
 
         var oldPresentationKey = season.PresentationUniqueKey;
         
-        _config.IsOrderSeasonsByCrunchyrollOrderEnabled = true;
+        _config.IsFeatureSeasonOrderByCrunchyrollOrderEnabled = true;
 
         _libraryManager
             .GetItemById(season.ParentId)
@@ -265,7 +269,7 @@ public class OverwriteSeasonJellyfinDataTaskTests
         var crunchyrollSeason = CrunchyrollSeasonFaker.Generate(season);
         var episodeChild = EpisodeFaker.Generate(season);
         
-        _config.IsOrderSeasonsByCrunchyrollOrderEnabled = false;
+        _config.IsFeatureSeasonOrderByCrunchyrollOrderEnabled = false;
 
         _libraryManager
             .GetItemById(season.ParentId)
@@ -339,6 +343,47 @@ public class OverwriteSeasonJellyfinDataTaskTests
 
         await _libraryManager
             .DidNotReceive()
+            .UpdateItemAsync(season, null!, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task DoesNotSetTitle_WhenFeatureSeasonTitleIsDisabled_GivenSeasonWithSeasonId()
+    {
+        //Arrange
+        var season = SeasonFaker.GenerateWithSeasonId();
+        var crunchyrollSeason = CrunchyrollSeasonFaker.Generate(season);
+
+        _config.IsFeatureSeasonTitleEnabled = false;
+
+        _libraryManager
+            .GetItemById(season.ParentId)
+            .Returns((BaseItem?)null);
+        
+        _itemRepository
+            .GetItemList(Arg.Is<InternalItemsQuery>(x =>
+                x.ParentId == season.Id &&
+                x.GroupByPresentationUniqueKey == false &&
+                x.DtoOptions.Fields.Count != 0))
+            .Returns([EpisodeFaker.Generate(season)]);
+
+        _repository
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(crunchyrollSeason);
+
+        //Act
+        await _sut.RunAsync(season, CancellationToken.None);
+
+        //Assert
+        season.Name.Should().NotContain(crunchyrollSeason.Title);
+
+        await _repository
+            .Received(1)
+            .GetSeasonAsync(season.ProviderIds[CrunchyrollExternalKeys.SeasonId],
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+
+        await _libraryManager
+            .Received(1)
             .UpdateItemAsync(season, null!, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
     }
 }

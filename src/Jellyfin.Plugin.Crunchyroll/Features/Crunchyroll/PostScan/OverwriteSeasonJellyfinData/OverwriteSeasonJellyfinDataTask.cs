@@ -53,10 +53,8 @@ public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
             _logger.LogError("Season with crunchyrollId {SeasonId} not found", seasonId);
             return;
         }
-
-        seasonItem.Name = !string.IsNullOrWhiteSpace(crunchyrollSeason.SeasonDisplayNumber) 
-            ? $"S{crunchyrollSeason.SeasonDisplayNumber}: {crunchyrollSeason.Title}" 
-            : crunchyrollSeason.Title;
+        
+        SetSeasonTitle(seasonItem, crunchyrollSeason);
         
         await SetIndexNumberToSequenceNumber((Season)seasonItem, crunchyrollSeason, cancellationToken);
 
@@ -75,7 +73,7 @@ public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
     private async Task SetIndexNumberToSequenceNumber(Season season, TitleMetadata.Entities.Season crunchyrollSeason,
         CancellationToken cancellationToken)
     {
-        if (!_config.IsOrderSeasonsByCrunchyrollOrderEnabled)
+        if (!_config.IsFeatureSeasonOrderByCrunchyrollOrderEnabled)
         {
             return;
         }
@@ -88,5 +86,17 @@ public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
             episode.ParentIndexNumber = crunchyrollSeason.SeasonSequenceNumber;
             await _libraryManager.UpdateItemAsync(episode, season, ItemUpdateType.MetadataEdit, cancellationToken);
         }
+    }
+
+    private void SetSeasonTitle(BaseItem item, TitleMetadata.Entities.Season season)
+    {
+        if (!_config.IsFeatureSeasonTitleEnabled)
+        {
+            return;
+        }
+        
+        item.Name = !string.IsNullOrWhiteSpace(season.SeasonDisplayNumber) 
+            ? $"S{season.SeasonDisplayNumber}: {season.Title}" 
+            : season.Title;
     }
 }

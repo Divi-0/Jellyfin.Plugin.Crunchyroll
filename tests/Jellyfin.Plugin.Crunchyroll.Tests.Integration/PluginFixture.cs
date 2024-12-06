@@ -48,7 +48,7 @@ public class PluginFixture : IDisposable
 public class PluginCollection : 
     ICollectionFixture<CrunchyrollDatabaseFixture>,
     ICollectionFixture<WireMockFixture>,
-    ICollectionFixture<WaybackMachineDisabledConfigFixture>,
+    ICollectionFixture<ConfigFixture>,
     ICollectionFixture<PluginFixture>
 {
     // This class has no code, and is never created. Its purpose is simply
