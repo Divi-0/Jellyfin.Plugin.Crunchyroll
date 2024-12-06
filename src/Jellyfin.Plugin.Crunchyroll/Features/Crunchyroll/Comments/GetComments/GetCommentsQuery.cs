@@ -68,18 +68,21 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, Result<
         return commentsResult;
     }
     
-    private async ValueTask<Result<CommentsResponse>> GetCommentsFromApi(string episodeId, int pageSize, int pageNumber, 
+    private ValueTask<Result<CommentsResponse>> GetCommentsFromApi(string episodeId, int pageSize, int pageNumber, 
         CultureInfo language, CancellationToken cancellationToken)
     {
-        var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);
-
-        if (loginResult.IsFailed)
-        {
-            return loginResult;
-        }
-
-        return await _crunchyrollClient.GetCommentsAsync(episodeId, pageNumber,
-            pageSize, language, cancellationToken);
+        //temp disabled, to not show comments section with real api
+        return ValueTask.FromResult(Result.Fail<CommentsResponse>(ErrorCodes.FeatureDisabled));
+        
+        // var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);
+        //
+        // if (loginResult.IsFailed)
+        // {
+        //     return loginResult;
+        // }
+        //
+        // return await _crunchyrollClient.GetCommentsAsync(episodeId, pageNumber,
+        //     pageSize, language, cancellationToken);
     }
     
     private async ValueTask<Result<CommentsResponse?>> GetCommentsFromDatabase(string episodeId, int pageSize, 

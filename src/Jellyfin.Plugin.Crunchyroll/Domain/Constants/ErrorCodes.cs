@@ -13,4 +13,5 @@ public static class ErrorCodes
     public const string ProviderIdNotSet = "9";
     public const string Internal = "10";
     public const string NotAllowed = "11";
+    public const string FeatureDisabled = "12";
 }

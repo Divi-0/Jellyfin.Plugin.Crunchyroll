@@ -27,7 +27,7 @@ public class GetReviewsTests
         _wireMockAdminApi = wireMockFixture.AdminApiClient;
     }
 
-    [Fact]
+    [Fact(Skip = "temp disabled, to not show reviews section with real api, can be enabled again if found a way to not show reviews section on none anime items")]
     public async Task ReturnsReviews_WhenRequestReviews_GivenSeriesItemId()
     {
         //Arrange
@@ -60,7 +60,7 @@ public class GetReviewsTests
         locacle.IsNeutralCulture.Should().BeFalse();
     }
 
-    [Fact]
+    [Fact(Skip = "temp disabled, to not show reviews section with real api, can be enabled again if found a way to not show reviews section on none anime items")]
     public async Task ReturnsInternalServerError_WhenLoginRequestFails_GivenSeriesItemId()
     {
         //Arrange

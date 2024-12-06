@@ -43,12 +43,15 @@ public class CommentsController : ControllerBase
         
         if (commentsResult.IsFailed)
         {
-            if (commentsResult.Errors.First().Message == ErrorCodes.CrunchyrollTitleIdNotFound)
+            switch (commentsResult.Errors.First().Message)
             {
-                return NotFound();
+                case ErrorCodes.CrunchyrollTitleIdNotFound:
+                    return NotFound();
+                case ErrorCodes.FeatureDisabled:
+                    return NotFound();
+                default:
+                    return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            
-            return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
         if (commentsResult.Value is null)

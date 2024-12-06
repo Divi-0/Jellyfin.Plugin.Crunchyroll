@@ -44,7 +44,7 @@ public class GetCommentsQueryTests
         );
     }
 
-    [Fact]
+    [Fact(Skip = "temp disabled, to not show comments section with real api, can be enabled again if found a way to not show comment section on none anime items")]
     public async Task ReturnsPaginatedComments_WhenTitleIdIsUsedToGetComments_GivenJellyfinId()
     {
         //Arrange
@@ -86,7 +86,7 @@ public class GetCommentsQueryTests
                 Arg.Any<CancellationToken>());
     }
 
-    [Fact]
+    [Fact(Skip = "temp disabled, to not show comments section with real api, can be enabled again if found a way to not show comment section on none anime items")]
     public async Task ReturnsFailed_WhenLoginFails_GivenJellyfinId()
     {
         //Arrange

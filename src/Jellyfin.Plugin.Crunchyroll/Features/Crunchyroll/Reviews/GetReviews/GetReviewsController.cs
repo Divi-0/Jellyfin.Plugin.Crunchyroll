@@ -6,6 +6,7 @@ using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Contracts;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Mediator;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -43,13 +44,15 @@ public class GetReviewsController : ControllerBase
         
         if (reviewsResult.IsFailed)
         {
-            if (reviewsResult.Errors.First().Message == GetReviewsErrorCodes.ItemNotFound
-                || reviewsResult.Errors.First().Message == GetReviewsErrorCodes.ItemHasNoProviderId)
+            switch (reviewsResult.Errors.First().Message)
             {
-                return NotFound();
+                case GetReviewsErrorCodes.ItemNotFound:
+                case GetReviewsErrorCodes.ItemHasNoProviderId:
+                case ErrorCodes.FeatureDisabled:
+                    return NotFound();
+                default:
+                    return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            
-            return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
         if (reviewsResult.Value is null)

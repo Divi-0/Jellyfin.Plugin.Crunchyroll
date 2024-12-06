@@ -9,6 +9,7 @@ using J2N.Collections.Generic;
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews.Client;
@@ -85,11 +86,14 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
             
             return Result.Ok(new ReviewsResponse { Reviews = reviews })!;
         }
+        
+        //temp disabled, to not show reviews section with real api
+        return Result.Fail<ReviewsResponse?>(ErrorCodes.FeatureDisabled);
 
-        var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);
-        return (loginResult.IsFailed ? 
-            loginResult :
-            await _client.GetReviewsAsync(titleId, pageNumber, pageSize, language, cancellationToken))!;
+        // var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);
+        // return (loginResult.IsFailed ? 
+        //     loginResult :
+        //     await _client.GetReviewsAsync(titleId, pageNumber, pageSize, language, cancellationToken))!;
         
     }
 }
