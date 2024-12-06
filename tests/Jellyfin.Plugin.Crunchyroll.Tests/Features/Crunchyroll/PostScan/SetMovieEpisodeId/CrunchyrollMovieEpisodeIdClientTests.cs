@@ -114,6 +114,86 @@ public class CrunchyrollMovieEpisodeIdClientTests
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
     }
 
+    [Theory]
+    [InlineData("(Omu)")]
+    [InlineData("(Eng)")]
+    public async Task ReturnsSearchResponse_WhenCrunchyrollTitleHasSubDubPrefix_GivenValidName(string prefix)
+    {
+        //Arrange
+        var name = new Faker().Random.Words();
+
+        _crunchyrollSessionRepository
+            .GetAsync(Arg.Any<CancellationToken>())
+            .Returns("token");
+        
+        var searchDataItems = Enumerable.Range(0, Random.Shared.Next(1, 10))
+            .Select(_ =>
+            {
+                var randomTitle = $"{new Faker().Random.Words()}-{Random.Shared.Next(9999)}";
+                return new CrunchyrollSearchDataItem
+                {
+                    Id = CrunchyrollIdFaker.Generate(),
+                    Title = randomTitle,
+                    SlugTitle = CrunchyrollSlugFaker.Generate(randomTitle)
+                };
+            })
+            .ToList();
+
+        var crunchyrollepisodeId = CrunchyrollIdFaker.Generate();
+        var crunchyrollSeriesId = CrunchyrollIdFaker.Generate();
+        var crunchyrollSeriesSlugTitle = CrunchyrollSlugFaker.Generate();
+        var crunchyrollSeasonId = CrunchyrollIdFaker.Generate();
+        searchDataItems.Add(new CrunchyrollSearchDataItem
+        {
+            Id = crunchyrollepisodeId,
+            Title = $"{prefix} {name}",
+            SlugTitle = CrunchyrollSlugFaker.Generate(name),
+            EpisodeMetadata = new CrunchyrollSearchDataEpisodeMetadata()
+            {
+                Episode = "",
+                EpisodeNumber = 0,
+                SeasonId = crunchyrollSeasonId,
+                SequenceNumber = 0,
+                SeriesId = crunchyrollSeriesId,
+                SeriesSlugTitle = crunchyrollSeriesSlugTitle
+            }
+        });
+
+        var mockedResponse = new CrunchyrollSearchResponse
+        {
+            Data =
+            [
+                new CrunchyrollSearchData
+                {
+                    Items = searchDataItems
+                }
+            ]
+        };
+        
+        var mockedRequest = _mockHttpMessageHandler
+            .When($"https://www.crunchyroll.com/content/v2/discover/search?q={UrlEncoder.Default.Encode(name)}&n=6&type=episode&ratings=true&locale=en-US")
+            .Respond("application/json", JsonSerializer.Serialize(mockedResponse));
+        
+        //Act
+        var searchResponseResult = await _sut.SearchTitleIdAsync(name, new CultureInfo("en-US"), CancellationToken.None);
+
+        //Assert
+        searchResponseResult.IsSuccess.Should().BeTrue();
+
+        var expectedSearchResponse = new SearchResponse
+        {
+            SeriesId = crunchyrollSeriesId,
+            SeriesSlugTitle = crunchyrollSeriesSlugTitle,
+            EpisodeId = crunchyrollepisodeId,
+            EpisodeSlugTitle = CrunchyrollSlugFaker.Generate(name),
+            SeasonId = crunchyrollSeasonId
+        };
+
+        searchResponseResult.Value!.Should().BeEquivalentTo(expectedSearchResponse);
+        
+        _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
+    }
+
     [Fact]
     public async Task ReturnsFailed_WhenCrunchyrollSessionNotSet_GivenValidName()
     {
