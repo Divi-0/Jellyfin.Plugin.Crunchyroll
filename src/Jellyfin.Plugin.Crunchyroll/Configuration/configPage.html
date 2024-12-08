@@ -35,6 +35,19 @@
                 <hr/>
                 
                 <h1>Features</h1>
+                <h3>Crunchyroll</h3>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureCrunchyrollUpdateEnabled" name="IsFeatureCrunchyrollUpdateEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Update to the newest Crunchyroll data</span>
+                    </label>
+                    <div class="fieldDescription">
+                        This is necessary to get the latest Crunchyroll data, but you can choose to disable it. If disabled,
+                        the metadata that is overwritten to your jellyfin items will be old and new series, seasons & episodes,
+                        won't get metadata from Crunchyroll.
+                    </div>
+                </div>
+                
                 <h3>Series</h3>
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
@@ -203,6 +216,7 @@
                     document.querySelector('#IsWaybackMachineEnabled').checked = config.IsWaybackMachineEnabled;
                     document.querySelector('#LibraryName').value = config.LibraryName;
                     document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value = config.WaybackMachineWaitTimeoutInSeconds;
+                    document.querySelector('#IsFeatureCrunchyrollUpdateEnabled').checked = config.IsFeatureCrunchyrollUpdateEnabled;
 
                     document.querySelector('#IsFeatureSeriesTitleEnabled').checked = config.IsFeatureSeriesTitleEnabled;
                     document.querySelector('#IsFeatureSeriesDescriptionEnabled').checked = config.IsFeatureSeriesDescriptionEnabled;
@@ -237,6 +251,7 @@
                     config.LibraryName = document.querySelector('#LibraryName').value;
                     config.WaybackMachineWaitTimeoutInSeconds = document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value;
                     config.IsWaybackMachineEnabled = document.querySelector('#IsWaybackMachineEnabled').checked;
+                    config.IsFeatureCrunchyrollUpdateEnabled = document.querySelector('#IsFeatureCrunchyrollUpdateEnabled').checked;
                     
                     config.IsFeatureSeriesTitleEnabled = document.querySelector('#IsFeatureSeriesTitleEnabled').checked;
                     config.IsFeatureSeriesDescriptionEnabled = document.querySelector('#IsFeatureSeriesDescriptionEnabled').checked;

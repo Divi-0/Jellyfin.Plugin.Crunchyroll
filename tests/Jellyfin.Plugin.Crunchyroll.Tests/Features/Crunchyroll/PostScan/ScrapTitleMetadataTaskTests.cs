@@ -1,4 +1,5 @@
 using System.Globalization;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
@@ -18,14 +19,19 @@ public class ScrapTitleMetadataTaskTests
 
     private readonly IMediator _mediator;
     private readonly IMediaSourceManager _mediaSourceManager;
+    private readonly PluginConfiguration _config;
     
     public ScrapTitleMetadataTaskTests()
     {
         _mediator = Substitute.For<IMediator>();
         _mediaSourceManager = MockHelper.MediaSourceManager;
         var logger = Substitute.For<ILogger<ScrapTitleMetadataTask>>();
+        _config = new PluginConfiguration
+        {
+            IsFeatureCrunchyrollUpdateEnabled = true
+        };
         
-        _sut = new ScrapTitleMetadataTask(_mediator, logger);
+        _sut = new ScrapTitleMetadataTask(_mediator, logger, _config);
     }
 
     public static IEnumerable<object[]> RandomSeriesAndMovieWithIds()
@@ -93,6 +99,26 @@ public class ScrapTitleMetadataTaskTests
         _mediaSourceManager
             .GetPathProtocol(baseItem.Path)
             .Returns(MediaProtocol.File);
+        
+        //Act
+        await _sut.RunAsync(baseItem, CancellationToken.None);
+
+        //Assert
+        await _mediator
+            .DidNotReceive()
+            .Send(Arg.Any<ScrapTitleMetadataCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [MemberData(nameof(RandomSeriesAndMovieWithIds))]
+    public async Task DoesNotCallMediatorCommand_WhenFeatureCrunchyrollUpdateIsDisabled_GivenSeriesWithNoSlugTitle(BaseItem baseItem)
+    {
+        //Arrange
+        _mediaSourceManager
+            .GetPathProtocol(baseItem.Path)
+            .Returns(MediaProtocol.File);
+
+        _config.IsFeatureCrunchyrollUpdateEnabled = false;
         
         //Act
         await _sut.RunAsync(baseItem, CancellationToken.None);

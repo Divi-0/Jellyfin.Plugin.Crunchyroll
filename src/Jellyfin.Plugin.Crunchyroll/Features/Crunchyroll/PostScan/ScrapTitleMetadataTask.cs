@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Crunchyroll.Common;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using MediaBrowser.Controller.Entities;
@@ -14,15 +15,23 @@ public class ScrapTitleMetadataTask : IPostTitleIdSetTask, IPostMovieIdSetTask
 {
     private readonly IMediator _mediator;
     private readonly ILogger<ScrapTitleMetadataTask> _logger;
+    private readonly PluginConfiguration _config;
 
-    public ScrapTitleMetadataTask(IMediator mediator, ILogger<ScrapTitleMetadataTask> logger)
+    public ScrapTitleMetadataTask(IMediator mediator, ILogger<ScrapTitleMetadataTask> logger,
+        PluginConfiguration config)
     {
         _mediator = mediator;
         _logger = logger;
+        _config = config;
     }
     
     public async Task RunAsync(BaseItem seriesItem, CancellationToken cancellationToken)
     {
+        if (!_config.IsFeatureCrunchyrollUpdateEnabled)
+        {
+            return;
+        }
+        
         var hasId = seriesItem.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out var id) &&
                     !string.IsNullOrWhiteSpace(id);
 
