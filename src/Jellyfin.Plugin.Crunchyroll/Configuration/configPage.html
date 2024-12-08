@@ -31,6 +31,16 @@
                         Good if you have an Anime-Library and specify only the name here.
                         Keep it empty to scan in all collections</div>
                 </div>
+                <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsScanInAllLibrariesEnabled" name="IsScanInAllLibrariesEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>Run Crunchyroll-Scan in all libraries</span>
+                    </label>
+                    <div class="fieldDescription">
+                        This enforces the plugin to ignore the setting for the library name, and it runs the scan in all libraries.
+                        Should only be enabled if you have only libraries with anime content
+                    </div>
+                </div>
                 
                 <hr/>
                 
@@ -215,6 +225,7 @@
                     document.querySelector('#LocalDatabasePath').value = config.LocalDatabasePath;
                     document.querySelector('#IsWaybackMachineEnabled').checked = config.IsWaybackMachineEnabled;
                     document.querySelector('#LibraryName').value = config.LibraryName;
+                    document.querySelector('#IsScanInAllLibrariesEnabled').checked = config.IsScanInAllLibrariesEnabled;
                     document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value = config.WaybackMachineWaitTimeoutInSeconds;
                     document.querySelector('#IsFeatureCrunchyrollUpdateEnabled').checked = config.IsFeatureCrunchyrollUpdateEnabled;
 
@@ -249,6 +260,7 @@
                     config.ArchiveOrgUrl = document.querySelector('#ArchiveOrgUrl').value;
                     config.LocalDatabasePath = document.querySelector('#LocalDatabasePath').value;
                     config.LibraryName = document.querySelector('#LibraryName').value;
+                    config.IsScanInAllLibrariesEnabled = document.querySelector('#IsScanInAllLibrariesEnabled').checked;
                     config.WaybackMachineWaitTimeoutInSeconds = document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value;
                     config.IsWaybackMachineEnabled = document.querySelector('#IsWaybackMachineEnabled').checked;
                     config.IsFeatureCrunchyrollUpdateEnabled = document.querySelector('#IsFeatureCrunchyrollUpdateEnabled').checked;

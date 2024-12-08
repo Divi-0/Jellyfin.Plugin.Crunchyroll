@@ -41,7 +41,7 @@ More details of the features can be found in the wiki [Features](https://github.
 1. In the Jellyfin Dashboard select the `Plugins -> Repositories` Tab and add the manifest `https://raw.githubusercontent.com/Divi-0/Jellyfin.Plugin.Crunchyroll/refs/heads/main/manifest.json`
 2. Go to the `Catalog` and install `"Crunchyroll"`
 3. Go to the configuration page of the "Crunchyroll" plugin `Plugins -> My Plugins -> Crunchyroll`
-4. Optional but recommended: Enter the name of your anime jellyfin collection/library you want to scan (Example: `Anime`)
+4. Enter the name of your anime jellyfin collection/library you want to scan (Example: `Anime`)
 5. Enable all the features you would like to have, in the "Features" section
 6. Change your folder structure to reflect the structure of Crunchyroll [Usage](#Usage)
 7. Restart Jellyfin-Server if you made some changes to the config

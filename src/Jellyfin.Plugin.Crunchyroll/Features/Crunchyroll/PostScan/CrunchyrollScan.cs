@@ -46,7 +46,7 @@ public sealed class CrunchyrollScan : ILibraryPostScanTask
         var startTimestamp = Stopwatch.GetTimestamp();
         
         CollectionFolder? collectionFolder = null;
-        if (!string.IsNullOrWhiteSpace(config.LibraryName))
+        if (!config.IsScanInAllLibrariesEnabled && !string.IsNullOrWhiteSpace(config.LibraryName))
         {
             var result = _libraryManager.GetItemList(new InternalItemsQuery()
             {
@@ -100,11 +100,19 @@ public sealed class CrunchyrollScan : ILibraryPostScanTask
     {
         if (string.IsNullOrWhiteSpace(config.CrunchyrollUrl))
         {
+            _logger.LogError("Crunchyroll url is empty");
+            return false;
+        }
+
+        if (!config.IsScanInAllLibrariesEnabled && string.IsNullOrWhiteSpace(config.LibraryName))
+        {
+            _logger.LogError("A name for the library must be set to run the crunchyroll scan");
             return false;
         }
 
         if (config.IsWaybackMachineEnabled && string.IsNullOrWhiteSpace(config.ArchiveOrgUrl))
         {
+            _logger.LogError("ArchiveOrgUrl url is empty");
             return false;
         }
         
