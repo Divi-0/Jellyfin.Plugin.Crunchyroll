@@ -14,4 +14,5 @@ public static class ErrorCodes
     public const string Internal = "10";
     public const string NotAllowed = "11";
     public const string FeatureDisabled = "12";
+    public const string NotFound = "13";
 }

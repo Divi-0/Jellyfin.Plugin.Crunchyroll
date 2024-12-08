@@ -2039,6 +2039,8 @@ then you can add it manually by editing the metadata of the series.
 5. Paste the id into the textarea and save
 6. Run a library scan
 
+Or extend the folder name of your series with `[CrunchyrollId-<id>]` like tvdbid <br> https://jellyfin.org/docs/general/server/media/shows/
+
 ## Build
 
 Install the dotnet 8 sdk and run `dotnet build` 

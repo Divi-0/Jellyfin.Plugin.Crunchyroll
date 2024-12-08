@@ -95,6 +95,90 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
         }
 
         [Fact]
+        public async Task SetsTitleId_WhenFileNameHasCrunchyrollIdAttribute_GivenTitleWithNoCrunchyrollTitleId()
+        {
+            //Arrange
+            var crunchrollId = CrunchyrollIdFaker.Generate();
+            var item = SeriesFaker.Generate();
+            item.Path = $"{item.Path} [CrunchyrollId-{crunchrollId}]";
+            
+            _libraryManager
+                .UpdateItemAsync(Arg.Is<BaseItem>(x => x.Id == item.Id), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
+                .Returns(Task.CompletedTask);
+
+            _libraryManager
+                .GetItemById(item.DisplayParentId)
+                .Returns(SeriesFaker.Generate());
+
+            _mediaSourceManager
+                .GetPathProtocol(item.Path)
+                .Returns(MediaProtocol.File);
+
+            //Act
+            await _sut.RunAsync(item, CancellationToken.None);
+
+            //Assert
+            await _mediator
+                .DidNotReceive()
+                .Send(Arg.Any<TitleIdQuery>(), Arg.Any<CancellationToken>());
+            
+            await _libraryManager
+                .Received(1)
+                .UpdateItemAsync(
+                    Arg.Is<BaseItem>(x => x.Id == item.Id), 
+                    Arg.Any<BaseItem>(), 
+                    ItemUpdateType.MetadataEdit, 
+                    Arg.Any<CancellationToken>());
+            
+            item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out var actualCrunchyrollId).Should().BeTrue();
+            item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesSlugTitle, out var actualCrunchyrollSlugTitle).Should().BeTrue();
+            actualCrunchyrollId.Should().Be(crunchrollId);
+            actualCrunchyrollSlugTitle.Should().Be(crunchrollId);
+        }
+
+        [Fact]
+        public async Task OverwriteExistingTitleId_WhenFileNameHasCrunchyrollIdAttribute_GivenTitleWithNoCrunchyrollTitleId()
+        {
+            //Arrange
+            var crunchrollId = CrunchyrollIdFaker.Generate();
+            var item = SeriesFaker.GenerateWithTitleId();
+            item.Path = $"{item.Path} [CrunchyrollId-{crunchrollId}]";
+            
+            _libraryManager
+                .UpdateItemAsync(Arg.Is<BaseItem>(x => x.Id == item.Id), Arg.Any<BaseItem>(), Arg.Any<ItemUpdateType>(), Arg.Any<CancellationToken>())
+                .Returns(Task.CompletedTask);
+
+            _libraryManager
+                .GetItemById(item.DisplayParentId)
+                .Returns(SeriesFaker.Generate());
+
+            _mediaSourceManager
+                .GetPathProtocol(item.Path)
+                .Returns(MediaProtocol.File);
+
+            //Act
+            await _sut.RunAsync(item, CancellationToken.None);
+
+            //Assert
+            await _mediator
+                .DidNotReceive()
+                .Send(Arg.Any<TitleIdQuery>(), Arg.Any<CancellationToken>());
+            
+            await _libraryManager
+                .Received(1)
+                .UpdateItemAsync(
+                    Arg.Is<BaseItem>(x => x.Id == item.Id), 
+                    Arg.Any<BaseItem>(), 
+                    ItemUpdateType.MetadataEdit, 
+                    Arg.Any<CancellationToken>());
+            
+            item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out var actualCrunchyrollId).Should().BeTrue();
+            item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesSlugTitle, out var actualCrunchyrollSlugTitle).Should().BeTrue();
+            actualCrunchyrollId.Should().Be(crunchrollId);
+            actualCrunchyrollSlugTitle.Should().Be(crunchrollId);
+        }
+
+        [Fact]
         public async Task CallsTitleIdQueryOnlyWithSeriesName_WhenFileNameHasYearAndDbId_GivenFileNameWithExtraLetters()
         {
             //Arrange
@@ -248,7 +332,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.PostScan
             _postTitleIdSetTasks.Should().AllSatisfy(task =>
             {
                 task
-                .Received(1)
+                .DidNotReceive()
                 .RunAsync(item, Arg.Any<CancellationToken>());
             });
 

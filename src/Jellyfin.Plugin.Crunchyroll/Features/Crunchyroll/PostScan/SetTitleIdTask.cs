@@ -44,33 +44,38 @@ public partial class SetTitleIdTask : IPostSeriesScanTask
 
     private async Task<Result> SetTitleId(BaseItem item, CancellationToken cancellationToken)
     {
-        if (item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out string? id) && !string.IsNullOrWhiteSpace(id))
-        {
-            _logger.LogDebug("TitleId for Item {Name} is already set", item.FileNameWithoutExtension);
-            return Result.Ok();
-        }
-
         try
         {
-            var seriesFileNameExtraDataInNameRegex = SeriesFileNameExtraDataInNameRegex();
-            var match = seriesFileNameExtraDataInNameRegex.Match(item.FileNameWithoutExtension);
+            var extractedResult = ExtractIdFromFileNameAndSetProviderId(item);
 
-            var title = match.Success
-                ? match.Groups[1].Value
-                : item.FileNameWithoutExtension;
-                
-            var titleIdResult = await _mediator.Send(new TitleIdQuery(
-                    title,
-                item.GetPreferredMetadataCultureInfo()), 
-                cancellationToken);
-
-            if (titleIdResult.IsFailed)
+            string? crunchyrollId = null;
+            string? crunchyrollSlugTitle = null;
+            if (extractedResult.IsFailed)
             {
-                return Result.Ok();
-            }
+                if (item.ProviderIds.TryGetValue(CrunchyrollExternalKeys.SeriesId, out string? id) && !string.IsNullOrWhiteSpace(id))
+                {
+                    _logger.LogDebug("TitleId for Item {Name} is already set", item.FileNameWithoutExtension);
+                    return Result.Ok();
+                }
+                
+                var titleIdResult = await SearchForTitleAndSetProviderIdAsync(item, cancellationToken);
 
-            item.ProviderIds[CrunchyrollExternalKeys.SeriesId] = titleIdResult.Value?.Id ?? string.Empty;
-            item.ProviderIds[CrunchyrollExternalKeys.SeriesSlugTitle] = titleIdResult.Value?.SlugTitle ?? string.Empty;
+                if (titleIdResult.IsFailed)
+                {
+                    return titleIdResult.ToResult();
+                }
+
+                crunchyrollId = titleIdResult.Value?.Id;
+                crunchyrollSlugTitle = titleIdResult.Value?.SlugTitle;
+            }
+            else
+            {
+                crunchyrollId = extractedResult.Value;
+                crunchyrollSlugTitle = extractedResult.Value;
+            }
+            
+            item.ProviderIds[CrunchyrollExternalKeys.SeriesId] = crunchyrollId ?? string.Empty;
+            item.ProviderIds[CrunchyrollExternalKeys.SeriesSlugTitle] = crunchyrollSlugTitle ?? string.Empty;
 
             await _libraryManager.UpdateItemAsync(item, item.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
 
@@ -83,6 +88,36 @@ public partial class SetTitleIdTask : IPostSeriesScanTask
         }
     }
 
+    private static Result<string> ExtractIdFromFileNameAndSetProviderId(BaseItem item)
+    {
+        var regex = FileNameAttributeCrunchyrollIdRegex();
+        var match = regex.Match(item.FileNameWithoutExtension);
+
+        if (!match.Success)
+        {
+            return Result.Fail(Domain.Constants.ErrorCodes.NotFound);
+        }
+
+        return Result.Ok(match.Groups[1].Value);
+    }
+
+    private async Task<Result<SearchResponse?>> SearchForTitleAndSetProviderIdAsync(BaseItem item, CancellationToken cancellationToken)
+    {
+        var seriesFileNameExtraDataInNameRegex = SeriesFileNameExtraDataInNameRegex();
+        var match = seriesFileNameExtraDataInNameRegex.Match(item.FileNameWithoutExtension);
+
+        var title = match.Success
+            ? match.Groups[1].Value
+            : item.FileNameWithoutExtension;
+                
+        var titleIdResult = await _mediator.Send(new TitleIdQuery(
+                title,
+                item.GetPreferredMetadataCultureInfo()), 
+            cancellationToken);
+
+        return titleIdResult;
+    } 
+
     private async Task RunPostTasks(BaseItem baseItem, CancellationToken cancellationToken)
     {
         foreach (var task in _postTitleIdSetTasks)
@@ -93,4 +128,6 @@ public partial class SetTitleIdTask : IPostSeriesScanTask
 
     [GeneratedRegex(@"^(.*) \(| \[")]
     private static partial Regex SeriesFileNameExtraDataInNameRegex();
+    [GeneratedRegex(@"\[CrunchyrollId\-(.*)\]")]
+    private static partial Regex FileNameAttributeCrunchyrollIdRegex();
 }
