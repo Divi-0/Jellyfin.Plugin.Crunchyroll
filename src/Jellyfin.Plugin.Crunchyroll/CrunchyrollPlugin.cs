@@ -60,7 +60,7 @@ public class CrunchyrollPlugin : MediaBrowser.Common.Plugins.BasePlugin<PluginCo
 
         serviceCollection.AddHttpMeasureRequestTimeMessageHandler();
 
-        serviceCollection.AddSingleton<PluginConfiguration>(Configuration);
+        serviceCollection.AddTransient<PluginConfiguration>(_ => Configuration);
         serviceCollection.AddSingleton<ILibraryManager>(_libraryManager);
         
         serviceCollection.AddSingleton<ILoggerFactory>(loggerFactory);

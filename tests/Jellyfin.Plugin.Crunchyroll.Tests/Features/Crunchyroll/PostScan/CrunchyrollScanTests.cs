@@ -52,7 +52,7 @@ public class CrunchyrollScanTests
         _config = new PluginConfiguration();
         _config.LibraryName = "/mnt/Crunchyroll";
         
-        _sut = new CrunchyrollScan(logger, _libraryManager, _config);
+        _sut = new CrunchyrollScan(logger, _libraryManager);
     }
 
     [Fact(Skip = "Currently not possible due to ServiceScopeFactory, at runtime the wrong service scope is injected")]

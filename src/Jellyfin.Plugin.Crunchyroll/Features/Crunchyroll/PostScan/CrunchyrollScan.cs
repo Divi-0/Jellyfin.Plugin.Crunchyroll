@@ -19,24 +19,22 @@ public sealed class CrunchyrollScan : ILibraryPostScanTask
 {
     private readonly ILogger<CrunchyrollScan> _logger;
     private readonly ILibraryManager _libraryManager;
-    private readonly PluginConfiguration _config;
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public CrunchyrollScan(ILogger<CrunchyrollScan> logger, ILibraryManager libraryManager, 
-        PluginConfiguration? config = null)
+    public CrunchyrollScan(ILogger<CrunchyrollScan> logger, ILibraryManager libraryManager)
     {
         _logger = logger;
         _libraryManager = libraryManager;
 
         _serviceScopeFactory = CrunchyrollPlugin.Instance!.ServiceProvider
             .GetRequiredService<IServiceScopeFactory>();
-        
-        _config = config ?? CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
     }
 
     public async Task Run(IProgress<double> progress, CancellationToken cancellationToken)
     {
-        if (!IsConfigValid())
+        var config = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
+        
+        if (!IsConfigValid(config))
         {
             _logger.LogWarning("Invalid crunchyroll plugin configuration. Skipping...");
             progress.Report(100);
@@ -48,11 +46,11 @@ public sealed class CrunchyrollScan : ILibraryPostScanTask
         var startTimestamp = Stopwatch.GetTimestamp();
         
         CollectionFolder? collectionFolder = null;
-        if (!string.IsNullOrWhiteSpace(_config.LibraryName))
+        if (!string.IsNullOrWhiteSpace(config.LibraryName))
         {
             var result = _libraryManager.GetItemList(new InternalItemsQuery()
             {
-                Name = _config.LibraryName
+                Name = config.LibraryName
             });
 
             collectionFolder = result.FirstOrDefault(x => x is CollectionFolder) as CollectionFolder;
@@ -98,14 +96,14 @@ public sealed class CrunchyrollScan : ILibraryPostScanTask
         progress.Report(100);
     }
 
-    private bool IsConfigValid()
+    private bool IsConfigValid(PluginConfiguration config)
     {
-        if (string.IsNullOrWhiteSpace(_config.CrunchyrollUrl))
+        if (string.IsNullOrWhiteSpace(config.CrunchyrollUrl))
         {
             return false;
         }
 
-        if (_config.IsWaybackMachineEnabled && string.IsNullOrWhiteSpace(_config.ArchiveOrgUrl))
+        if (config.IsWaybackMachineEnabled && string.IsNullOrWhiteSpace(config.ArchiveOrgUrl))
         {
             return false;
         }
