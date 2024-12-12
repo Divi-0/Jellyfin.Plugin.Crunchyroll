@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Crunchyroll.Common.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Providers;
@@ -53,6 +54,6 @@ public class CrunchyrollEpisodeProvider : IRemoteMetadataProvider<MediaBrowser.C
     public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
     {
         var httpClientFactory = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<IHttpClientFactory>();
-        return httpClientFactory.CreateClient(NamedClient.Default).GetAsync(url, cancellationToken);
+        return httpClientFactory.CreateClient(CrunchyrollHttpClientNames.ImageClient).GetAsync(url, cancellationToken);
     }
 }

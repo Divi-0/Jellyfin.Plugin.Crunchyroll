@@ -2,6 +2,7 @@ using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.DeleteTitleMetadata;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.ImageProvider;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
@@ -37,6 +38,7 @@ public static class CrunchyrollServiceExtension
         serviceCollection.AddDeleteTitleMetadata();
         
         serviceCollection.AddMetadataProvider();
+        serviceCollection.AddImageProvider();
         
         return serviceCollection;
     }
