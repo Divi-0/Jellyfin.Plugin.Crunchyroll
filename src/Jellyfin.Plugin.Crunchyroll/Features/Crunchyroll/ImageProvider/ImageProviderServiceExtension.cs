@@ -1,3 +1,4 @@
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.ImageProvider.Episode;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.ImageProvider.Series;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,5 +9,6 @@ public static class ImageProviderServiceExtension
     public static void AddImageProvider(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddCrunchyrollSeriesImageProvider();
+        serviceCollection.AddCrunchyrollEpisodeImageProvider();
     }
 }
