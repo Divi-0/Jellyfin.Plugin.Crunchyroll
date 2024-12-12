@@ -80,18 +80,18 @@ public partial class SetMetadataToEpisodeService : ISetMetadataToEpisodeService
         }
         else
         {
-            SetSpecialEpisodeAirsBefore(episode, crunchyrollEpisode.SequenceNumber, parentIndexNumber);
+            SetSpecialEpisodeAirsBefore(episode, crunchyrollEpisode, parentIndexNumber);
         }
             
         episode.Name = $"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}";
     }
 
     private static void SetSpecialEpisodeAirsBefore(MediaBrowser.Controller.Entities.TV.Episode episode, 
-        double crunchyrollSequenceNumber, int? parentIndexNumber)
+        Domain.Entities.Episode crunchyrollEpisode, int? parentIndexNumber)
     {
         //Add 0.5 to sequenceNumber, because every special episode between normal episodes are decimals with x.5
-        episode.AirsBeforeEpisodeNumber = Convert.ToInt32(crunchyrollSequenceNumber + 0.5);
-        episode.AirsBeforeSeasonNumber = parentIndexNumber;
+        episode.AirsBeforeEpisodeNumber = Convert.ToInt32(crunchyrollEpisode.SequenceNumber + 0.5);
+        episode.AirsBeforeSeasonNumber = crunchyrollEpisode.Season!.SeasonNumber;
     }
 
     private void SetEpisodeTitle(MediaBrowser.Controller.Entities.TV.Episode episode, Domain.Entities.Episode crunchyrollEpisode)

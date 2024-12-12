@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.GetEpisodeCrunchyrollId;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.GetSpecialEpisodeCrunchyrollId;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.SetMetadataToEpisode;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ public static class CrunchyrollEpisodeGetMetadataServiceExtension
         serviceCollection.AddGetEpisodeCrunchyrollId();
         serviceCollection.AddScrapEpisodeMetadata();
         serviceCollection.AddSetMetadataToEpisode();
+        serviceCollection.AddGetSpecialEpisodeCrunchyrollId();
         serviceCollection.AddScoped<IEpisodeGetMetadataService, EpisodeGetMetadataService>();
     }
 }

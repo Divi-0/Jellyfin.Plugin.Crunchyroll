@@ -2,9 +2,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.GetEpisodeCrunchyrollId;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.GetSpecialEpisodeCrunchyrollId;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.SetMetadataToEpisode;
 using MediaBrowser.Controller.Providers;
@@ -18,60 +20,73 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
     private readonly IGetEpisodeCrunchyrollIdService _episodeCrunchyrollIdService;
     private readonly IScrapEpisodeMetadataService _scrapEpisodeMetadataService;
     private readonly ISetMetadataToEpisodeService _setMetadataToEpisodeService;
+    private readonly IGetSpecialEpisodeCrunchyrollIdService _specialEpisodeCrunchyrollIdService;
 
     public EpisodeGetMetadataService(ILogger<EpisodeGetMetadataService> logger,
         IGetEpisodeCrunchyrollIdService episodeCrunchyrollIdService,
         IScrapEpisodeMetadataService scrapEpisodeMetadataService,
-        ISetMetadataToEpisodeService setMetadataToEpisodeService)
+        ISetMetadataToEpisodeService setMetadataToEpisodeService,
+        IGetSpecialEpisodeCrunchyrollIdService specialEpisodeCrunchyrollIdService)
     {
         _logger = logger;
         _episodeCrunchyrollIdService = episodeCrunchyrollIdService;
         _scrapEpisodeMetadataService = scrapEpisodeMetadataService;
         _setMetadataToEpisodeService = setMetadataToEpisodeService;
+        _specialEpisodeCrunchyrollIdService = specialEpisodeCrunchyrollIdService;
     }
     
     public async Task<MetadataResult<MediaBrowser.Controller.Entities.TV.Episode>> GetMetadataAsync(EpisodeInfo info, CancellationToken cancellationToken)
     {
         var seasonId = info.SeasonProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.SeasonId);
-
-        if (string.IsNullOrWhiteSpace(seasonId))
+        
+        if (!IsEpisodeInsideOfSpecialsSeason(info))
         {
-            _logger.LogDebug("Parent of episode {Path} has no Crunchyroll season id. Skipping...", info.Path);
-            return new MetadataResult<MediaBrowser.Controller.Entities.TV.Episode>()
+            if (string.IsNullOrWhiteSpace(seasonId))
             {
-                HasMetadata = false,
-                Item = new MediaBrowser.Controller.Entities.TV.Episode()
-            };
+                _logger.LogDebug("Parent of episode {Path} has no Crunchyroll season id. Skipping...", info.Path);
+                return FailedResult;
+            }
+
+            //ignore result
+            _ = await _scrapEpisodeMetadataService.ScrapEpisodeMetadataAsync(seasonId,
+                info.GetPreferredMetadataCultureInfo(), cancellationToken);
         }
-
+        
         var episodeId = info.ProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.EpisodeId);
-
-        //ignore result
-        _ = await _scrapEpisodeMetadataService.ScrapEpisodeMetadataAsync(seasonId,
-            info.GetPreferredMetadataCultureInfo(), cancellationToken);
 
         if (string.IsNullOrWhiteSpace(episodeId))
         {
-            var episodeIdResult = await _episodeCrunchyrollIdService.GetEpisodeIdAsync(seasonId,
-                Path.GetFileNameWithoutExtension(info.Path), info.IndexNumber, cancellationToken);
+            var fileName = Path.GetFileNameWithoutExtension(info.Path);
+            
+            Result<CrunchyrollId?> episodeIdResult;
+            if (IsEpisodeInsideOfSpecialsSeason(info))
+            {
+                var seriesId = info.SeriesProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.SeriesId);
+
+                if (string.IsNullOrWhiteSpace(seriesId))
+                {
+                    _logger.LogDebug("special episode {Path} has no seriesId, skipping...", info.Path);
+                    return FailedResult;
+                }
+                
+                episodeIdResult = await _specialEpisodeCrunchyrollIdService
+                    .GetEpisodeIdAsync(seriesId, fileName, cancellationToken);
+            }
+            else
+            {
+                episodeIdResult = await _episodeCrunchyrollIdService.GetEpisodeIdAsync(seasonId!,
+                    fileName, info.IndexNumber, cancellationToken);
+            }
 
             if (episodeIdResult.IsFailed)
             {
-                return new MetadataResult<MediaBrowser.Controller.Entities.TV.Episode>()
-                {
-                    HasMetadata = false,
-                    Item = new MediaBrowser.Controller.Entities.TV.Episode()
-                };
+                return FailedResult;
             }
 
             if (episodeIdResult.Value is null)
             {
                 _logger.LogDebug("Could not find any episodeId for episode {Path}", info.Path);
-                return new MetadataResult<MediaBrowser.Controller.Entities.TV.Episode>()
-                {
-                    HasMetadata = false,
-                    Item = new MediaBrowser.Controller.Entities.TV.Episode()
-                };
+                return FailedResult;
             }
 
             episodeId = episodeIdResult.Value;
@@ -83,11 +98,7 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
 
         if (episodeWithNewMetadataResult.IsFailed)
         {
-            return new MetadataResult<MediaBrowser.Controller.Entities.TV.Episode>()
-            {
-                HasMetadata = false,
-                Item = new MediaBrowser.Controller.Entities.TV.Episode()
-            };
+            return FailedResult;
         }
 
         var newEpisode = episodeWithNewMetadataResult.Value;
@@ -98,5 +109,17 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
             HasMetadata = true,
             Item = episodeWithNewMetadataResult.Value
         };
+    }
+    
+    private MetadataResult<MediaBrowser.Controller.Entities.TV.Episode> FailedResult
+        => new()
+        {
+            HasMetadata = false,
+            Item = new MediaBrowser.Controller.Entities.TV.Episode()
+        };
+
+    private static bool IsEpisodeInsideOfSpecialsSeason(EpisodeInfo info)
+    {
+        return info.ParentIndexNumber == 0;
     }
 }

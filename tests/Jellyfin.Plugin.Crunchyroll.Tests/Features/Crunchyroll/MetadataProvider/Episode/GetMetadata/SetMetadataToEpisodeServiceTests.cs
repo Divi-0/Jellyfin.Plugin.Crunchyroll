@@ -178,7 +178,9 @@ public class SetMetadataToEpisodeServiceTests
     public async Task SetsAirsBefore_WhenIndexNumberOfJellyfinEpisodeIsNullAndCrunchyrollEpisodeNumberIsDecimal_GivenEpisodeId()
     {
         //Arrange
-        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate();
+        var crunchyrollSeason = CrunchyrollSeasonFaker.Generate();
+        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate(crunchyrollSeason.Id);
+        crunchyrollEpisode = crunchyrollEpisode with { Season = crunchyrollSeason };
         var language = new CultureInfo("en-US");
         var currentIndexNumber = (int?)null;
         var parentIndexNumber = (int?)Random.Shared.Next(1, int.MaxValue);
@@ -204,7 +206,7 @@ public class SetMetadataToEpisodeServiceTests
         episodeWithNewMetadata.Overview.Should().Be(crunchyrollEpisode.Description);
         episodeWithNewMetadata.IndexNumber!.Should().Be(null);
         episodeWithNewMetadata.AirsBeforeEpisodeNumber.Should().Be(Convert.ToInt32(crunchyrollEpisode.SequenceNumber + 0.5));
-        episodeWithNewMetadata.AirsBeforeSeasonNumber.Should().Be(parentIndexNumber);
+        episodeWithNewMetadata.AirsBeforeSeasonNumber.Should().Be(crunchyrollSeason.SeasonNumber);
         episodeWithNewMetadata.ParentIndexNumber.HasValue.Should().BeFalse();
         
         await _repository
