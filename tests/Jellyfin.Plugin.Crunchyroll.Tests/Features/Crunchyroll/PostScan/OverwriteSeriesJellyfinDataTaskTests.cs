@@ -6,10 +6,11 @@ using Bogus;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
+using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.ScrapSeriesMetadata.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeriesJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
@@ -85,7 +86,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Width = 1
         };
 
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
+        var titleMetadata = new Domain.Entities.TitleMetadata
         {
             CrunchyrollId = string.Empty,
             SlugTitle = string.Empty,
@@ -191,7 +192,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
         _ = _file.Create(posterWideFilePath);
 
 
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
+        var titleMetadata = new Domain.Entities.TitleMetadata
         {
             CrunchyrollId = string.Empty,
             SlugTitle = string.Empty,
@@ -273,7 +274,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Width = 1
         };
 
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
+        var titleMetadata = new Domain.Entities.TitleMetadata
         {
             CrunchyrollId = string.Empty,
             SlugTitle = string.Empty,
@@ -378,7 +379,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Width = 1
         };
 
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
+        var titleMetadata = new Domain.Entities.TitleMetadata
         {
             CrunchyrollId = string.Empty,
             SlugTitle = string.Empty,
@@ -474,41 +475,6 @@ public class OverwriteSeriesJellyfinDataTaskTests
     }
     
     [Fact]
-    public async Task IgnoresSeries_WhenNoTitleMetadataFound_GivenSeriesWithTitleId()
-    {
-        //Arrange
-        var series = SeriesFaker.GenerateWithTitleId();
-        
-        _libraryManager
-            .GetItemById(series.ParentId)
-            .Returns((BaseItem?)null);
-        
-        _repository
-            .GetTitleMetadataAsync(Arg.Any<string>(),
-                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
-            .Returns((Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?)null);
-        
-        //Act
-        await _sut.RunAsync(series, CancellationToken.None);
-        
-        //Assert
-        await _repository
-            .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId],
-                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
-
-        await _crunchyrollSeriesClient
-            .DidNotReceive()
-            .GetPosterImagesAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-
-        _fileSystem.AllFiles.Should().BeEmpty();
-        
-        await _libraryManager
-            .DidNotReceive()
-            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
-    }
-    
-    [Fact]
     public async Task IgnoresSeries_WhenSeriesHasNoTitleId_GivenSeriesWithoutTitleId()
     {
         //Arrange
@@ -563,7 +529,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Width = 1
         };
 
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
+        var titleMetadata = new Domain.Entities.TitleMetadata
         {
             CrunchyrollId = string.Empty,
             SlugTitle = string.Empty,
@@ -655,7 +621,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Width = 1
         };
 
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
+        var titleMetadata = new Domain.Entities.TitleMetadata
         {
             CrunchyrollId = string.Empty,
             SlugTitle = string.Empty,
@@ -749,7 +715,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Width = 1
         };
         
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
+        var titleMetadata = new Domain.Entities.TitleMetadata
         {
             CrunchyrollId = string.Empty,
             SlugTitle = string.Empty,
@@ -847,7 +813,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Width = 1
         };
 
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
+        var titleMetadata = new Domain.Entities.TitleMetadata
         {
             CrunchyrollId = string.Empty,
             SlugTitle = string.Empty,
@@ -929,47 +895,6 @@ public class OverwriteSeriesJellyfinDataTaskTests
     }
     
     [Fact]
-    public async Task SkipsItem_WhenRepositoryGetTitleMetadataFails_GivenSeriesWithTitleId()
-    {
-        //Arrange
-        var series = SeriesFaker.GenerateWithTitleId();
-
-        _libraryManager
-            .GetItemById(series.ParentId)
-            .Returns((BaseItem?)null);
-        
-        _repository
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Fail(Guid.NewGuid().ToString()));
-        
-        //Act
-        await _sut.RunAsync(series, CancellationToken.None);
-        
-        //Assert
-        await _repository
-            .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
-
-        await _crunchyrollSeriesClient
-            .DidNotReceive()
-            .GetPosterImagesAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-
-        await _crunchyrollSeriesClient
-            .DidNotReceive()
-            .GetPosterImagesAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        
-        await _libraryManager
-            .DidNotReceive()
-            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
-        
-        series.ImageInfos.Should().NotContain(x => 
-            x.Type == ImageType.Primary);
-        
-        series.ImageInfos.Should().NotContain(x => 
-            x.Type == ImageType.Backdrop);
-    }
-    
-    [Fact]
     public async Task DoesNotGetAndStoreCoverImage_WhenFeatureCoverImageIsDisabled_GivenSeriesWithTitleId()
     {
         //Arrange
@@ -992,7 +917,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Width = 1
         };
 
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
+        var titleMetadata = new Domain.Entities.TitleMetadata
         {
             CrunchyrollId = string.Empty,
             SlugTitle = string.Empty,
@@ -1095,7 +1020,7 @@ public class OverwriteSeriesJellyfinDataTaskTests
             Width = 1
         };
 
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
+        var titleMetadata = new Domain.Entities.TitleMetadata
         {
             CrunchyrollId = string.Empty,
             SlugTitle = string.Empty,
@@ -1173,293 +1098,5 @@ public class OverwriteSeriesJellyfinDataTaskTests
             x.Width == posterTall.Width &&
             x.Height == posterTall.Height,
             "feature is disabled");
-    }
-    
-    [Fact]
-    public async Task DoesNotUpdateName_WhenFeatureSeriesTitleIsDisabled_GivenSeriesWithTitleId()
-    {
-        //Arrange
-        var series = SeriesFaker.GenerateWithTitleId();
-        var language = new CultureInfo("en-US");
-
-        _config.IsFeatureSeriesTitleEnabled = false;
-
-        var posterTall = new ImageSource
-        {
-            Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
-            Height = 1,
-            Width = 1
-        };
-        
-        var posterWide = new ImageSource
-        {
-            Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
-            Height = 1,
-            Width = 1
-        };
-
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
-        {
-            CrunchyrollId = string.Empty,
-            SlugTitle = string.Empty,
-            Description = _faker.Lorem.Sentences(),
-            Title = _faker.Random.Words(),
-            Studio = _faker.Random.Words(),
-            Rating = _faker.Random.Float(),
-            PosterTall = JsonSerializer.Serialize(posterTall),
-            PosterWide = JsonSerializer.Serialize(posterWide),
-            Language = language.Name
-        };
-
-        _libraryManager
-            .GetItemById(series.ParentId)
-            .Returns((BaseItem?)null);
-        
-        _repository
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
-            .Returns(titleMetadata);
-
-        var posterTallBytes = _faker.Random.Bytes(1000);
-        _crunchyrollSeriesClient
-            .GetPosterImagesAsync(posterTall.Uri, Arg.Any<CancellationToken>())
-            .Returns(new MemoryStream(posterTallBytes));
-        
-        var posterWideBytes = _faker.Random.Bytes(1000);
-        _crunchyrollSeriesClient
-            .GetPosterImagesAsync(posterWide.Uri, Arg.Any<CancellationToken>())
-            .Returns(new MemoryStream(posterWideBytes));
-        
-        //Act
-        await _sut.RunAsync(series, CancellationToken.None);
-        
-        //Assert
-        series.Name.Should().NotBe(titleMetadata.Title, "feature is disabled");
-        series.Overview.Should().Be(titleMetadata.Description);
-        series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
-        series.CommunityRating.Should().Be(titleMetadata.Rating);
-        
-        await _repository
-            .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
-        
-        await _libraryManager
-            .Received(1)
-            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
-    }
-    
-    [Fact]
-    public async Task DoesNotUpdateOverview_WhenFeatureSeriesDescriptionIsDisabled_GivenSeriesWithTitleId()
-    {
-        //Arrange
-        var series = SeriesFaker.GenerateWithTitleId();
-        var language = new CultureInfo("en-US");
-
-        _config.IsFeatureSeriesDescriptionEnabled = false;
-
-        var posterTall = new ImageSource
-        {
-            Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
-            Height = 1,
-            Width = 1
-        };
-        
-        var posterWide = new ImageSource
-        {
-            Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
-            Height = 1,
-            Width = 1
-        };
-
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
-        {
-            CrunchyrollId = string.Empty,
-            SlugTitle = string.Empty,
-            Description = _faker.Lorem.Sentences(),
-            Title = _faker.Random.Words(),
-            Studio = _faker.Random.Words(),
-            Rating = _faker.Random.Float(),
-            PosterTall = JsonSerializer.Serialize(posterTall),
-            PosterWide = JsonSerializer.Serialize(posterWide),
-            Language = language.Name
-        };
-
-        _libraryManager
-            .GetItemById(series.ParentId)
-            .Returns((BaseItem?)null);
-        
-        _repository
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
-            .Returns(titleMetadata);
-
-        var posterTallBytes = _faker.Random.Bytes(1000);
-        _crunchyrollSeriesClient
-            .GetPosterImagesAsync(posterTall.Uri, Arg.Any<CancellationToken>())
-            .Returns(new MemoryStream(posterTallBytes));
-        
-        var posterWideBytes = _faker.Random.Bytes(1000);
-        _crunchyrollSeriesClient
-            .GetPosterImagesAsync(posterWide.Uri, Arg.Any<CancellationToken>())
-            .Returns(new MemoryStream(posterWideBytes));
-        
-        //Act
-        await _sut.RunAsync(series, CancellationToken.None);
-        
-        //Assert
-        series.Name.Should().Be(titleMetadata.Title);
-        series.Overview.Should().NotBe(titleMetadata.Description, "feature is disabled");
-        series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
-        series.CommunityRating.Should().Be(titleMetadata.Rating);
-        
-        await _repository
-            .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
-        
-        await _libraryManager
-            .Received(1)
-            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
-    }
-    
-    [Fact]
-    public async Task DoesNotUpdateStudios_WhenFeatureSeriesStudioIsDisabled_GivenSeriesWithTitleId()
-    {
-        //Arrange
-        var series = SeriesFaker.GenerateWithTitleId();
-        var language = new CultureInfo("en-US");
-
-        _config.IsFeatureSeriesStudioEnabled = false;
-
-        var posterTall = new ImageSource
-        {
-            Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
-            Height = 1,
-            Width = 1
-        };
-        
-        var posterWide = new ImageSource
-        {
-            Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
-            Height = 1,
-            Width = 1
-        };
-
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
-        {
-            CrunchyrollId = string.Empty,
-            SlugTitle = string.Empty,
-            Description = _faker.Lorem.Sentences(),
-            Title = _faker.Random.Words(),
-            Studio = _faker.Random.Words(),
-            Rating = _faker.Random.Float(),
-            PosterTall = JsonSerializer.Serialize(posterTall),
-            PosterWide = JsonSerializer.Serialize(posterWide),
-            Language = language.Name
-        };
-
-        _libraryManager
-            .GetItemById(series.ParentId)
-            .Returns((BaseItem?)null);
-        
-        _repository
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
-            .Returns(titleMetadata);
-
-        var posterTallBytes = _faker.Random.Bytes(1000);
-        _crunchyrollSeriesClient
-            .GetPosterImagesAsync(posterTall.Uri, Arg.Any<CancellationToken>())
-            .Returns(new MemoryStream(posterTallBytes));
-        
-        var posterWideBytes = _faker.Random.Bytes(1000);
-        _crunchyrollSeriesClient
-            .GetPosterImagesAsync(posterWide.Uri, Arg.Any<CancellationToken>())
-            .Returns(new MemoryStream(posterWideBytes));
-        
-        //Act
-        await _sut.RunAsync(series, CancellationToken.None);
-        
-        //Assert
-        series.Name.Should().Be(titleMetadata.Title);
-        series.Overview.Should().Be(titleMetadata.Description);
-        series.Studios.Should().NotContain(titleMetadata.Studio, "feature is disabled");
-        series.CommunityRating.Should().Be(titleMetadata.Rating);
-        
-        await _repository
-            .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
-        
-        await _libraryManager
-            .Received(1)
-            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
-    }
-    
-    [Fact]
-    public async Task DoesNotUpdateCommunityRatings_WhenFeatureSeriesRatingsIsDisabled_GivenSeriesWithTitleId()
-    {
-        //Arrange
-        var series = SeriesFaker.GenerateWithTitleId();
-        var language = new CultureInfo("en-US");
-
-        _config.IsFeatureSeriesRatingsEnabled = false;
-
-        var posterTall = new ImageSource
-        {
-            Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
-            Height = 1,
-            Width = 1
-        };
-        
-        var posterWide = new ImageSource
-        {
-            Uri = _faker.Internet.UrlWithPath(fileExt: "jpg"),
-            Height = 1,
-            Width = 1
-        };
-
-        var titleMetadata = new Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata
-        {
-            CrunchyrollId = string.Empty,
-            SlugTitle = string.Empty,
-            Description = _faker.Lorem.Sentences(),
-            Title = _faker.Random.Words(),
-            Studio = _faker.Random.Words(),
-            Rating = _faker.Random.Float(),
-            PosterTall = JsonSerializer.Serialize(posterTall),
-            PosterWide = JsonSerializer.Serialize(posterWide),
-            Language = language.Name
-        };
-
-        _libraryManager
-            .GetItemById(series.ParentId)
-            .Returns((BaseItem?)null);
-        
-        _repository
-            .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
-            .Returns(titleMetadata);
-
-        var posterTallBytes = _faker.Random.Bytes(1000);
-        _crunchyrollSeriesClient
-            .GetPosterImagesAsync(posterTall.Uri, Arg.Any<CancellationToken>())
-            .Returns(new MemoryStream(posterTallBytes));
-        
-        var posterWideBytes = _faker.Random.Bytes(1000);
-        _crunchyrollSeriesClient
-            .GetPosterImagesAsync(posterWide.Uri, Arg.Any<CancellationToken>())
-            .Returns(new MemoryStream(posterWideBytes));
-        
-        //Act
-        await _sut.RunAsync(series, CancellationToken.None);
-        
-        //Assert
-        series.Name.Should().Be(titleMetadata.Title);
-        series.Overview.Should().Be(titleMetadata.Description);
-        series.Studios.Should().BeEquivalentTo([titleMetadata.Studio]);
-        series.CommunityRating.Should().NotBe(titleMetadata.Rating, "feature is disabled");
-        
-        await _repository
-            .Received(1)
-            .GetTitleMetadataAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
-        
-        await _libraryManager
-            .Received(1)
-            .UpdateItemAsync(series, series.DisplayParent, ItemUpdateType.MetadataEdit, Arg.Any<CancellationToken>());
     }
 }

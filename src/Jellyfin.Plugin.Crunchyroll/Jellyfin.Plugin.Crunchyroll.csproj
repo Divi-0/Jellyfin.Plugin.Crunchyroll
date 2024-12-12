@@ -82,6 +82,7 @@
 
     <ItemGroup>
       <Folder Include="Common\Persistence\Migrations\" />
+      <Folder Include="Features\Crunchyroll\TitleMetadata\ScrapTitleMetadata\Image\Entites\" />
     </ItemGroup>
 
     <Target Name="CopyXMLFromPackagesForBuild" AfterTargets="Build">

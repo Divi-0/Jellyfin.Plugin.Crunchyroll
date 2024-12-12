@@ -7,6 +7,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTi
 
 public interface IScrapTitleMetadataRepository : IGetTitleMetadataRepository, ISaveChanges
 {
-    public Task<Result> AddOrUpdateTitleMetadata(Entities.TitleMetadata titleMetadata, 
+    public Task<Result> AddOrUpdateTitleMetadata(Domain.Entities.TitleMetadata titleMetadata, 
         CancellationToken cancellationToken);
 }

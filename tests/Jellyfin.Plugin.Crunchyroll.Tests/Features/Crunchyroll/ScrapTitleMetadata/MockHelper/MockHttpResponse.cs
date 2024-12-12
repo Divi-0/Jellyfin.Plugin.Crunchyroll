@@ -12,6 +12,17 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ScrapTitleMetad
 public static class MockHttpResponse
 {
     public static MockedRequest MockCrunchyrollSeasonsResponse(this MockHttpMessageHandler mockHttpMessageHandler, string titleId,
+        CultureInfo language, string bearerToken, Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Season.ScrapSeasonMetadata.Client.Dtos.CrunchyrollSeasonsResponse response)
+    {
+        var url = $"https://www.crunchyroll.com/content/v2/cms/series/{titleId}/seasons?force_locale=&locale={language.Name}";
+        var mockedRequest = mockHttpMessageHandler
+            .When(url)
+            .WithHeaders(HeaderNames.Authorization, $"Bearer {bearerToken}")
+            .Respond("application/json", JsonSerializer.Serialize(response));
+
+        return mockedRequest;
+    }
+    public static MockedRequest MockCrunchyrollSeasonsResponse(this MockHttpMessageHandler mockHttpMessageHandler, string titleId,
         CultureInfo language, string bearerToken, CrunchyrollSeasonsResponse response)
     {
         var url = $"https://www.crunchyroll.com/content/v2/cms/series/{titleId}/seasons?force_locale=&locale={language.Name}";

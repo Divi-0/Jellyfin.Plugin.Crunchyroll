@@ -3,6 +3,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.DeleteTitleMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
@@ -20,7 +21,7 @@ public static class CrunchyrollServiceExtension
     public static IServiceCollection AddCrunchyroll(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddSingleton<ICrunchyrollSessionRepository, CrunchyrollSessionRepository>();
-        serviceCollection.AddScoped<HttpUserAgentHeaderMessageHandler>();
+        serviceCollection.AddTransient<HttpUserAgentHeaderMessageHandler>();
         
         serviceCollection.AddCrunchyrollLogin();
         serviceCollection.AddSearchAndAssignTitleId();
@@ -34,6 +35,8 @@ public static class CrunchyrollServiceExtension
         serviceCollection.AddCrunchyrollPostScanTasks();
         serviceCollection.AddSetEpisodeThumbnail();
         serviceCollection.AddDeleteTitleMetadata();
+        
+        serviceCollection.AddMetadataProvider();
         
         return serviceCollection;
     }

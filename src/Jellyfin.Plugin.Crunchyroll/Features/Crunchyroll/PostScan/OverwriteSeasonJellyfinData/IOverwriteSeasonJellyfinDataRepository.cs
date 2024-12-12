@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
+using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeasonJellyfinData;
 

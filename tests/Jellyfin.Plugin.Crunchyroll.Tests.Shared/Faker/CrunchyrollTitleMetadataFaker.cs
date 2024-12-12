@@ -1,6 +1,5 @@
+using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using MediaBrowser.Controller.Entities;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 

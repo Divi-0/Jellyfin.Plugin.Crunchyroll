@@ -23,7 +23,7 @@ public class ScrapTitleMetadataRepository : IScrapTitleMetadataRepository
         _logger = logger;
     }
     
-    public async Task<Result<Entities.TitleMetadata?>> GetTitleMetadataAsync(string titleId, CultureInfo language, CancellationToken cancellationToken)
+    public async Task<Result<Domain.Entities.TitleMetadata?>> GetTitleMetadataAsync(string titleId, CultureInfo language, CancellationToken cancellationToken)
     {
         try
         {
@@ -40,12 +40,12 @@ public class ScrapTitleMetadataRepository : IScrapTitleMetadataRepository
         }
     }
 
-    public async Task<Result> AddOrUpdateTitleMetadata(Entities.TitleMetadata titleMetadata,
+    public async Task<Result> AddOrUpdateTitleMetadata(Domain.Entities.TitleMetadata titleMetadata,
         CancellationToken cancellationToken)
     {
         try
         {
-            var changesForTitleMetadata = _dbContext.ChangeTracker.Entries<Entities.TitleMetadata>()
+            var changesForTitleMetadata = _dbContext.ChangeTracker.Entries<Domain.Entities.TitleMetadata>()
                 .FirstOrDefault(x => x.Entity.Equals(titleMetadata));
             
             if (changesForTitleMetadata is null || changesForTitleMetadata.State == EntityState.Detached)

@@ -7,6 +7,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteMov
 
 public interface IOverwriteMovieJellyfinDataRepository
 {
-    public Task<Result<TitleMetadata.Entities.TitleMetadata?>> GetTitleMetadataAsync(string seriesId, 
+    public Task<Result<Domain.Entities.TitleMetadata?>> GetTitleMetadataAsync(string seriesId, 
         CultureInfo language, CancellationToken cancellationToken);
 }

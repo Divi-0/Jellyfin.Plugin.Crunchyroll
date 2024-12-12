@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
+using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.ScrapSeriesMetadata.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -186,7 +187,7 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
         }
     }
 
-    private void SetSeriesItemName(BaseItem item, TitleMetadata.Entities.TitleMetadata titleMetadata)
+    private void SetSeriesItemName(BaseItem item, Domain.Entities.TitleMetadata titleMetadata)
     {
         if (!_config.IsFeatureSeriesTitleEnabled)
         {
@@ -196,7 +197,7 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
         item.Name = titleMetadata.Title;
     }
 
-    private void SetSeriesItemOverview(BaseItem item, TitleMetadata.Entities.TitleMetadata titleMetadata)
+    private void SetSeriesItemOverview(BaseItem item, Domain.Entities.TitleMetadata titleMetadata)
     {
         if (!_config.IsFeatureSeriesDescriptionEnabled)
         {
@@ -206,7 +207,7 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
         item.Overview = titleMetadata.Description;
     }
 
-    private void SetSeriesItemStudios(BaseItem item, TitleMetadata.Entities.TitleMetadata titleMetadata)
+    private void SetSeriesItemStudios(BaseItem item, Domain.Entities.TitleMetadata titleMetadata)
     {
         if (!_config.IsFeatureSeriesStudioEnabled)
         {
@@ -216,7 +217,7 @@ public class OverwriteSeriesJellyfinDataTask : IPostTitleIdSetTask
         item.SetStudios([titleMetadata.Studio]);
     }
 
-    private void SetSeriesItemCommunityRating(BaseItem item, TitleMetadata.Entities.TitleMetadata titleMetadata)
+    private void SetSeriesItemCommunityRating(BaseItem item, Domain.Entities.TitleMetadata titleMetadata)
     {
         if (!_config.IsFeatureSeriesRatingsEnabled)
         {

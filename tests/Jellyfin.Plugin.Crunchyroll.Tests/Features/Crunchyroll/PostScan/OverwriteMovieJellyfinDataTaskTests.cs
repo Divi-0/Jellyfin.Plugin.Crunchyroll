@@ -3,10 +3,10 @@ using System.Text.Json;
 using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
+using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteMovieJellyfinData;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
@@ -196,7 +196,7 @@ public class OverwriteMovieJellyfinDataTaskTests
 
         _repository
             .GetTitleMetadataAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
-            .Returns((Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities.TitleMetadata?)null);
+            .Returns((Domain.Entities.TitleMetadata?)null);
         
         //Act
         await _sut.RunAsync(movie, CancellationToken.None);

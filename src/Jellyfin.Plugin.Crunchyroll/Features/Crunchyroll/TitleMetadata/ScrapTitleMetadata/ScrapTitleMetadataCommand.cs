@@ -6,10 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using FluentResults.Extensions;
+using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.ScrapSeriesMetadata.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
@@ -88,7 +88,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         {
             var crunchyrollPosterTall = seriesMetadataResult.Value.Images.PosterTall.First().Last();
             var crunchyrollPosterWide = seriesMetadataResult.Value.Images.PosterWide.First().Last();
-            titleMetadata = new Entities.TitleMetadata
+            titleMetadata = new Domain.Entities.TitleMetadata
             {
                 Id = Guid.NewGuid(),
                 CrunchyrollId = request.TitleId,
@@ -177,7 +177,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         }
     }
 
-    private static void ApplyNewSeasonsToExistingSeasons(Entities.TitleMetadata titleMetadata, List<Season> seasons)
+    private static void ApplyNewSeasonsToExistingSeasons(Domain.Entities.TitleMetadata titleMetadata, List<Season> seasons)
     {
         foreach (var season in seasons)
         {
@@ -188,7 +188,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         }
     }
 
-    private static void ApplyNewSeriesMetadataToTitleMetadata(Entities.TitleMetadata titleMetadata, 
+    private static void ApplyNewSeriesMetadataToTitleMetadata(Domain.Entities.TitleMetadata titleMetadata, 
         CrunchyrollSeriesContentItem seriesContentResponse, float rating)
     {
         titleMetadata.Title = seriesContentResponse.Title;
@@ -213,7 +213,7 @@ public class ScrapTitleMetadataCommandHandler : IRequestHandler<ScrapTitleMetada
         });
     }
 
-    private async Task HandleMovieAsync(string crunchyrollEpisodeId, string crunchyrollSeasonId, CultureInfo language, Entities.TitleMetadata titleMetadata, 
+    private async Task HandleMovieAsync(string crunchyrollEpisodeId, string crunchyrollSeasonId, CultureInfo language, Domain.Entities.TitleMetadata titleMetadata, 
         CancellationToken cancellationToken)
     {
         var isEpisodeAlreadyScraped = titleMetadata.Seasons

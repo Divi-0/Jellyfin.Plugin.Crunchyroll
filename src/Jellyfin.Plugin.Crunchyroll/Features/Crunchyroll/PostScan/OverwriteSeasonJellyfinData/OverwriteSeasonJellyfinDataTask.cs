@@ -70,7 +70,7 @@ public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
         }
     }
 
-    private async Task SetIndexNumberToSequenceNumber(Season season, TitleMetadata.Entities.Season crunchyrollSeason,
+    private async Task SetIndexNumberToSequenceNumber(Season season, Domain.Entities.Season crunchyrollSeason,
         CancellationToken cancellationToken)
     {
         if (!_config.IsFeatureSeasonOrderByCrunchyrollOrderEnabled)
@@ -88,7 +88,7 @@ public sealed class OverwriteSeasonJellyfinDataTask : IPostSeasonIdSetTask
         }
     }
 
-    private void SetSeasonTitle(BaseItem item, TitleMetadata.Entities.Season season)
+    private void SetSeasonTitle(BaseItem item, Domain.Entities.Season season)
     {
         if (!_config.IsFeatureSeasonTitleEnabled)
         {

@@ -21,7 +21,7 @@ public class OverwriteMovieJellyfinDataRepository : IOverwriteMovieJellyfinDataR
         _logger = logger;
     }
     
-    public async Task<Result<TitleMetadata.Entities.TitleMetadata?>> GetTitleMetadataAsync(string seriesId, 
+    public async Task<Result<Domain.Entities.TitleMetadata?>> GetTitleMetadataAsync(string seriesId, 
         CultureInfo language, CancellationToken cancellationToken)
     {
         try

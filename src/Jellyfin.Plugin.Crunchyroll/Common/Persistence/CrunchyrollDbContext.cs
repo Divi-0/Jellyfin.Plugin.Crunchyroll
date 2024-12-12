@@ -1,7 +1,7 @@
 using System.IO;
+using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jellyfin.Plugin.Crunchyroll.Common.Persistence;

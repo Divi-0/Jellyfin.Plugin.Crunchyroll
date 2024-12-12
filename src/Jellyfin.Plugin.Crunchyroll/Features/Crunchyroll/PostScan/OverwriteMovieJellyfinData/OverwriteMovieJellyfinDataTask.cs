@@ -5,10 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
+using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging;
@@ -104,7 +103,7 @@ public partial class OverwriteMovieJellyfinDataTask : IPostMovieIdSetTask
         movie.Overview = crunchyrollMovieEpisode.Description;
     }
 
-    private void SetMovieStudios(Movie movie, TitleMetadata.Entities.TitleMetadata titleMetadata)
+    private void SetMovieStudios(Movie movie, Domain.Entities.TitleMetadata titleMetadata)
     {
         if (!_config.IsFeatureMovieStudioEnabled)
         {

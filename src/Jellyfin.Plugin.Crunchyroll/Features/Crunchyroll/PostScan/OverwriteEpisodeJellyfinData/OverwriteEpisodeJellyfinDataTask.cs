@@ -5,13 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
+using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.Interfaces;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging;
+using Episode = MediaBrowser.Controller.Entities.TV.Episode;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
 
@@ -74,7 +74,7 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         await _libraryManager.UpdateItemAsync(episodeItem, episodeItem.DisplayParent, ItemUpdateType.MetadataEdit, cancellationToken);
     }
 
-    private void SetIndexNumberAndName(Episode episode, TitleMetadata.Entities.Episode crunchyrollEpisode)
+    private void SetIndexNumberAndName(Episode episode, Domain.Entities.Episode crunchyrollEpisode)
     {
         if (!_config.IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled)
         {
@@ -116,7 +116,7 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         episode.ParentIndexNumber = 0; //Manipulate ParentIndex to Season 0 so that Jellyfin thinks it is a special
     }
 
-    private void SetEpisodeTitle(BaseItem item, TitleMetadata.Entities.Episode crunchyrollEpisode)
+    private void SetEpisodeTitle(BaseItem item, Domain.Entities.Episode crunchyrollEpisode)
     {
         if (!_config.IsFeatureEpisodeTitleEnabled)
         {
@@ -129,7 +129,7 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
             : crunchyrollEpisode.Title;
     }
 
-    private void SetEpisodeOverview(BaseItem item, TitleMetadata.Entities.Episode crunchyrollEpisode)
+    private void SetEpisodeOverview(BaseItem item, Domain.Entities.Episode crunchyrollEpisode)
     {
         if (!_config.IsFeatureEpisodeDescriptionEnabled)
         {
@@ -139,7 +139,7 @@ public partial class OverwriteEpisodeJellyfinDataTask : IPostEpisodeIdSetTask
         item.Overview = crunchyrollEpisode.Description;
     }
 
-    private async Task SetEpisodeThumbnailAsync(BaseItem item, TitleMetadata.Entities.Episode crunchyrollEpisode,
+    private async Task SetEpisodeThumbnailAsync(BaseItem item, Domain.Entities.Episode crunchyrollEpisode,
         CancellationToken cancellationToken)
     {
         if (!_config.IsFeatureEpisodeThumbnailImageEnabled)

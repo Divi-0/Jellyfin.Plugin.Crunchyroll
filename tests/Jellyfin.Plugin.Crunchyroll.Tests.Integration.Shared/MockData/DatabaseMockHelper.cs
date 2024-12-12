@@ -5,10 +5,10 @@ using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Image.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
 using Microsoft.EntityFrameworkCore;
 

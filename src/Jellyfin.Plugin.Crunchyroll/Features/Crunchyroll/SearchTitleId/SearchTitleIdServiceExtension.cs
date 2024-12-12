@@ -9,7 +9,7 @@ public static class SearchTitleIdServiceExtension
 {
     public static IServiceCollection AddSearchAndAssignTitleId(this IServiceCollection serviceCollection)
     {
-        serviceCollection.AddHttpClient<ICrunchyrollTitleIdClient, CrunchyrollTitleIdClient>()
+        serviceCollection.AddHttpClient<ICrunchyrollTitleIdClient, CrunchyrollSeriesIdClient>()
             .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
         

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
+using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

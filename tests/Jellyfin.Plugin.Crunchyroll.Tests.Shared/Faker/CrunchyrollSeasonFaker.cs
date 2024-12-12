@@ -1,6 +1,6 @@
 using J2N;
+using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.Entities;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 
@@ -15,7 +15,7 @@ public static class CrunchyrollSeasonFaker
             .RuleFor(x => x.Title, _ => title)
             .RuleFor(x => x.SlugTitle, _ => CrunchyrollSlugFaker.Generate(title))
             .RuleFor(x => x.SeasonNumber, seasonNumber)
-            .RuleFor(x => x.SeasonSequenceNumber, f => f.Random.Number())
+            .RuleFor(x => x.SeasonSequenceNumber, Random.Shared.Next(1, 10))
             .RuleFor(x => x.SeasonDisplayNumber, seasonNumber.ToString())
             .RuleFor(x => x.Identifier, $"{CrunchyrollIdFaker.Generate()}|S{seasonNumber}")
             .Generate();

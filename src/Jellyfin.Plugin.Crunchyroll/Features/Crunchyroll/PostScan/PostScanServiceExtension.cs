@@ -13,29 +13,29 @@ internal static class PostScanServiceExtension
 {
     public static IServiceCollection AddCrunchyrollPostScanTasks(this IServiceCollection serviceCollection)
     {
-        serviceCollection.AddScoped<IFileSystem, FileSystem>();
-        serviceCollection.AddScoped<IFile>(serviceProvider => serviceProvider.GetRequiredService<IFileSystem>().File);
-        serviceCollection.AddScoped<IDirectory>(serviceProvider => serviceProvider.GetRequiredService<IFileSystem>().Directory);
-        
-        serviceCollection.AddScoped<IPostSeriesScanTask, SetTitleIdTask>();
-            
-        serviceCollection.AddScoped<IPostTitleIdSetTask, ScrapTitleMetadataTask>();
-        serviceCollection.AddScoped<IPostTitleIdSetTask, SetSeasonIdTask>();
-        serviceCollection.AddScoped<IPostTitleIdSetTask, ExtractReviewsTask>();
-            
-        serviceCollection.AddOverwriteSeasonJellyfinData();
-        serviceCollection.AddScoped<IPostSeasonIdSetTask, SetEpisodeIdTask>();
-        
-        serviceCollection.AddScoped<IPostEpisodeIdSetTask, ExtractCommentsTask>();
-
-        serviceCollection.AddOverwriteSeriesJellyfinData();
-        serviceCollection.AddOverwriteEpisodeJellyfinData();
-        serviceCollection.AddSetMovieEpisodeId();
-        
-        serviceCollection.AddScoped<IPostMovieIdSetTask, ScrapTitleMetadataTask>();
-        serviceCollection.AddOverwriteMovieJellyfinData();
-        serviceCollection.AddScoped<IPostMovieIdSetTask, ExtractReviewsTask>();
-        serviceCollection.AddScoped<IPostMovieIdSetTask, ExtractCommentsTask>();
+        // serviceCollection.AddScoped<IFileSystem, FileSystem>();
+        // serviceCollection.AddScoped<IFile>(serviceProvider => serviceProvider.GetRequiredService<IFileSystem>().File);
+        // serviceCollection.AddScoped<IDirectory>(serviceProvider => serviceProvider.GetRequiredService<IFileSystem>().Directory);
+        //
+        // serviceCollection.AddScoped<IPostSeriesScanTask, SetTitleIdTask>();
+        //     
+        // serviceCollection.AddScoped<IPostTitleIdSetTask, ScrapTitleMetadataTask>();
+        // serviceCollection.AddScoped<IPostTitleIdSetTask, SetSeasonIdTask>();
+        // serviceCollection.AddScoped<IPostTitleIdSetTask, ExtractReviewsTask>();
+        //     
+        // serviceCollection.AddOverwriteSeasonJellyfinData();
+        // serviceCollection.AddScoped<IPostSeasonIdSetTask, SetEpisodeIdTask>();
+        //
+        // serviceCollection.AddScoped<IPostEpisodeIdSetTask, ExtractCommentsTask>();
+        //
+        // serviceCollection.AddOverwriteSeriesJellyfinData();
+        // serviceCollection.AddOverwriteEpisodeJellyfinData();
+        // serviceCollection.AddSetMovieEpisodeId();
+        //
+        // serviceCollection.AddScoped<IPostMovieIdSetTask, ScrapTitleMetadataTask>();
+        // serviceCollection.AddOverwriteMovieJellyfinData();
+        // serviceCollection.AddScoped<IPostMovieIdSetTask, ExtractReviewsTask>();
+        // serviceCollection.AddScoped<IPostMovieIdSetTask, ExtractCommentsTask>();
 
         return serviceCollection;
     }
