@@ -56,6 +56,10 @@ public class SetMetadataToSeasonService : ISetMetadataToSeasonService
         {
             metadataSeason.IndexNumber = int.MaxValue - crunchyrollSeason.SeasonSequenceNumber;
         }
+        else
+        {
+            metadataSeason.IndexNumber = currentIndexNumber;
+        }
 
         return metadataSeason;
     }

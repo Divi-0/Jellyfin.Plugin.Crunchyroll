@@ -53,6 +53,10 @@ public partial class SetMetadataToEpisodeService : ISetMetadataToEpisodeService
         {
             SetIndexNumberAndName(episodeWithNewMetadata, crunchyrollEpisode, parentIndexNumber);
         }
+        else
+        {
+            episodeWithNewMetadata.IndexNumber = currentIndexNumber;
+        }
 
         return episodeWithNewMetadata;
     }

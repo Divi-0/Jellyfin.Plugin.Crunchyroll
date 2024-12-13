@@ -51,7 +51,7 @@ public class SetMetadataToEpisodeServiceTests
         var episodeWithNewMetadata = setMetadataResult.Value;
         episodeWithNewMetadata.Name.Should().Be(crunchyrollEpisode.Title);
         episodeWithNewMetadata.Overview.Should().Be(crunchyrollEpisode.Description);
-        episodeWithNewMetadata.IndexNumber!.HasValue.Should().BeFalse();
+        episodeWithNewMetadata.IndexNumber.Should().Be(currentIndexNumber);
         
         await _repository
             .Received(1)
@@ -84,7 +84,7 @@ public class SetMetadataToEpisodeServiceTests
         var episodeWithNewMetadata = setMetadataResult.Value;
         episodeWithNewMetadata.Name.Should().Be(expectedTitle);
         episodeWithNewMetadata.Overview.Should().Be(crunchyrollEpisode.Description);
-        episodeWithNewMetadata.IndexNumber!.HasValue.Should().BeFalse();
+        episodeWithNewMetadata.IndexNumber.Should().Be(currentIndexNumber);
         
         await _repository
             .Received(1)
@@ -170,7 +170,7 @@ public class SetMetadataToEpisodeServiceTests
         var episodeWithNewMetadata = setMetadataResult.Value;
         episodeWithNewMetadata.Name.Should().Be(crunchyrollEpisode.Title);
         episodeWithNewMetadata.Overview.Should().Be(crunchyrollEpisode.Description);
-        episodeWithNewMetadata.IndexNumber.Should().BeNull();
+        episodeWithNewMetadata.IndexNumber.Should().Be(currentIndexNumber);
         episodeWithNewMetadata.AirsBeforeEpisodeNumber.Should().BeNull();
     }
     
@@ -204,7 +204,7 @@ public class SetMetadataToEpisodeServiceTests
         var episodeWithNewMetadata = setMetadataResult.Value;
         episodeWithNewMetadata.Name.Should().Be($"{crunchyrollEpisode.EpisodeNumber} - {crunchyrollEpisode.Title}");
         episodeWithNewMetadata.Overview.Should().Be(crunchyrollEpisode.Description);
-        episodeWithNewMetadata.IndexNumber!.Should().Be(null);
+        episodeWithNewMetadata.IndexNumber.Should().Be(currentIndexNumber);
         episodeWithNewMetadata.AirsBeforeEpisodeNumber.Should().Be(Convert.ToInt32(crunchyrollEpisode.SequenceNumber + 0.5));
         episodeWithNewMetadata.AirsBeforeSeasonNumber.Should().Be(crunchyrollSeason.SeasonNumber);
         episodeWithNewMetadata.ParentIndexNumber.HasValue.Should().BeFalse();
@@ -298,7 +298,7 @@ public class SetMetadataToEpisodeServiceTests
         
         episodeWithNewMetadata.Name.Should().NotBe(crunchyrollEpisode.Title, "feature is disabled");
         episodeWithNewMetadata.Overview.Should().Be(crunchyrollEpisode.Description);
-        episodeWithNewMetadata.IndexNumber!.HasValue.Should().BeFalse();
+        episodeWithNewMetadata.IndexNumber.Should().Be(currentIndexNumber);
         
         await _repository
             .Received(1)
@@ -332,7 +332,7 @@ public class SetMetadataToEpisodeServiceTests
         
         episodeWithNewMetadata.Name.Should().Be(crunchyrollEpisode.Title);
         episodeWithNewMetadata.Overview.Should().NotBe(crunchyrollEpisode.Description, "feature is disabled");
-        episodeWithNewMetadata.IndexNumber.HasValue.Should().BeFalse();
+        episodeWithNewMetadata.IndexNumber.Should().Be(currentIndexNumber);
         
         await _repository
             .Received(1)

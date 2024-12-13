@@ -49,6 +49,7 @@ public class SetMetadataToSeasonServiceTests
         setMetadataResult.IsSuccess.Should().BeTrue();
         var seasonWithMetadata = setMetadataResult.Value;
         seasonWithMetadata.Name.Should().Be($"S{crunchyrollSeason.SeasonDisplayNumber}: {crunchyrollSeason.Title}");
+        seasonWithMetadata.IndexNumber.Should().Be(indexNumber);
 
         await _repository
             .Received(1)
@@ -79,6 +80,7 @@ public class SetMetadataToSeasonServiceTests
         setMetadataResult.IsSuccess.Should().BeTrue();
         var seasonWithMetadata = setMetadataResult.Value;
         seasonWithMetadata.Name.Should().Be(crunchyrollSeason.Title);
+        seasonWithMetadata.IndexNumber.Should().Be(indexNumber);
 
         await _repository
             .Received(1)
@@ -158,6 +160,7 @@ public class SetMetadataToSeasonServiceTests
         seasonWithMetadata.Name.Should().Be($"S{crunchyrollSeason.SeasonDisplayNumber}: {crunchyrollSeason.Title}");
         seasonWithMetadata.ForcedSortName.Should().Be(crunchyrollSeason.SeasonSequenceNumber.ToString());
         seasonWithMetadata.PresentationUniqueKey.Should().NotBeEmpty();
+        seasonWithMetadata.IndexNumber.Should().Be(indexNumber);
 
         await _repository
             .Received(1)
@@ -245,6 +248,7 @@ public class SetMetadataToSeasonServiceTests
         setMetadataResult.IsSuccess.Should().BeTrue();
         var seasonWithMetadata = setMetadataResult.Value;
         seasonWithMetadata.Name.Should().NotContain(crunchyrollSeason.Title);
+        seasonWithMetadata.IndexNumber.Should().Be(indexNumber);
 
         await _repository
             .Received(1)
