@@ -25,16 +25,11 @@ public static class CrunchyrollServiceExtension
         serviceCollection.AddTransient<HttpUserAgentHeaderMessageHandler>();
         
         serviceCollection.AddCrunchyrollLogin();
-        serviceCollection.AddSearchAndAssignTitleId();
         serviceCollection.AddCrunchyrollComments();
         serviceCollection.AddCrunchyrollGetReviews();
         serviceCollection.AddCrunchyrollExtractReviews();
         serviceCollection.AddCrunchyrollAvatar();
-        serviceCollection.AddCrunchyrollScrapTitleMetadata();
-        serviceCollection.AddCrunchyrollGetSeasonId();
-        serviceCollection.AddCrunchyrollGetEpisodeId();
-        serviceCollection.AddCrunchyrollPostScanTasks();
-        serviceCollection.AddSetEpisodeThumbnail();
+        
         serviceCollection.AddDeleteTitleMetadata();
         
         serviceCollection.AddMetadataProvider();

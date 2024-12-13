@@ -10,6 +10,7 @@ using FluentResults;
 using FluentResults.Extensions;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews;
@@ -24,7 +25,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReview
 public record ExtractReviewsCommand : IRequest<Result>
 {
     public required string TitleId { get; init; }
-    public required string SlugTitle { get; init; }
+    public string SlugTitle { get; init; } = string.Empty;
     public required CultureInfo Language { get; init; }
 }
 
@@ -69,14 +70,30 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
             _logger.LogDebug("Title with id {TitleId} already has reviews", request.TitleId);
             return Result.Fail(ExtractReviewsErrorCodes.TitleAlreadyHasReviews);
         }
+
+        var slugTitleResult = await _addReviewsRepistory
+            .GetSeriesSlugTitle(request.TitleId, cancellationToken);
+
+        if (slugTitleResult.IsFailed)
+        {
+            return slugTitleResult.ToResult();
+        }
+
+        var slugTitle = slugTitleResult.Value;
+        
+        //can be empty, but not null
+        if (slugTitle is null)
+        {
+            return Result.Fail(ErrorCodes.NotFound);
+        }
         
         var twoLetterIsoLanguageName = request.Language.TwoLetterISOLanguageName;
         var crunchyrollUrl = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
                 twoLetterIsoLanguageName == "en" ? string.Empty : twoLetterIsoLanguageName,
             "series",
-            request.TitleId,
-            request.SlugTitle)
+            request.TitleId, 
+                slugTitle)
             .Replace('\\', '/');
         
         var searchResult = await _waybackMachineClient.SearchAsync(HttpUtility.UrlEncode(crunchyrollUrl), DateWhenReviewsWereDeleted, cancellationToken);

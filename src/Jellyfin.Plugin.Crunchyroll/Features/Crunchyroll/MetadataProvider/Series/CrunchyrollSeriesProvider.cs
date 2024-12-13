@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Crunchyroll.Common.Constants;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Providers;

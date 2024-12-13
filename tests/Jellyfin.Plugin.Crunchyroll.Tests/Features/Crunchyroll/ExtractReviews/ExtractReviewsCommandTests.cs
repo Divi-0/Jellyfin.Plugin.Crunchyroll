@@ -7,6 +7,8 @@ using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Domain;
+using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
@@ -78,6 +80,10 @@ public class ExtractReviewsCommandTests
             review.Author.AvatarUri = uri;
             archivedImageUrls[review] = archivedImageUrl;
         }
+
+        _repistory
+            .GetSeriesSlugTitle(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(slugTitle);
         
         var url = Path.Combine(
             _config.ArchiveOrgUrl, 
@@ -122,6 +128,10 @@ public class ExtractReviewsCommandTests
 
         //Assert
         result.IsSuccess.Should().BeTrue();
+
+        await _repistory
+            .Received(1)
+            .GetSeriesSlugTitle(titleId, Arg.Any<CancellationToken>());
         
         await _waybackMachineClient
             .Received(1)
@@ -160,6 +170,10 @@ public class ExtractReviewsCommandTests
         _repository
             .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
+        
+        _repistory
+            .GetSeriesSlugTitle(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(slugTitle);
         
         _waybackMachineClient.SearchAsync(
                 Arg.Any<string>(),
@@ -223,6 +237,10 @@ public class ExtractReviewsCommandTests
         _repository
             .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
+        
+        _repistory
+            .GetSeriesSlugTitle(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(slugTitle);
 
         _waybackMachineClient.SearchAsync(
                 Arg.Any<string>(),
@@ -261,6 +279,10 @@ public class ExtractReviewsCommandTests
         _repository
             .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
+        
+        _repistory
+            .GetSeriesSlugTitle(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(slugTitle);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         
@@ -340,6 +362,10 @@ public class ExtractReviewsCommandTests
             .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
         
+        _repistory
+            .GetSeriesSlugTitle(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(slugTitle);
+        
         var error = "error";
         _waybackMachineClient.SearchAsync(
                 Arg.Any<string>(),
@@ -379,6 +405,10 @@ public class ExtractReviewsCommandTests
         _repository
             .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
+        
+        _repistory
+            .GetSeriesSlugTitle(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(slugTitle);
         
         var searchResponse = _fixture.CreateMany<SearchResponse>(1).ToList();
         
@@ -482,6 +512,10 @@ public class ExtractReviewsCommandTests
         _repository
             .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
+        
+        _repistory
+            .GetSeriesSlugTitle(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(slugTitle);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         
@@ -583,6 +617,10 @@ public class ExtractReviewsCommandTests
         _repository
             .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
             .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
+        
+        _repistory
+            .GetSeriesSlugTitle(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(slugTitle);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         
@@ -671,6 +709,115 @@ public class ExtractReviewsCommandTests
 
         await _repistory
             .Received(1)
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task ReturnsFailed_WhenRepositoryGetSlugTitleFailed_GivenTitleId()
+    {
+        //Arrange
+        var titleId = _fixture.Create<string>();
+        var slugTitle = _fixture.Create<string>();
+        
+        _repository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
+        
+
+        var error = Guid.NewGuid().ToString();
+        _repistory
+            .GetSeriesSlugTitle(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Fail(error));
+        
+        //Act
+        var command = new ExtractReviewsCommand()
+        {
+            TitleId = titleId,
+            SlugTitle = slugTitle,
+            Language = new CultureInfo("en-US")
+        };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.IsFailed.Should().BeTrue();
+        result.Errors.First().Message.Should().Be(error);
+
+        await _repistory
+            .Received(1)
+            .GetSeriesSlugTitle(titleId, Arg.Any<CancellationToken>());
+        
+        await _waybackMachineClient
+            .DidNotReceive()
+            .SearchAsync(
+                Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/{titleId}/{slugTitle}"))),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
+                Arg.Any<CancellationToken>());
+        
+        await _htmlReviewsExtractor
+            .DidNotReceive()
+            .GetReviewsAsync(Arg.Any<string>(), new CultureInfo("en-US"), Arg.Any<CancellationToken>());
+        
+        await _repistory
+            .DidNotReceive()
+            .AddReviewsForTitleIdAsync(Arg.Any<TitleReviews>(), Arg.Any<CancellationToken>());
+
+        await _repistory
+            .DidNotReceive()
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task ReturnsFailed_WhenRepositoryGetSlugTitleReturnedNull_GivenTitleId()
+    {
+        //Arrange
+        var titleId = _fixture.Create<string>();
+        var slugTitle = _fixture.Create<string>();
+        
+        _repository
+            .GetReviewsForTitleIdAsync(titleId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())!
+            .Returns(Result.Ok<IReadOnlyList<ReviewItem>>([]));
+        
+        
+        _repistory
+            .GetSeriesSlugTitle(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<string?>(null));
+        
+        //Act
+        var command = new ExtractReviewsCommand()
+        {
+            TitleId = titleId,
+            SlugTitle = slugTitle,
+            Language = new CultureInfo("en-US")
+        };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.IsFailed.Should().BeTrue();
+        result.Errors.First().Message.Should().Be(ErrorCodes.NotFound);
+
+        await _repistory
+            .Received(1)
+            .GetSeriesSlugTitle(titleId, Arg.Any<CancellationToken>());
+        
+        await _waybackMachineClient
+            .DidNotReceive()
+            .SearchAsync(
+                Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/{titleId}/{slugTitle}"))),
+                Arg.Is<DateTime>(x => x.Year == 2024 && x.Month == 7 && x.Day == 10),
+                Arg.Any<CancellationToken>());
+        
+        await _htmlReviewsExtractor
+            .DidNotReceive()
+            .GetReviewsAsync(Arg.Any<string>(), new CultureInfo("en-US"), Arg.Any<CancellationToken>());
+        
+        await _repistory
+            .DidNotReceive()
+            .AddReviewsForTitleIdAsync(Arg.Any<TitleReviews>(), Arg.Any<CancellationToken>());
+
+        await _repistory
+            .DidNotReceive()
             .SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
@@ -54,6 +55,10 @@ public class CrunchyrollPlugin : MediaBrowser.Common.Plugins.BasePlugin<PluginCo
         serviceCollection.AddMemoryCache();
         
         serviceCollection.AddDbContext<CrunchyrollDbContext>();
+        
+        serviceCollection.AddScoped<IFileSystem, FileSystem>();
+        serviceCollection.AddScoped<IFile>(serviceProvider => serviceProvider.GetRequiredService<IFileSystem>().File);
+        serviceCollection.AddScoped<IDirectory>(serviceProvider => serviceProvider.GetRequiredService<IFileSystem>().Directory);
         
         serviceCollection.AddCrunchyroll();
         serviceCollection.AddWaybackMachine();

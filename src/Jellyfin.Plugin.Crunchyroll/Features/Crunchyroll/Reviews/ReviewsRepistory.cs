@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
@@ -46,6 +47,25 @@ public class ReviewsRepistory : IAddReviewsRepistory, IGetReviewsRepository
         }
     }
 
+    public async Task<Result<string?>> GetSeriesSlugTitle(CrunchyrollId seriesId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _dbContext.TitleMetadata
+                .AsNoTracking()
+                .Where(x =>
+                    x.CrunchyrollId == seriesId.ToString())
+                .Select(x => x.SlugTitle)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unknown error while getting slug title for {SeriesId}", 
+                seriesId);
+            return Result.Fail(ErrorCodes.Internal);
+        }
+    }
+
     public async Task<Result<IReadOnlyList<ReviewItem>?>> GetReviewsForTitleIdAsync(string titleId, CultureInfo language,
         CancellationToken cancellationToken)
     {
@@ -53,6 +73,7 @@ public class ReviewsRepistory : IAddReviewsRepistory, IGetReviewsRepository
         {
             var reviews = await _dbContext
                 .Reviews
+                .AsNoTracking()
                 .Where(x =>
                     x.CrunchyrollSeriesId == titleId &&
                     x.Language == language.Name)

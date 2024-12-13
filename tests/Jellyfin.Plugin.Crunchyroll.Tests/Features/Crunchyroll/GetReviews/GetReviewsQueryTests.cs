@@ -42,7 +42,7 @@ public class GetReviewsQueryTests
     }
     
     [Fact(Skip = "temp disabled, to not show reviews section with real api, can be enabled again if found a way to not show reviews section on none anime items")]
-    public async Task ReturnsReviews_WhenWaybackMachineIsDisabled_GivenItemId()
+    public async Task ReturnsReviews_WhenFeatureReviewsIsDisabled_GivenItemId()
     {
         //Arrange
         var id = Guid.NewGuid();
@@ -50,7 +50,7 @@ public class GetReviewsQueryTests
         const int pageSize = 10;
         var series = SeriesFaker.GenerateWithTitleId();
 
-        _config.IsWaybackMachineEnabled = false;
+        _config.IsFeatureReviewsEnabled = false;
 
         _libraryManager
             .RetrieveItem(id)
@@ -143,7 +143,7 @@ public class GetReviewsQueryTests
         const int pageSize = 10;
         var series = SeriesFaker.GenerateWithTitleId();
         
-        _config.IsWaybackMachineEnabled = false;
+        _config.IsFeatureReviewsEnabled = false;
 
         _libraryManager
             .RetrieveItem(id)
@@ -180,7 +180,7 @@ public class GetReviewsQueryTests
         const int pageSize = 10;
         var series = SeriesFaker.GenerateWithTitleId();
 
-        _config.IsWaybackMachineEnabled = true;
+        _config.IsFeatureReviewsEnabled = true;
 
         _libraryManager
             .RetrieveItem(id)
@@ -234,7 +234,7 @@ public class GetReviewsQueryTests
     }
     
     [Fact]
-    public async Task ReturnsNull_WhenWaybackMachineIsEnabledAndRepositoryReturnsNull_GivenItemId()
+    public async Task ReturnsNull_WhenFeatureReviewsIsEnabledAndRepositoryReturnsNull_GivenItemId()
     {
         //Arrange
         var id = Guid.NewGuid();
@@ -242,7 +242,7 @@ public class GetReviewsQueryTests
         const int pageSize = 10;
         var series = SeriesFaker.GenerateWithTitleId();
 
-        _config.IsWaybackMachineEnabled = true;
+        _config.IsFeatureReviewsEnabled = true;
 
         _libraryManager
             .RetrieveItem(id)
@@ -293,7 +293,7 @@ public class GetReviewsQueryTests
         const int pageNumber = 1;
         const int pageSize = 10;
 
-        _config.IsWaybackMachineEnabled = false;
+        _config.IsFeatureReviewsEnabled = false;
 
         _libraryManager
             .RetrieveItem(id)

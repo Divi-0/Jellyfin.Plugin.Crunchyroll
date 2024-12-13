@@ -1,0 +1,117 @@
+using FluentAssertions;
+using FluentResults;
+using Jellyfin.Plugin.Crunchyroll.Common;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
+using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
+using MediaBrowser.Controller.Library;
+using Mediator;
+
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.MetadataProvider.Series.Reviews;
+
+public class CrunchyrollSeriesReviewsServiceTests
+{
+    private readonly CrunchyrollSeriesReviewsService _sut;
+    private readonly IMediator _mediator;
+    private readonly PluginConfiguration _config;
+
+    public CrunchyrollSeriesReviewsServiceTests()
+    {
+        _mediator = Substitute.For<IMediator>();
+        _config = new PluginConfiguration
+        {
+            IsFeatureReviewsEnabled = true
+        };
+        _sut = new CrunchyrollSeriesReviewsService(_mediator, _config);
+    }
+
+    [Fact]
+    public async Task ReturnsItemUpdateTypeNone_WhenSuccessful_GivenSeriesWithIds()
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+        var seriesId = series.ProviderIds[CrunchyrollExternalKeys.SeriesId];
+        var language = series.GetPreferredMetadataCultureInfo();
+
+        _mediator
+            .Send(Arg.Any<ExtractReviewsCommand>())
+            .Returns(Result.Ok());
+        
+        //Act
+        var itemUpdateType = await _sut.ScrapReviewsAsync(series, CancellationToken.None);
+
+        //Assert
+        itemUpdateType.Should().Be(ItemUpdateType.None);
+
+        await _mediator
+            .Received(1)
+            .Send(Arg.Is<ExtractReviewsCommand>(x =>
+                x.TitleId == seriesId &&
+                x.Language.Name == language.Name),
+                Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ReturnsItemUpdateTypeNone_WhenMediatorFailed_GivenSeriesWithIds()
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+        var seriesId = series.ProviderIds[CrunchyrollExternalKeys.SeriesId];
+        var language = series.GetPreferredMetadataCultureInfo();
+
+        _mediator
+            .Send(Arg.Any<ExtractReviewsCommand>())
+            .Returns(Result.Fail(Guid.NewGuid().ToString()));
+        
+        //Act
+        var itemUpdateType = await _sut.ScrapReviewsAsync(series, CancellationToken.None);
+
+        //Assert
+        itemUpdateType.Should().Be(ItemUpdateType.None);
+
+        await _mediator
+            .Received(1)
+            .Send(Arg.Is<ExtractReviewsCommand>(x =>
+                x.TitleId == seriesId &&
+                x.Language.Name == language.Name),
+                Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ReturnsItemUpdateTypeNone_WhenHasNoSeriesId_GivenSeriesWithoutIds()
+    {
+        //Arrange
+        var series = SeriesFaker.Generate();
+        
+        //Act
+        var itemUpdateType = await _sut.ScrapReviewsAsync(series, CancellationToken.None);
+
+        //Assert
+        itemUpdateType.Should().Be(ItemUpdateType.None);
+
+        await _mediator
+            .DidNotReceive()
+            .Send(Arg.Any<ExtractReviewsCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ReturnsItemUpdateTypeNone_WhenFeatureReviewsIsDisabled_GivenSeriesWithoutIds()
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+
+        _config.IsFeatureReviewsEnabled = false;
+        
+        //Act
+        var itemUpdateType = await _sut.ScrapReviewsAsync(series, CancellationToken.None);
+
+        //Assert
+        itemUpdateType.Should().Be(ItemUpdateType.None);
+
+        await _mediator
+            .DidNotReceive()
+            .Send(Arg.Any<ExtractReviewsCommand>(), Arg.Any<CancellationToken>());
+    }
+}

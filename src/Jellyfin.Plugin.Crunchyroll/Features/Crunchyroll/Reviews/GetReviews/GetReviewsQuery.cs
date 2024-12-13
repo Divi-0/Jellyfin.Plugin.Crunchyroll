@@ -63,7 +63,7 @@ public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, Result<Re
     private async ValueTask<Result<ReviewsResponse?>> GetReviewsAsync(string titleId, int pageNumber, int pageSize, 
         CultureInfo language, CancellationToken cancellationToken)
     {
-        if (_config.IsWaybackMachineEnabled)
+        if (_config.IsFeatureReviewsEnabled)
         {
             var reviewsResult = await _repository.GetReviewsForTitleIdAsync(titleId, language, cancellationToken);
 

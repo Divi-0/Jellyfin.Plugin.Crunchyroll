@@ -36,4 +36,6 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool IsFeatureMovieDescriptionEnabled { get; set; } = false;
     public bool IsFeatureMovieStudioEnabled { get; set; } = false;
     public bool IsFeatureMovieThumbnailImageEnabled { get; set; } = false;
+
+    public bool IsFeatureReviewsEnabled { get; set; } = false;
 }

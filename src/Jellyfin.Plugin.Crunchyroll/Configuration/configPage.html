@@ -189,11 +189,11 @@
                 <h3>Reviews & Comments</h3>
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
-                        <input id="IsWaybackMachineEnabled" name="IsWaybackMachineEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>IsWaybackMachineEnabled</span>
+                        <input id="IsFeatureReviewsEnabled" name="IsFeatureReviewsEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>IsFeatureReviewsEnabled</span>
                     </label>
                     <div class="fieldDescription">
-                        Enables reviews on detail page for series and comments on detail page for episodes
+                        Enables reviews on detail page for series & movie
                     </div>
                 </div>
                 <div class="inputContainer">
@@ -223,7 +223,7 @@
                     document.querySelector('#CrunchyrollUrl').value = config.CrunchyrollUrl;
                     document.querySelector('#ArchiveOrgUrl').value = config.ArchiveOrgUrl;
                     document.querySelector('#LocalDatabasePath').value = config.LocalDatabasePath;
-                    document.querySelector('#IsWaybackMachineEnabled').checked = config.IsWaybackMachineEnabled;
+                    document.querySelector('#IsFeatureReviewsEnabled').checked = config.IsFeatureReviewsEnabled;
                     document.querySelector('#LibraryName').value = config.LibraryName;
                     document.querySelector('#IsScanInAllLibrariesEnabled').checked = config.IsScanInAllLibrariesEnabled;
                     document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value = config.WaybackMachineWaitTimeoutInSeconds;
@@ -262,7 +262,7 @@
                     config.LibraryName = document.querySelector('#LibraryName').value;
                     config.IsScanInAllLibrariesEnabled = document.querySelector('#IsScanInAllLibrariesEnabled').checked;
                     config.WaybackMachineWaitTimeoutInSeconds = document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value;
-                    config.IsWaybackMachineEnabled = document.querySelector('#IsWaybackMachineEnabled').checked;
+                    config.IsFeatureReviewsEnabled = document.querySelector('#IsFeatureReviewsEnabled').checked;
                     config.IsFeatureCrunchyrollUpdateEnabled = document.querySelector('#IsFeatureCrunchyrollUpdateEnabled').checked;
                     
                     config.IsFeatureSeriesTitleEnabled = document.querySelector('#IsFeatureSeriesTitleEnabled').checked;
