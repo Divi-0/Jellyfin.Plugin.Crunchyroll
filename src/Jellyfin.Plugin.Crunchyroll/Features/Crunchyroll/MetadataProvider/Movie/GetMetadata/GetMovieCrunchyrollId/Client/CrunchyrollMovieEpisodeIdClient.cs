@@ -12,7 +12,7 @@ using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
-namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetMovieEpisodeId.Client;
+namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Movie.GetMetadata.GetMovieCrunchyrollId.Client;
 
 public class CrunchyrollMovieEpisodeIdClient : ICrunchyrollMovieEpisodeIdClient
 {
