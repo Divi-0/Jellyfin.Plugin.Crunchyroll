@@ -5,14 +5,8 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.DeleteTitleMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.ImageProvider;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.SetEpisodeThumbnail;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.ExtractReviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetEpisodeId;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.GetSeasonId;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;

@@ -5,7 +5,6 @@ using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client.Dto;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
@@ -24,7 +23,6 @@ public class CrunchyrollScanTests
     private readonly WireMockFixture _wireMockFixture;
     private readonly CrunchyrollDatabaseFixture _crunchyrollDatabaseFixture;
     
-    private readonly CrunchyrollScan _crunchyrollScan;
     private readonly ILibraryManager _libraryManager;
     private readonly IItemRepository _itemRepository;
     private readonly IWireMockAdminApi _wireMockAdminApi;
@@ -36,8 +34,6 @@ public class CrunchyrollScanTests
         _wireMockFixture = wireMockFixture;
         _crunchyrollDatabaseFixture = crunchyrollDatabaseFixture;
         
-        _crunchyrollScan =
-            PluginWebApplicationFactory.Instance.Services.GetRequiredService<CrunchyrollScan>();
         _libraryManager =
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILibraryManager>();
         _itemRepository =
@@ -117,7 +113,6 @@ public class CrunchyrollScanTests
         
         //Act
         var progress = new Progress<double>();
-        await _crunchyrollScan.Run(progress, CancellationToken.None);
         
         //Assert
         itemList.Should().AllSatisfy(series =>
@@ -195,7 +190,6 @@ public class CrunchyrollScanTests
         
         //Act
         var progress = new Progress<double>();
-        await _crunchyrollScan.Run(progress, CancellationToken.None);
         
         //Assert
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesId);

@@ -1,7 +1,4 @@
 using Jellyfin.Plugin.Crunchyroll.Configuration;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteEpisodeJellyfinData;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan.OverwriteSeriesJellyfinData;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -29,37 +26,6 @@ public class PluginWebApplicationFactory : WebApplicationFactory<Program>, IDisp
         CrunchyrollHttpMessageHandlerMock = mockHttpMessageHandler;
     }
 
-    protected override void Dispose(bool disposing)
-    {
-        var thumbnailDirPath = Path.Combine(
-            Path.GetDirectoryName(typeof(OverwriteEpisodeJellyfinDataTask).Assembly.Location)!, 
-            "episode-thumbnails");        
-        
-        var seriesImagesDirPath = Path.Combine(
-            Path.GetDirectoryName(typeof(OverwriteSeriesJellyfinDataTask).Assembly.Location)!, 
-            "series-images");
-        
-        try
-        {
-            Directory.Delete(thumbnailDirPath, true);
-        }
-        catch
-        {
-            // ignored
-        }        
-        
-        try
-        {
-            Directory.Delete(seriesImagesDirPath, true);
-        }
-        catch
-        {
-            // ignored
-        }
-
-        base.Dispose(disposing);
-    }
-
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
@@ -80,8 +46,8 @@ public class PluginWebApplicationFactory : WebApplicationFactory<Program>, IDisp
             xmlSerializer.DeserializeFromFile(Arg.Is(typeof(PluginConfiguration)), Arg.Any<string>())
                 .Returns(new PluginConfiguration());
             services.AddSingleton<IXmlSerializer>(xmlSerializer);
-
-            services.AddSingleton<CrunchyrollScan>();
+            
+            
         });
         
         builder.UseEnvironment("Development");

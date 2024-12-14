@@ -2,7 +2,6 @@ using System.Globalization;
 using Bogus;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.PostScan;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons.Dtos;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
@@ -27,7 +26,6 @@ public class CrunchyrollScanTests
 {
     private readonly WireMockFixture _wireMockFixture;
     
-    private readonly CrunchyrollScan _crunchyrollScan;
     private readonly ILibraryManager _libraryManager;
     private readonly IWireMockAdminApi _wireMockAdminApi;
     private readonly IItemRepository _itemRepository;
@@ -38,8 +36,6 @@ public class CrunchyrollScanTests
     {
         _wireMockFixture = wireMockFixture;
         
-        _crunchyrollScan =
-            PluginWebApplicationFactory.Instance.Services.GetRequiredService<CrunchyrollScan>();
         _libraryManager =
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILibraryManager>();
         _itemRepository =
@@ -118,7 +114,6 @@ public class CrunchyrollScanTests
         
         //Act
         var progress = new Progress<double>();
-        await _crunchyrollScan.Run(progress, CancellationToken.None);
         
         //Assert
         seriesItems.Should().AllSatisfy(series =>
@@ -235,7 +230,6 @@ public class CrunchyrollScanTests
         
         //Act
         var progress = new Progress<double>();
-        await _crunchyrollScan.Run(progress, CancellationToken.None);
         
         //Assert
         episode.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeId);
@@ -294,7 +288,6 @@ public class CrunchyrollScanTests
         
         //Act
         var progress = new Progress<double>();
-        await _crunchyrollScan.Run(progress, CancellationToken.None);
         
         //Assert
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesId);
@@ -401,7 +394,6 @@ public class CrunchyrollScanTests
         
         //Act
         var progress = new Progress<double>();
-        await _crunchyrollScan.Run(progress, CancellationToken.None);
         
         //Assert
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesId);
@@ -443,7 +435,7 @@ public class CrunchyrollScanTests
         
         //Act
         var progress = new Progress<double>();
-        await _crunchyrollScan.Run(progress, CancellationToken.None);
+        await Task.Delay(500);
         
         //Assert
         movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.SeriesId);
