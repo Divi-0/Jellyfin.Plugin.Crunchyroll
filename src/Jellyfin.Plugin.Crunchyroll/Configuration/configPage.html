@@ -197,6 +197,15 @@
                     </div>
                 </div>
                 <div class="inputContainer">
+                    <label class="emby-checkbox-label">
+                        <input id="IsFeatureCommentsEnabled" name="IsFeatureCommentsEnabled" type="checkbox" is="emby-checkbox" />
+                        <span>IsFeatureCommentsEnabled</span>
+                    </label>
+                    <div class="fieldDescription">
+                        Enables comments on detail page for episode & movie
+                    </div>
+                </div>
+                <div class="inputContainer">
                     <label class="inputLabel inputLabelUnfocused" for="WaybackMachineWaitTimeoutInSeconds">WaybackMachineWaitTimeoutInSeconds</label>
                     <input id="WaybackMachineWaitTimeoutInSeconds" name="WaybackMachineWaitTimeoutInSeconds" type="number" is="emby-input" min="0" />
                     <div class="fieldDescription">Timeout in seconds; This timeout only occurs when the request to wayback machine is throttled
@@ -224,6 +233,7 @@
                     document.querySelector('#ArchiveOrgUrl').value = config.ArchiveOrgUrl;
                     document.querySelector('#LocalDatabasePath').value = config.LocalDatabasePath;
                     document.querySelector('#IsFeatureReviewsEnabled').checked = config.IsFeatureReviewsEnabled;
+                    document.querySelector('#IsFeatureCommentsEnabled').checked = config.IsFeatureCommentsEnabled;
                     document.querySelector('#LibraryName').value = config.LibraryName;
                     document.querySelector('#IsScanInAllLibrariesEnabled').checked = config.IsScanInAllLibrariesEnabled;
                     document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value = config.WaybackMachineWaitTimeoutInSeconds;
@@ -263,6 +273,7 @@
                     config.IsScanInAllLibrariesEnabled = document.querySelector('#IsScanInAllLibrariesEnabled').checked;
                     config.WaybackMachineWaitTimeoutInSeconds = document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value;
                     config.IsFeatureReviewsEnabled = document.querySelector('#IsFeatureReviewsEnabled').checked;
+                    config.IsFeatureCommentsEnabled = document.querySelector('#IsFeatureCommentsEnabled').checked;
                     config.IsFeatureCrunchyrollUpdateEnabled = document.querySelector('#IsFeatureCrunchyrollUpdateEnabled').checked;
                     
                     config.IsFeatureSeriesTitleEnabled = document.querySelector('#IsFeatureSeriesTitleEnabled').checked;

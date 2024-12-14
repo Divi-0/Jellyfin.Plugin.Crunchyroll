@@ -54,7 +54,7 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, Result<
         }
 
         Result<CommentsResponse?> commentsResult;
-        if (_config.IsWaybackMachineEnabled)
+        if (_config.IsFeatureCommentsEnabled)
         {
             commentsResult = await GetCommentsFromDatabase(episodeId, request.PageSize, request.PageNumber, 
                 item.GetPreferredMetadataCultureInfo(), cancellationToken);

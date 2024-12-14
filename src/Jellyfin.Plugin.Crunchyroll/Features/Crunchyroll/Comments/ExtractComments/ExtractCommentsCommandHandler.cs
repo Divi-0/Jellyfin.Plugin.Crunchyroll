@@ -11,6 +11,7 @@ using FluentResults;
 using FluentResults.Extensions;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
+using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
@@ -19,7 +20,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
 
-public record ExtractCommentsCommand(string EpisodeId, string EpisodeSlugTitle, CultureInfo Language) : IRequest<Result>;
+public record ExtractCommentsCommand(string EpisodeId, CultureInfo Language) : IRequest<Result>;
 
 public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsCommand, Result>
 {
@@ -58,13 +59,27 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
             _logger.LogDebug("Comments already exist for episode with id {EpisodeId}. Skipping...", request.EpisodeId);
             return Result.Ok();
         }
+
+        var slugTitleResult = await _repository.GetEpisodeSlugTitleAsync(request.EpisodeId, cancellationToken);
+
+        if (slugTitleResult.IsFailed)
+        {
+            return slugTitleResult.ToResult();
+        }
+
+        //can be empty, but not null
+        if (slugTitleResult.Value is null)
+        {
+            _logger.LogError("Failed to get slug title for episode with id {EpisodeId}", request.EpisodeId);
+            return Result.Fail(ErrorCodes.NotFound);
+        }
         
         var crunchyrollUrl = Path.Combine(
                 _config.CrunchyrollUrl.Contains("www") ? _config.CrunchyrollUrl.Split("www.")[1] : _config.CrunchyrollUrl.Split("//")[1], 
                 request.Language.TwoLetterISOLanguageName == "en" ? string.Empty : request.Language.TwoLetterISOLanguageName,
                 "watch",
                 request.EpisodeId,
-                request.EpisodeSlugTitle)
+                slugTitleResult.Value)
             .Replace('\\', '/');
         
         var searchResult = await _waybackMachineClient.SearchAsync(HttpUtility.UrlEncode(crunchyrollUrl), DateWhenCommentsWereDeleted, cancellationToken);

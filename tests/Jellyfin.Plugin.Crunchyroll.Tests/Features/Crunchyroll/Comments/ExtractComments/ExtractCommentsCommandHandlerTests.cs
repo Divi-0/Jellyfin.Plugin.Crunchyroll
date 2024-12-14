@@ -7,6 +7,8 @@ using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
+using Jellyfin.Plugin.Crunchyroll.Domain;
+using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.ExtractComments;
@@ -56,6 +58,10 @@ public class ExtractCommentsCommandHandlerTests
             .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
             .Returns(false);
 
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(episodeSlugTitle);
+
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
             .SearchAsync(Arg.Any<string>(), Arg.Any<DateTime>(),
@@ -95,12 +101,16 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(Result.Ok());
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();
 
+        await _repository
+            .Received(1)
+            .GetEpisodeSlugTitleAsync(episodeId, Arg.Any<CancellationToken>());
+        
         await _waybackMachineClient
             .Received(1)
             .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/watch/{episodeId}/{episodeSlugTitle}"))),
@@ -146,6 +156,10 @@ public class ExtractCommentsCommandHandlerTests
             .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
             .Returns(false);
         
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(episodeSlugTitle);
+        
         _waybackMachineClient
             .SearchAsync(Arg.Any<string>(), Arg.Any<DateTime>(),
                 Arg.Any<CancellationToken>())
@@ -162,12 +176,16 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(Result.Ok());
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();
 
+        await _repository
+            .Received(1)
+            .GetEpisodeSlugTitleAsync(episodeId, Arg.Any<CancellationToken>());
+        
         await _waybackMachineClient
             .Received(1)
             .SearchAsync(Arg.Is<string>(x => x.Contains(HttpUtility.UrlEncode($"/watch/{episodeId}/{episodeSlugTitle}"))),
@@ -199,13 +217,17 @@ public class ExtractCommentsCommandHandlerTests
             .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
             .Returns(false);
         
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(episodeSlugTitle);
+        
         _waybackMachineClient
             .SearchAsync(Arg.Any<string>(), Arg.Any<DateTime>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Fail<IReadOnlyList<SearchResponse>>("error"));
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         _ = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -228,6 +250,10 @@ public class ExtractCommentsCommandHandlerTests
         _repository
             .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
             .Returns(false);
+        
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(episodeSlugTitle);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
@@ -254,7 +280,7 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(Result.Ok());
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -275,6 +301,10 @@ public class ExtractCommentsCommandHandlerTests
         _repository
             .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
             .Returns(false);
+        
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(episodeSlugTitle);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
@@ -307,7 +337,7 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(Result.Ok());
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -337,13 +367,17 @@ public class ExtractCommentsCommandHandlerTests
             .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
             .Returns(false);
         
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(episodeSlugTitle);
+        
         _waybackMachineClient
             .SearchAsync(Arg.Any<string>(), Arg.Any<DateTime>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -377,6 +411,10 @@ public class ExtractCommentsCommandHandlerTests
             .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
             .Returns(false);
         
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(episodeSlugTitle);
+        
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
             .SearchAsync(Arg.Any<string>(), Arg.Any<DateTime>(),
@@ -396,7 +434,7 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(Result.Ok());
         
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -426,13 +464,17 @@ public class ExtractCommentsCommandHandlerTests
         //Arrange
         var episodeId = CrunchyrollIdFaker.Generate();
         var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
+        
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(episodeSlugTitle);
 
         _repository
             .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
             .Returns(true);
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -469,6 +511,10 @@ public class ExtractCommentsCommandHandlerTests
         _repository
             .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
             .Returns(false);
+        
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(episodeSlugTitle);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
@@ -489,7 +535,7 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(Result.Ok());
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -528,6 +574,10 @@ public class ExtractCommentsCommandHandlerTests
         _repository
             .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
             .Returns(false);
+        
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(episodeSlugTitle);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
@@ -548,7 +598,7 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(Result.Ok());
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -586,7 +636,6 @@ public class ExtractCommentsCommandHandlerTests
     {
         //Arrange
         var episodeId = CrunchyrollIdFaker.Generate();
-        var episodeSlugTitle = CrunchyrollSlugFaker.Generate();
 
         var error = Guid.NewGuid().ToString();
         _repository
@@ -594,7 +643,7 @@ public class ExtractCommentsCommandHandlerTests
             .Returns(Result.Fail(error));
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -612,6 +661,10 @@ public class ExtractCommentsCommandHandlerTests
         _repository
             .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
             .Returns(false);
+        
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(episodeSlugTitle);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
@@ -639,7 +692,7 @@ public class ExtractCommentsCommandHandlerTests
         }
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -677,6 +730,10 @@ public class ExtractCommentsCommandHandlerTests
         _repository
             .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
             .Returns(false);
+        
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(episodeSlugTitle);
 
         var searchResponses = _fixture.CreateMany<SearchResponse>().ToList();
         _waybackMachineClient
@@ -708,7 +765,7 @@ public class ExtractCommentsCommandHandlerTests
         }
 
         //Act
-        var command = new ExtractCommentsCommand(episodeId, episodeSlugTitle, new CultureInfo("en-US"));
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
         var result = await _sut.Handle(command, CancellationToken.None);
 
         //Assert
@@ -734,5 +791,92 @@ public class ExtractCommentsCommandHandlerTests
         await _repository
             .Received(1)
             .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task ReturnsFailed_WhenGetEpisodeSlugTitleFailed_GivenEpisodeIdAndSlugTitle()
+    {
+        //Arrange
+        var episodeId = CrunchyrollIdFaker.Generate();
+        
+        _repository
+            .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var error = Guid.NewGuid().ToString();
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Fail(error));
+
+        //Act
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.IsFailed.Should().BeTrue();
+        result.Errors.First().Message.Should().Be(error);
+
+        await _repository
+            .Received(1)
+            .GetEpisodeSlugTitleAsync(episodeId, Arg.Any<CancellationToken>());
+        
+        await _waybackMachineClient
+            .DidNotReceive()
+            .SearchAsync(Arg.Any<string>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>());
+        
+        await _htmlCommentsExtractor
+            .DidNotReceive()
+            .GetCommentsAsync(Arg.Any<string>(),
+                Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>());
+
+        await _repository
+            .DidNotReceive()
+            .AddCommentsAsync(Arg.Any<EpisodeComments>(), Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task ReturnsFailed_WhenGetEpisodeSlugTitleReturnedNull_GivenEpisodeIdAndSlugTitle()
+    {
+        //Arrange
+        var episodeId = CrunchyrollIdFaker.Generate();
+        
+        _repository
+            .CommentsForEpisodeExistsAsync(episodeId, Arg.Any<CancellationToken>())
+            .Returns(false);
+        
+        _repository
+            .GetEpisodeSlugTitleAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<string?>(null));
+
+        //Act
+        var command = new ExtractCommentsCommand(episodeId, new CultureInfo("en-US"));
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.IsFailed.Should().BeTrue();
+        result.Errors.First().Message.Should().Be(ErrorCodes.NotFound);
+
+        await _repository
+            .Received(1)
+            .GetEpisodeSlugTitleAsync(episodeId, Arg.Any<CancellationToken>());
+        
+        await _waybackMachineClient
+            .DidNotReceive()
+            .SearchAsync(Arg.Any<string>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>());
+        
+        await _htmlCommentsExtractor
+            .DidNotReceive()
+            .GetCommentsAsync(Arg.Any<string>(),
+                Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>());
+
+        await _repository
+            .DidNotReceive()
+            .AddCommentsAsync(Arg.Any<EpisodeComments>(), Arg.Any<CancellationToken>());
     }
 }

@@ -52,7 +52,7 @@ public class GetCommentsQueryTests
         const int pageNumber = 1;
         const int pageSize = 10;
             
-        _config.IsWaybackMachineEnabled = false;
+        _config.IsFeatureCommentsEnabled = false;
 
         var episode = EpisodeFaker.GenerateWithEpisodeId();
         _libraryManager
@@ -94,7 +94,7 @@ public class GetCommentsQueryTests
         const int pageNumber = 1;
         const int pageSize = 10;
             
-        _config.IsWaybackMachineEnabled = false;
+        _config.IsFeatureCommentsEnabled = false;
 
         var episode = EpisodeFaker.GenerateWithEpisodeId();
         _libraryManager
@@ -129,14 +129,14 @@ public class GetCommentsQueryTests
     }
 
     [Fact]
-    public async Task ReturnsComments_WhenWaybackMachineIsEnabled_GivenEpisodeJellyfinId()
+    public async Task ReturnsComments_WhenFeatureCommentsIsEnabled_GivenEpisodeJellyfinId()
     {
         //Arrange
         var jellyfinId = Guid.NewGuid().ToString();
         const int pageNumber = 1;
         const int pageSize = 10;
             
-        _config.IsWaybackMachineEnabled = true;
+        _config.IsFeatureCommentsEnabled = true;
 
         var episode = EpisodeFaker.GenerateWithEpisodeId();
         _libraryManager
@@ -187,7 +187,7 @@ public class GetCommentsQueryTests
         const int pageNumber = 1;
         const int pageSize = 10;
             
-        _config.IsWaybackMachineEnabled = true;
+        _config.IsFeatureCommentsEnabled = true;
 
         var episode = EpisodeFaker.GenerateWithEpisodeId();
         _libraryManager
@@ -231,7 +231,7 @@ public class GetCommentsQueryTests
         const int pageNumber = 1;
         const int pageSize = 10;
         
-        _config.IsWaybackMachineEnabled = true;
+        _config.IsFeatureCommentsEnabled = true;
 
         var episode = EpisodeFaker.GenerateWithEpisodeId();
         _libraryManager

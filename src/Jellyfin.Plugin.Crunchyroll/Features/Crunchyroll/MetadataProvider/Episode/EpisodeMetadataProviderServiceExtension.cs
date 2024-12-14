@@ -1,3 +1,4 @@
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.Comments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.EpisodeOverwriteParentIndexNumber;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,5 +11,6 @@ public static class EpisodeMetadataProviderServiceExtension
     {
         serviceCollection.AddCrunchyrollEpisodeGetMetadata();
         serviceCollection.AddEpisodeOverwriteParentIndexNumber();
+        serviceCollection.AddCrunchyrollEpisodeCommentsProvider();
     }
 }

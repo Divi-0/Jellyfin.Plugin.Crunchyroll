@@ -38,4 +38,5 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool IsFeatureMovieThumbnailImageEnabled { get; set; } = false;
 
     public bool IsFeatureReviewsEnabled { get; set; } = false;
+    public bool IsFeatureCommentsEnabled { get; set; } = false;
 }

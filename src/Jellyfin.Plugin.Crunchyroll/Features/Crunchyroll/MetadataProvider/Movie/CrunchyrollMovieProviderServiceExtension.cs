@@ -1,3 +1,4 @@
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Movie.Comments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Movie.GetMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Movie.Reviews;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,5 +11,6 @@ public static class CrunchyrollMovieProviderServiceExtension
     {
         serviceCollection.AddCrunchyrollMovieGetMetadata();
         serviceCollection.AddCrunchyrollMovieReviewsProvider();
+        serviceCollection.AddCrunchyrollMovieCommentsProvider();
     }
 }

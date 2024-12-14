@@ -46,7 +46,7 @@ public sealed class ExtractCommentsTask : IPostEpisodeIdSetTask, IPostMovieIdSet
         }
 
         var language = episodeItem.GetPreferredMetadataCultureInfo();
-        _ = await _mediator.Send(new ExtractCommentsCommand(id!, slugTitle!, language), cancellationToken);
+        _ = await _mediator.Send(new ExtractCommentsCommand(id!, language), cancellationToken);
     }
 
     public async Task RunAsync(Movie movie, CancellationToken cancellationToken)

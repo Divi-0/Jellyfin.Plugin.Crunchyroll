@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
+using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Microsoft.EntityFrameworkCore;
@@ -50,7 +52,24 @@ public class ExtractCommentsRepository : IExtractCommentsRepository
             return Result.Fail(ErrorCodes.Internal);
         }
     }
-    
+
+    public async Task<Result<string?>> GetEpisodeSlugTitleAsync(CrunchyrollId episodeId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _dbContext.Episodes
+                .AsNoTracking()
+                .Where(x => x.CrunchyrollId == episodeId.ToString())
+                .Select(x => x.SlugTitle)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to get slug title for episode {EpisodeId}", episodeId);
+            return Result.Fail(ErrorCodes.Internal);
+        }
+    }
+
     public async Task<Result> SaveChangesAsync(CancellationToken cancellationToken)
     {
         try
