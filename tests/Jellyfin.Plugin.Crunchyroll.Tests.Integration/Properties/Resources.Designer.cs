@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine.Properties {
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Properties {
     using System;
     
     
@@ -38,8 +38,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine.Propertie
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine.Properties.Reso" +
-                            "urces", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Jellyfin.Plugin.Crunchyroll.Tests.Integration.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

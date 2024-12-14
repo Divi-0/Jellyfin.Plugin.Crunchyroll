@@ -913,4 +913,116 @@ public class ScrapMovieMetadataServiceTests
             .Received(1)
             .SaveChangesAsync(Arg.Any<CancellationToken>());
     }
+    
+    [Fact]
+    public async Task ScrapsExtraEpisodeIdForMovie_WhenMovieEpisodeIdNotPresentInMetadataAndScrapEpisodesFailedWithRequestFailedErrorCode_GivenValidIds()
+    {
+        //Arrange
+        var seriesId = CrunchyrollIdFaker.Generate();
+        var season = CrunchyrollSeasonFaker.Generate();
+        var seasonId = season.CrunchyrollId;
+        var episodeId = CrunchyrollIdFaker.Generate();
+        var language = new CultureInfo("en-US");
+
+        _scrapSeriesMetadataService
+            .ScrapSeriesMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _scrapSeasonMetadataService
+            .ScrapSeasonMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _scrapEpisodeMetadataService
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Fail(EpisodesErrorCodes.RequestFailed));
+
+        var titleMetadata = CrunchyrollTitleMetadataFaker.Generate(seasons: [season]);
+        _repository
+            .GetTitleMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(titleMetadata);
+        
+        var episodeResponse = new CrunchyrollEpisodeDataItem
+        {
+            Id = episodeId,
+            Title = _faker.Random.Words(Random.Shared.Next(1, 10)),
+            Description = _faker.Lorem.Sentences(Random.Shared.Next(1, 10)),
+            Images = new CrunchyrollEpisodeImages()
+            {
+                Thumbnail = [[new CrunchyrollEpisodeThumbnailSizes()
+                {
+                    Type = "Thumbnail",
+                    Height = 10,
+                    Width = 43,
+                    Source = _faker.Internet.UrlWithPath(fileExt: "png")
+                }]]
+            },
+            EpisodeMetadata = new CrunchyrollEpisodeDataItemEpisodeMetadata
+            {
+                Episode = string.Empty,
+                EpisodeNumber = null,
+                SeasonId = CrunchyrollIdFaker.Generate(),
+                SequenceNumber = 0,
+                SeriesId = CrunchyrollIdFaker.Generate(),
+                SeriesSlugTitle = string.Empty,
+                SeasonNumber = 0,
+                SeasonTitle = string.Empty,
+                SeasonDisplayNumber = string.Empty,
+                SeasonSequenceNumber = 0
+            }
+        };
+        
+        _crunchyrollEpisodesClient
+            .GetEpisodeAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(episodeResponse);
+        
+        _repository
+            .AddOrUpdateTitleMetadataAsync(Arg.Any<Domain.Entities.TitleMetadata>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
+        _repository
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
+        //Act
+        var result = await _sut.ScrapMovieMetadataAsync(seriesId, seasonId, episodeId, language, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+
+        titleMetadata.Seasons.SelectMany(x => x.Episodes).Should().Contain(x => x.CrunchyrollId == episodeId);
+        
+        await _scrapSeriesMetadataService
+            .Received(1)
+            .ScrapSeriesMetadataAsync(seriesId, language,
+                Arg.Any<CancellationToken>());
+
+        await _scrapSeasonMetadataService
+            .Received(1)
+            .ScrapSeasonMetadataAsync(seriesId, language,
+                Arg.Any<CancellationToken>());
+
+        await _scrapEpisodeMetadataService
+            .Received(1)
+            .ScrapEpisodeMetadataAsync(seasonId, language,
+                Arg.Any<CancellationToken>());
+
+        await _repository
+            .Received(1)
+            .GetTitleMetadataAsync(seriesId, language, Arg.Any<CancellationToken>());
+
+        await _crunchyrollEpisodesClient
+            .Received(1)
+            .GetEpisodeAsync(episodeId, language, Arg.Any<CancellationToken>());
+
+        await _repository
+            .Received(1)
+            .AddOrUpdateTitleMetadataAsync(titleMetadata, Arg.Any<CancellationToken>());
+        
+        await _repository
+            .Received(1)
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
 }

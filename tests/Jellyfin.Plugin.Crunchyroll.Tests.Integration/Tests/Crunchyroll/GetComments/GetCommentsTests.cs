@@ -1,16 +1,16 @@
 using System.Net;
 using System.Net.Http.Json;
-using FluentAssertions;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
+using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
-using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
-namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine.Tests.Crunchyroll.GetComments;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Tests.Crunchyroll.GetComments;
 
 [Collection(CollectionNames.Plugin)]
 public class GetCommentsTests
@@ -23,6 +23,9 @@ public class GetCommentsTests
     {
         _crunchyrollDatabaseFixture = crunchyrollDatabaseFixture;
         _httpClient = PluginWebApplicationFactory.Instance.CreateClient();
+        
+        var config = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
+        config.IsFeatureCommentsEnabled = true;
         
         _libraryManager =
             PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILibraryManager>();

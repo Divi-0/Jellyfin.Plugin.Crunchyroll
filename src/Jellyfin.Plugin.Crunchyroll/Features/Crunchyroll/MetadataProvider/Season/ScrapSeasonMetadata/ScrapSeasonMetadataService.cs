@@ -98,7 +98,7 @@ public class ScrapSeasonMetadataService : IScrapSeasonMetadataService
             var seasons = crunchyrollSeasonsResult.Value.Data.Select(x =>
                 x.ToSeasonEntity(titleMetadata.Id, language)).ToList();
 
-            if (seasons.Count == 0)
+            if (titleMetadata.Seasons.Count == 0)
             {
                 titleMetadata.Seasons.AddRange(seasons);
             }

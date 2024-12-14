@@ -1,13 +1,11 @@
 using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
-using AutoFixture;
 using Bogus;
-using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
 
-namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine.Tests.Crunchyroll.Avatar.GetAvatar;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Tests.Crunchyroll.Avatar.GetAvatar;
 
 [Collection(CollectionNames.Plugin)]
 public class GetAvatarTests

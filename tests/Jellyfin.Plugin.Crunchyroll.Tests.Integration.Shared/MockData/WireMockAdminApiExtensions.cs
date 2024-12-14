@@ -4,7 +4,10 @@ using System.Text;
 using System.Text.Json;
 using AutoFixture;
 using Bogus;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Common.Crunchyroll.SearchDto;
+using Jellyfin.Plugin.Crunchyroll.Domain;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Fixture;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login.Client;
@@ -14,6 +17,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.G
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client.Dto;
 using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Providers;
 using Microsoft.Net.Http.Headers;
 using WireMock.Admin.Mappings;
 using WireMock.Client;
@@ -160,9 +164,11 @@ public static class WireMockAdminApiExtensions
     }
     
     public static async Task<CrunchyrollSearchResponse> MockCrunchyrollSearchResponse(this IWireMockAdminApi wireMockAdminApi, 
-        string title, string language, Action<CrunchyrollSearchResponse>? options = null)
+        CrunchyrollId seriesId, SeriesInfo seriesInfo, Action<CrunchyrollSearchResponse>? options = null)
     {
         var fixture = new Fixture();
+
+        var title = Path.GetFileNameWithoutExtension(seriesInfo.Path);
 
         var searchDataItems = Enumerable.Range(0, Random.Shared.Next(1, 10))
             .Select(_ =>
@@ -179,7 +185,7 @@ public static class WireMockAdminApiExtensions
 
         var searchDataItem = new CrunchyrollSearchDataItem
         {
-            Id = CrunchyrollIdFaker.Generate(),
+            Id = seriesId,
             Title = title,
             SlugTitle = CrunchyrollSlugFaker.Generate(title)
         };
@@ -266,7 +272,7 @@ public static class WireMockAdminApiExtensions
                             new MatcherModel()
                             {
                                 Name = "WildcardMatcher",
-                                Pattern = language
+                                Pattern = seriesInfo.GetPreferredMetadataCultureInfo().Name
                             }
                         }
                     },
@@ -623,7 +629,7 @@ public static class WireMockAdminApiExtensions
     }
     
     public static async Task<CrunchyrollSeasonsResponse> MockCrunchyrollSeasonsResponse(this IWireMockAdminApi wireMockAdminApi, 
-        List<Season> seasons, string seriesId, string language)
+        List<SeasonInfo> seasons, string seriesId, string language)
     {
         var seasonsResponse = new CrunchyrollSeasonsResponse()
         {
@@ -633,7 +639,7 @@ public static class WireMockAdminApiExtensions
                     var title = $"{new Faker().Random.Words()}-{Random.Shared.Next(9999)}";
                     return new CrunchyrollSeasonsItem()
                     {
-                        Id = CrunchyrollIdFaker.Generate(),
+                        Id = season.ProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.SeasonId) ?? CrunchyrollIdFaker.Generate(),
                         Title = title,
                         SlugTitle = CrunchyrollSlugFaker.Generate(title),
                         SeasonNumber = season.IndexNumber!.Value,
@@ -754,7 +760,7 @@ public static class WireMockAdminApiExtensions
     }
     
     public static async Task<CrunchyrollEpisodesResponse> MockCrunchyrollEpisodesResponse(this IWireMockAdminApi wireMockAdminApi, 
-        List<Episode> episodes, string seasonId, string language, string crunchyrollUrl, CrunchyrollEpisodesResponse? response = null)
+        List<EpisodeInfo> episodes, string seasonId, string language, string crunchyrollUrl, CrunchyrollEpisodesResponse? response = null)
     {
         var faker = new Faker();
 

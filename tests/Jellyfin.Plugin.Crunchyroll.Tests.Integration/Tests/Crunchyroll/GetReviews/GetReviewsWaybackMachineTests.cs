@@ -1,22 +1,19 @@
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
-using FluentAssertions;
-using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
-using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
-using Jellyfin.Plugin.Crunchyroll.Tests.Shared;
-using Jellyfin.Plugin.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
+using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
+using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using WireMock.Client;
 
-namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine.Tests.Crunchyroll.GetReviews;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Tests.Crunchyroll.GetReviews;
 
 [Collection(CollectionNames.Plugin)]
 public class GetReviewsWaybackMachineTests
@@ -30,6 +27,9 @@ public class GetReviewsWaybackMachineTests
         _crunchyrollDatabaseFixture = crunchyrollDatabaseFixture;
         _httpClient = PluginWebApplicationFactory.Instance.CreateClient();
         _wireMockAdminApi = wireMockFixture.AdminApiClient;
+        
+        var config = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
+        config.IsFeatureReviewsEnabled = true;
     }
 
     [Fact]

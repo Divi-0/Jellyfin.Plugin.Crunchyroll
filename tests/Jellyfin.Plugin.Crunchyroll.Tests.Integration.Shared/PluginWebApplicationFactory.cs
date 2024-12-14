@@ -1,4 +1,15 @@
 using Jellyfin.Plugin.Crunchyroll.Configuration;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.ImageProvider.Episode;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.ImageProvider.Movie;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.ImageProvider.Series;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.Comments;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Movie;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Movie.Comments;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Movie.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Season;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.Reviews;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -46,8 +57,20 @@ public class PluginWebApplicationFactory : WebApplicationFactory<Program>, IDisp
             xmlSerializer.DeserializeFromFile(Arg.Is(typeof(PluginConfiguration)), Arg.Any<string>())
                 .Returns(new PluginConfiguration());
             services.AddSingleton<IXmlSerializer>(xmlSerializer);
+
+            services.AddSingleton<CrunchyrollSeriesProvider>();
+            services.AddSingleton<CrunchyrollSeasonProvider>();
+            services.AddSingleton<CrunchyrollEpisodeProvider>();
+            services.AddSingleton<CrunchyrollMovieProvider>();
             
+            services.AddSingleton<CrunchyrollSeriesReviewsProvider>();
+            services.AddSingleton<CrunchyrollEpisodeCommentsProvider>();
+            services.AddSingleton<CrunchyrollMovieReviewsProvider>();
+            services.AddSingleton<CrunchyrollMovieCommentsProvider>();
             
+            services.AddSingleton<CrunchyrollSeriesImageProvider>();
+            services.AddSingleton<CrunchyrollEpisodeImageProvider>();
+            services.AddSingleton<CrunchyrollMovieImageProvider>();
         });
         
         builder.UseEnvironment("Development");

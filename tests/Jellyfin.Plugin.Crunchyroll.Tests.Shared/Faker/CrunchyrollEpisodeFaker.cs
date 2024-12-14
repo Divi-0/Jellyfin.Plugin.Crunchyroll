@@ -27,6 +27,7 @@ public static class CrunchyrollEpisodeFaker
             }))
             .RuleFor(x => x.SequenceNumber, Convert.ToDouble(episodeNumber))
             .RuleFor(x => x.SeasonId, f => seasonId ?? f.Random.Guid())
+            .RuleFor(x => x.Language, "en-US")
             .Generate();
     }
 }

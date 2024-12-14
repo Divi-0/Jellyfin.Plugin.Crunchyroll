@@ -5,11 +5,15 @@ using FluentAssertions;
 using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.Client.Dtos;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Season.ScrapSeasonMetadata.Client.Dtos;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata.ScrapSeriesMetadata.Client.Dtos;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
+using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
@@ -106,15 +110,15 @@ public static class DatabaseMockHelper
         imageStream.CopyTo(fileStream);
     }
     
-    public static void ShouldHaveMetadata(string titleId, CrunchyrollSeriesContentItem seriesContentResponse, 
+    public static async Task ShouldHaveMetadata(CrunchyrollId seriesId, CrunchyrollSeriesContentItem seriesContentResponse, 
         CrunchyrollSeriesRatingResponse ratingResponse)
     {
-        using var dbContext = new CrunchyrollDbContext();
+        await using var dbContext = new CrunchyrollDbContext();
 
-        var metadata = dbContext.TitleMetadata
+        var metadata = await dbContext.TitleMetadata
             .Include(x => x.Seasons)
             .ThenInclude(x => x.Episodes)
-            .Single(x => x.CrunchyrollId == titleId);
+            .SingleAsync(x => x.CrunchyrollId == seriesId.ToString());
 
         metadata.Should().NotBeNull();
         metadata.CrunchyrollId.Should().NotBeEmpty();
@@ -131,20 +135,115 @@ public static class DatabaseMockHelper
         posteWide.Height.Should().Be(seriesContentResponse.Images.PosterWide.First().Last().Height);
         posteTall.Width.Should().Be(seriesContentResponse.Images.PosterTall.First().Last().Width);
         posteWide.Width.Should().Be(seriesContentResponse.Images.PosterWide.First().Last().Width);
+    }
+    
+    public static async Task ShouldHaveSeasons(CrunchyrollId seriesId, CrunchyrollSeasonsResponse seasonsResponse)
+    {
+        await using var dbContext = new CrunchyrollDbContext();
+
+        var metadata = await dbContext.TitleMetadata
+            .Include(x => x.Seasons)
+            .ThenInclude(x => x.Episodes)
+            .SingleAsync(x => x.CrunchyrollId == seriesId.ToString());
+
+        metadata.Should().NotBeNull();
         metadata.Seasons.Should().NotBeEmpty();
-        metadata.Seasons.Should().AllSatisfy(x =>
+
+        foreach (var seasonsItem in seasonsResponse.Data)
         {
-            x.Id.Should().NotBeEmpty();
-            x.Title.Should().NotBeEmpty();
-            x.SlugTitle.Should().NotBeEmpty();
-            x.Episodes.Should().NotBeEmpty();
-            x.Episodes.Should().AllSatisfy(episode =>
+            metadata.Seasons.Should().Contain(x => 
+                x.CrunchyrollId == seasonsItem.Id &&
+                x.Title == seasonsItem.Title &&
+                x.SlugTitle == seasonsItem.SlugTitle);
+        }
+    }
+    
+    public static async Task ShouldHaveEpisodes(CrunchyrollId seasonId, 
+        CrunchyrollEpisodesResponse episodesResponse)
+    {
+        await using var dbContext = new CrunchyrollDbContext();
+
+        var season = await dbContext.Seasons
+            .Include(x => x.Episodes)
+            .SingleAsync(x => x.CrunchyrollId == seasonId.ToString());
+
+        season.Should().NotBeNull();
+        season.Episodes.Should().NotBeEmpty();
+
+        foreach (var episodeItem in episodesResponse.Data)
+        {
+            season.Episodes.Should().Contain(x => 
+                x.CrunchyrollId == episodeItem.Id &&
+                x.Title == episodeItem.Title &&
+                x.SlugTitle == episodeItem.SlugTitle);
+        }
+    }
+    
+    public static async Task ShouldHaveMovieTitleMetadata(CrunchyrollId seriesId,
+        CrunchyrollId seasonId, CrunchyrollId episodeId,
+        CrunchyrollSeriesContentItem seriesContentResponse, 
+        CrunchyrollSeriesRatingResponse ratingResponse,
+        CrunchyrollSeasonsResponse seasonsResponse,
+        CrunchyrollEpisodeResponse episodeResponse)
+    {
+        await using var dbContext = new CrunchyrollDbContext();
+
+        var metadata = await dbContext.TitleMetadata
+            .Include(x => x.Seasons)
+            .ThenInclude(x => x.Episodes)
+            .SingleAsync(x => x.CrunchyrollId == seriesId.ToString());
+
+        metadata.Should().NotBeNull();
+        metadata.CrunchyrollId.Should().NotBeEmpty();
+        metadata.SlugTitle.Should().Be(seriesContentResponse.SlugTitle);
+        metadata.Title.Should().Be(seriesContentResponse.Title);
+        metadata.Description.Should().Be(seriesContentResponse.Description);
+        metadata.Studio.Should().Be(seriesContentResponse.ContentProvider);
+        metadata.Rating.Should().Be(float.Parse(ratingResponse.Average, CultureInfo.InvariantCulture));
+        var posteTall = JsonSerializer.Deserialize<ImageSource>(metadata.PosterTall)!;
+        var posteWide = JsonSerializer.Deserialize<ImageSource>(metadata.PosterWide)!;
+        posteTall.Uri.Should().Be(seriesContentResponse.Images.PosterTall.First().Last().Source);
+        posteWide.Uri.Should().Be(seriesContentResponse.Images.PosterWide.First().Last().Source);
+        posteTall.Height.Should().Be(seriesContentResponse.Images.PosterTall.First().Last().Height);
+        posteWide.Height.Should().Be(seriesContentResponse.Images.PosterWide.First().Last().Height);
+        posteTall.Width.Should().Be(seriesContentResponse.Images.PosterTall.First().Last().Width);
+        posteWide.Width.Should().Be(seriesContentResponse.Images.PosterWide.First().Last().Width);
+        
+        metadata.Should().NotBeNull();
+        metadata.Seasons.Should().NotBeEmpty();
+
+        foreach (var seasonsItem in seasonsResponse.Data)
+        {
+            metadata.Seasons.Should().Contain(x => 
+                x.CrunchyrollId == seasonsItem.Id &&
+                x.Title == seasonsItem.Title &&
+                x.SlugTitle == seasonsItem.SlugTitle);
+        }
+
+        metadata.Seasons.Should().AllSatisfy(season =>
+        {
+            season.Should().NotBeNull();
+            season.Episodes.Should().NotBeEmpty();
+
+            foreach (var episodeItem in episodeResponse.Data)
             {
-               episode.Id.Should().NotBeEmpty(); 
-               episode.Title.Should().NotBeEmpty(); 
-               episode.SlugTitle.Should().NotBeEmpty(); 
-               episode.Description.Should().NotBeEmpty(); 
-            });
+                season.Episodes.Should().Contain(x => 
+                    x.CrunchyrollId == episodeItem.Id &&
+                    x.Title == episodeItem.Title &&
+                    x.SlugTitle == episodeItem.SlugTitle);
+            }
         });
+    }
+
+    public static async Task CreateTitleMetadata(TitleMetadata? titleMetadata = null)
+    {
+        titleMetadata ??= CrunchyrollTitleMetadataFaker.Generate();
+        
+        await using var dbContext = new CrunchyrollDbContext();
+
+        await dbContext.TitleMetadata
+            .AddAsync(titleMetadata);
+
+        await dbContext.SaveChangesAsync();
     }
 }
