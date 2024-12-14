@@ -1,29 +1,17 @@
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Seasons.Dtos;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.Client.Dtos;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata.ScrapSeriesMetadata.Client.Dtos;
 using Microsoft.Net.Http.Headers;
 using RichardSzalay.MockHttp;
 
-namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ScrapTitleMetadata.MockHelper;
+namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll;
 
 public static class MockHttpResponse
 {
     public static MockedRequest MockCrunchyrollSeasonsResponse(this MockHttpMessageHandler mockHttpMessageHandler, string titleId,
         CultureInfo language, string bearerToken, Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Season.ScrapSeasonMetadata.Client.Dtos.CrunchyrollSeasonsResponse response)
-    {
-        var url = $"https://www.crunchyroll.com/content/v2/cms/series/{titleId}/seasons?force_locale=&locale={language.Name}";
-        var mockedRequest = mockHttpMessageHandler
-            .When(url)
-            .WithHeaders(HeaderNames.Authorization, $"Bearer {bearerToken}")
-            .Respond("application/json", JsonSerializer.Serialize(response));
-
-        return mockedRequest;
-    }
-    public static MockedRequest MockCrunchyrollSeasonsResponse(this MockHttpMessageHandler mockHttpMessageHandler, string titleId,
-        CultureInfo language, string bearerToken, CrunchyrollSeasonsResponse response)
     {
         var url = $"https://www.crunchyroll.com/content/v2/cms/series/{titleId}/seasons?force_locale=&locale={language.Name}";
         var mockedRequest = mockHttpMessageHandler

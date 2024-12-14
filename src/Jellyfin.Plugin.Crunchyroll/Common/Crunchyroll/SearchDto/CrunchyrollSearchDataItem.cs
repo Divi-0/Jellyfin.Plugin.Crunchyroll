@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
 
 namespace Jellyfin.Plugin.Crunchyroll.Common.Crunchyroll.SearchDto;
 

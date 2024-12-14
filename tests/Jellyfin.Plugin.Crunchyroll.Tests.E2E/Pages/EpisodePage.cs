@@ -1,6 +1,5 @@
-using System.Text.RegularExpressions;
 using FluentAssertions;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Episodes.Dtos;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.Client.Dtos;
 using Microsoft.Playwright;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.E2E.Pages;

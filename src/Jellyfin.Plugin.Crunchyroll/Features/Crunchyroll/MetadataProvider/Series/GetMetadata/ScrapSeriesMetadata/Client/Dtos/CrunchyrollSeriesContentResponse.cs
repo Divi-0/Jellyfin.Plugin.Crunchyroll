@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
-namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.TitleMetadata.ScrapTitleMetadata.Series.Dtos;
+namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata.ScrapSeriesMetadata.Client.Dtos;
 
 public record CrunchyrollSeriesContentResponse
 {
