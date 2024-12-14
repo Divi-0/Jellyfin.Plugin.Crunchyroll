@@ -53,24 +53,6 @@ public static class WizardPage
     {
         var librarySetupForm = page.Locator("div#wizardLibraryPage");
         await librarySetupForm.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        await librarySetupForm.Locator("div#addLibrary").ClickAsync();
-        
-        var addLibraryForm = page.Locator(".addLibraryForm");
-        await addLibraryForm.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        await addLibraryForm.Locator("select#selectCollectionType").SelectOptionAsync("mixed");
-        await addLibraryForm.Locator("input#txtValue").FillAsync(animeCollectionName);
-        await addLibraryForm.Locator(".btnAddFolder").ClickAsync();
-        
-        var directoryPicker = page.Locator(".directoryPicker");
-        await directoryPicker.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        var directoryPickerInputElement = directoryPicker.Locator("input#txtDirectoryPickerPath");
-        await directoryPickerInputElement.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        await directoryPickerInputElement.FillAsync(videoPath);
-        await directoryPicker.Locator(".button-submit").ClickAsync();
-
-        var addLibraryFormSubmitButton = addLibraryForm.Locator(".button-submit");
-        await addLibraryFormSubmitButton.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        await addLibraryFormSubmitButton.Locator("span").ClickAsync();
         
         await librarySetupForm.Locator(".button-submit").ClickAsync();
     }

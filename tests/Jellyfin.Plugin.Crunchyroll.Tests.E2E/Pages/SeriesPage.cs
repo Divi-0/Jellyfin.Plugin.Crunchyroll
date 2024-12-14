@@ -24,7 +24,7 @@ public static class SeriesPage
         await page.SeriesShouldHaveMetadataAsync(seriesMetadata);
         await page.SeriesShouldHaveReviewsAsync(expectedReviewsCount);
         
-        await page.ShouldHaveSeasonsWithMetadataAsync(seriesCrunchyrollId, browser);
+        await page.ShouldHaveSeasonsWithMetadataAsync(seriesCrunchyrollId, language, browser);
 
         return page;
     }

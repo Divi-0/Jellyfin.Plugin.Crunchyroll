@@ -62,28 +62,28 @@
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureSeriesTitleEnabled" name="IsFeatureSeriesTitleEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Use Crunchyroll title name</span>
+                        <span id="IsFeatureSeriesTitleEnabled-span">Use Crunchyroll title name</span>
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureSeriesDescriptionEnabled" name="IsFeatureSeriesDescriptionEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Use Crunchyroll description</span>
+                        <span id="IsFeatureSeriesDescriptionEnabled-span">Use Crunchyroll description</span>
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureSeriesStudioEnabled" name="IsFeatureSeriesStudioEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Use Crunchyroll studio info</span>
+                        <span id="IsFeatureSeriesStudioEnabled-span">Use Crunchyroll studio info</span>
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureSeriesRatingsEnabled" name="IsFeatureSeriesRatingsEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Use Crunchyroll ratings as community ratings</span>
+                        <span id="IsFeatureSeriesRatingsEnabled-span">Use Crunchyroll ratings as community ratings</span>
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
@@ -106,14 +106,14 @@
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureSeasonTitleEnabled" name="IsFeatureSeasonTitleEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Use Crunchyroll title name</span>
+                        <span id="IsFeatureSeasonTitleEnabled-span">Use Crunchyroll title name</span>
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureSeasonOrderByCrunchyrollOrderEnabled" name="IsFeatureSeasonOrderByCrunchyrollOrderEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Order seasons by Crunchyroll order/listing</span>
+                        <span id="IsFeatureSeasonOrderByCrunchyrollOrderEnabled-span">Order seasons by Crunchyroll order/listing</span>
                     </label>
                     <div class="fieldDescription">
                         Feature to order your seasons in the the crunchyroll order. For exmaple, Seasons with
@@ -126,14 +126,14 @@
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureEpisodeTitleEnabled" name="IsFeatureEpisodeTitleEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Use Crunchyroll title name</span>
+                        <span id="IsFeatureEpisodeTitleEnabled-span">Use Crunchyroll title name</span>
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureEpisodeDescriptionEnabled" name="IsFeatureEpisodeDescriptionEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Use Crunchyroll description</span>
+                        <span id="IsFeatureEpisodeDescriptionEnabled-span">Use Crunchyroll description</span>
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
@@ -147,7 +147,7 @@
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled" name="IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Use Crunchyroll description</span>
+                        <span id="IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled-span">Use Crunchyroll description</span>
                     </label>
                     <div class="fieldDescription">
                         Enables special/ova episodes in normal seasons. An example would be One Piece season 13, episode: "S13: E-SP".
@@ -160,21 +160,21 @@
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureMovieTitleEnabled" name="IsFeatureMovieTitleEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Use Crunchyroll title name</span>
+                        <span id="IsFeatureMovieTitleEnabled-span">Use Crunchyroll title name</span>
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureMovieDescriptionEnabled" name="IsFeatureMovieDescriptionEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Use Crunchyroll description</span>
+                        <span id="IsFeatureMovieDescriptionEnabled-span">Use Crunchyroll description</span>
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureMovieStudioEnabled" name="IsFeatureMovieStudioEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Use Crunchyroll studio info</span>
+                        <span id="IsFeatureMovieStudioEnabled-span">Use Crunchyroll studio info</span>
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
@@ -190,7 +190,7 @@
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureReviewsEnabled" name="IsFeatureReviewsEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>IsFeatureReviewsEnabled</span>
+                        <span id="IsFeatureReviewsEnabled-span">IsFeatureReviewsEnabled</span>
                     </label>
                     <div class="fieldDescription">
                         Enables reviews on detail page for series & movie
@@ -199,7 +199,7 @@
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureCommentsEnabled" name="IsFeatureCommentsEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>IsFeatureCommentsEnabled</span>
+                        <span id="IsFeatureCommentsEnabled-span">IsFeatureCommentsEnabled</span>
                     </label>
                     <div class="fieldDescription">
                         Enables comments on detail page for episode & movie
