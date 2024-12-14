@@ -5,7 +5,6 @@ using AutoFixture;
 using Jellyfin.Plugin.Crunchyroll.Common.Crunchyroll.SearchDto;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.GetComments.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login.Client;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.SearchTitleId.Client;
 using RichardSzalay.MockHttp;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
