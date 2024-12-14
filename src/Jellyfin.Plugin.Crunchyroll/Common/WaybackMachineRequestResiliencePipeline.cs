@@ -11,7 +11,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Common;
 
 public static class WaybackMachineRequestResiliencePipeline
 {
-    public static ResiliencePipeline Get(ILogger logger, int waitTimeoutInSeconds = 180)
+    public static ResiliencePipeline Get(ILogger logger, int waitTimeoutInSeconds = 120)
     {
         return new ResiliencePipelineBuilder()
             .AddRetry(new RetryStrategyOptions

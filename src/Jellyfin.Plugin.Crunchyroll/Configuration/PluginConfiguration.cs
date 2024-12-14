@@ -10,7 +10,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool IsWaybackMachineEnabled { get; set; } = false;
     public string LibraryName { get; set; } = string.Empty;
     public bool IsScanInAllLibrariesEnabled { get; set; } = false;
-    public int WaybackMachineWaitTimeoutInSeconds { get; set; } = 180;
+    public int WaybackMachineWaitTimeoutInSeconds { get; set; } = 120;
     public bool IsFeatureCrunchyrollUpdateEnabled { get; set; } = true;
     
     //Series Features
