@@ -26,9 +26,7 @@ public class MovieFaker
         var movie = Generate();
 
         movie.ProviderIds.Add(CrunchyrollExternalKeys.SeriesId, CrunchyrollIdFaker.Generate());
-        movie.ProviderIds.Add(CrunchyrollExternalKeys.SeriesSlugTitle, CrunchyrollSlugFaker.Generate());
         movie.ProviderIds.Add(CrunchyrollExternalKeys.EpisodeId, CrunchyrollIdFaker.Generate());
-        movie.ProviderIds.Add(CrunchyrollExternalKeys.EpisodeSlugTitle, CrunchyrollSlugFaker.Generate(movie.Name));
         movie.ProviderIds.Add(CrunchyrollExternalKeys.SeasonId, CrunchyrollIdFaker.Generate());
 
         return movie;

@@ -119,9 +119,7 @@ public class CrunchyrollScanTests
         seriesItems.Should().AllSatisfy(series =>
         {
             series.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesId);
-            series.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesSlugTitle);
             series.ProviderIds[CrunchyrollExternalKeys.SeriesId].Should().NotBeEmpty();
-            series.ProviderIds[CrunchyrollExternalKeys.SeriesSlugTitle].Should().NotBeEmpty();
             
             DatabaseMockHelper.ShouldHaveMetadata( 
                 series.ProviderIds[CrunchyrollExternalKeys.SeriesId],
@@ -147,9 +145,7 @@ public class CrunchyrollScanTests
                 foreach (var episode in ((Season)season).Children)
                 {
                     episode.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeId);
-                    episode.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
                     episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId].Should().NotBeEmpty();
-                    episode.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle].Should().NotBeEmpty();
 
                     var imageInfoPrimary = episode.GetImageInfo(ImageType.Primary, 0);
                     imageInfoPrimary.Should().NotBeNull();
@@ -234,9 +230,6 @@ public class CrunchyrollScanTests
         //Assert
         episode.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeId);
         episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId].Should().Be(episodesResponse.Data.First().Id);
-        
-        episode.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
-        episode.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle].Should().Be(episodesResponse.Data.First().SlugTitle);
     }
 
     [Fact]
@@ -292,11 +285,9 @@ public class CrunchyrollScanTests
         //Assert
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesId);
         movie.ProviderIds[CrunchyrollExternalKeys.SeriesId].Should().Be(seriesId);
-        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesSlugTitle);
         
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeId);
         movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId].Should().Be(episodeId);
-        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
         
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeasonId);
         movie.ProviderIds[CrunchyrollExternalKeys.SeasonId].Should().Be(seasonId);
@@ -305,10 +296,8 @@ public class CrunchyrollScanTests
         
         //second movie
         movieSecond.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.SeriesId);
-        movieSecond.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.SeriesSlugTitle);
         
         movieSecond.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.EpisodeId);
-        movieSecond.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
         
         movieSecond.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.SeasonId);
     }
@@ -398,11 +387,9 @@ public class CrunchyrollScanTests
         //Assert
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesId);
         movie.ProviderIds[CrunchyrollExternalKeys.SeriesId].Should().Be(seriesId);
-        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesSlugTitle);
         
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeId);
         movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId].Should().Be(episodeId);
-        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
         
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeasonId);
         movie.ProviderIds[CrunchyrollExternalKeys.SeasonId].Should().Be(seasonId);
@@ -412,11 +399,9 @@ public class CrunchyrollScanTests
         //different collection
         movieSecond.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesId);
         movieSecond.ProviderIds[CrunchyrollExternalKeys.SeriesId].Should().Be(seriesIdSecond);
-        movieSecond.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesSlugTitle);
         
         movieSecond.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeId);
         movieSecond.ProviderIds[CrunchyrollExternalKeys.EpisodeId].Should().Be(episodeIdSecond);
-        movieSecond.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
         
         movieSecond.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeasonId);
         movieSecond.ProviderIds[CrunchyrollExternalKeys.SeasonId].Should().Be(seasonIdSecond);
@@ -439,10 +424,8 @@ public class CrunchyrollScanTests
         
         //Assert
         movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.SeriesId);
-        movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.SeriesSlugTitle);
         
         movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.EpisodeId);
-        movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
         
         movie.ProviderIds.Should().NotContainKey(CrunchyrollExternalKeys.SeasonId);
         

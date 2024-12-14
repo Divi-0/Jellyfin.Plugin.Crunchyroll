@@ -26,7 +26,6 @@ public static class EpisodeFaker
         var episode = Generate(parent);
 
         episode.ProviderIds.Add(CrunchyrollExternalKeys.EpisodeId, CrunchyrollIdFaker.Generate());
-        episode.ProviderIds.Add(CrunchyrollExternalKeys.EpisodeSlugTitle, CrunchyrollSlugFaker.Generate(episode.Name));
         
         return episode;
     }

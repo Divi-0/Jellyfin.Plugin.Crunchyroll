@@ -97,7 +97,7 @@ public class CrunchyrollScanTests
                         .Returns(MediaProtocol.File);
                     
                     var episodeCrunchyrollUrl = GetCrunchyrollUrlForEpisode(episode.ProviderIds[CrunchyrollExternalKeys.EpisodeId],
-                        episode.ProviderIds[CrunchyrollExternalKeys.EpisodeSlugTitle]);
+                        string.Empty);
                     var episodeWaybackMachineSearchResponse = await _wireMockAdminApi.MockWaybackMachineSearchResponse(episodeCrunchyrollUrl);
                     var episodeSnapshotUrl = GetSnapshotUrl(episodeWaybackMachineSearchResponse, episodeCrunchyrollUrl);
                     await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollCommentsHtml(episodeSnapshotUrl, _config.ArchiveOrgUrl);
@@ -105,7 +105,7 @@ public class CrunchyrollScanTests
             }
             
             var crunchyrollUrl = GetCrunchyrollUrlForTitle(series.ProviderIds[CrunchyrollExternalKeys.SeriesId],
-                series.ProviderIds[CrunchyrollExternalKeys.SeriesSlugTitle]);
+                string.Empty);
             var waybackMachineSearchResponse = await _wireMockAdminApi.MockWaybackMachineSearchResponse(crunchyrollUrl);
             var snapshotUrl = GetSnapshotUrl(waybackMachineSearchResponse, crunchyrollUrl);
             await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(snapshotUrl, _config.ArchiveOrgUrl);
@@ -194,11 +194,9 @@ public class CrunchyrollScanTests
         //Assert
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesId);
         movie.ProviderIds[CrunchyrollExternalKeys.SeriesId].Should().Be(seriesId);
-        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeriesSlugTitle);
         
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeId);
         movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId].Should().Be(episodeId);
-        movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.EpisodeSlugTitle);
         
         movie.ProviderIds.Should().ContainKey(CrunchyrollExternalKeys.SeasonId);
         movie.ProviderIds[CrunchyrollExternalKeys.SeasonId].Should().Be(seasonId);
