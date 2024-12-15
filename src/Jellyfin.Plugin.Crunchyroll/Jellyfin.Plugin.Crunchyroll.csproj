@@ -97,8 +97,4 @@
         </ItemGroup>
         <Copy SourceFiles="@(PackageReferenceFiles)" DestinationFolder="$(PublishDir)" />
     </Target>
-
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="if $(ConfigurationName) == Debug (&#xA; xcopy /y &quot;$(TargetDir)*.*&quot; &quot;%localAppData%/jellyfin/plugins/Crunchyroll&quot;&#xA;)" />
-    </Target>
 </Project>

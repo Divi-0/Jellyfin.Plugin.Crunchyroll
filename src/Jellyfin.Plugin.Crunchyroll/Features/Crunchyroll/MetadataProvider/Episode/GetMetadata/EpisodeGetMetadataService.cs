@@ -38,6 +38,7 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
     public async Task<MetadataResult<MediaBrowser.Controller.Entities.TV.Episode>> GetMetadataAsync(EpisodeInfo info, CancellationToken cancellationToken)
     {
         var seasonId = info.SeasonProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.SeasonId);
+        var language = info.GetPreferredMetadataCultureInfo();
         
         if (!IsEpisodeInsideOfSpecialsSeason(info))
         {
@@ -49,7 +50,7 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
 
             //ignore result
             _ = await _scrapEpisodeMetadataService.ScrapEpisodeMetadataAsync(seasonId,
-                info.GetPreferredMetadataCultureInfo(), cancellationToken);
+                language, cancellationToken);
         }
         
         var episodeId = info.ProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.EpisodeId);
@@ -57,25 +58,24 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
         if (string.IsNullOrWhiteSpace(episodeId))
         {
             var fileName = Path.GetFileNameWithoutExtension(info.Path);
+            var seriesId = info.SeriesProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.SeriesId);
+            
+            if (string.IsNullOrWhiteSpace(seriesId))
+            {
+                _logger.LogDebug("special episode {Path} has no seriesId, skipping...", info.Path);
+                return FailedResult;
+            }
             
             Result<CrunchyrollId?> episodeIdResult;
             if (IsEpisodeInsideOfSpecialsSeason(info))
             {
-                var seriesId = info.SeriesProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.SeriesId);
-
-                if (string.IsNullOrWhiteSpace(seriesId))
-                {
-                    _logger.LogDebug("special episode {Path} has no seriesId, skipping...", info.Path);
-                    return FailedResult;
-                }
-                
                 episodeIdResult = await _specialEpisodeCrunchyrollIdService
                     .GetEpisodeIdAsync(seriesId, fileName, cancellationToken);
             }
             else
             {
                 episodeIdResult = await _episodeCrunchyrollIdService.GetEpisodeIdAsync(seasonId!,
-                    fileName, info.IndexNumber, cancellationToken);
+                    seriesId, language, fileName, info.IndexNumber, cancellationToken);
             }
 
             if (episodeIdResult.IsFailed)
@@ -94,7 +94,7 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
 
         var episodeWithNewMetadataResult = await _setMetadataToEpisodeService
             .SetMetadataToEpisodeAsync(episodeId, info.IndexNumber, info.ParentIndexNumber,
-                info.GetPreferredMetadataCultureInfo(), cancellationToken);
+                language, cancellationToken);
 
         if (episodeWithNewMetadataResult.IsFailed)
         {

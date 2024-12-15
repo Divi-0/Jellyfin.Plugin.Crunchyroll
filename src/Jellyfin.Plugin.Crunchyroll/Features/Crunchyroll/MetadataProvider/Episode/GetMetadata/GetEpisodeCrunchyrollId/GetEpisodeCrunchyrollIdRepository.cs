@@ -66,4 +66,58 @@ public class GetEpisodeCrunchyrollIdRepository : IGetEpisodeCrunchyrollIdReposit
             return Result.Fail(ErrorCodes.Internal);
         }
     }
+
+    public async Task<Result<CrunchyrollId?>> GetDuplicateNextSeasonIdAsync(CrunchyrollId seasonId, CrunchyrollId seriesId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _dbContext.Seasons
+                .Include(x => x.Series)
+                .Where(x =>
+                    x.SeasonNumber == _dbContext.Seasons
+                        .Where(y => y.CrunchyrollId == seasonId.ToString())
+                        .Select(y => y.SeasonNumber)
+                        .FirstOrDefault() &&
+                    x.Series!.CrunchyrollId == seriesId.ToString() &&
+                    x.CrunchyrollId != seasonId.ToString())
+                .Select(x => new CrunchyrollId(x.CrunchyrollId))
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to get crunchyrollId for duplicate season with crunchyroll seasonId {SeasonId}",
+                seasonId);
+            return Result.Fail(ErrorCodes.Internal);
+        }
+    }
+
+    public async Task<Result<CrunchyrollId?>> GetEpisodeIdByNumberDuplicateNextSeasonAsync(CrunchyrollId seasonId, 
+        CrunchyrollId seriesId, string episodeNumber,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _dbContext.Episodes
+                .Include(x => x.Season)
+                .ThenInclude(x => x!.Series)
+                .Where(x =>
+                    x.EpisodeNumber == episodeNumber &&
+                    x.Season!.SeasonNumber == _dbContext.Seasons
+                        .Where(y => y.CrunchyrollId == seasonId.ToString())
+                        .Select(y => y.SeasonNumber)
+                        .FirstOrDefault() &&
+                    x.Season!.Series!.CrunchyrollId == seriesId.ToString())
+                .Select(x => new CrunchyrollId(x.CrunchyrollId))
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to get crunchyrollId for episode on duplicate season with crunchyroll seasonId {SeasonId}," +
+                                " episodeNumber {EpisodeNumber}",
+                seasonId,
+                episodeNumber);
+            return Result.Fail(ErrorCodes.Internal);
+        }
+    }
 }

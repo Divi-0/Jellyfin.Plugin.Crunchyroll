@@ -12,4 +12,10 @@ public interface IGetEpisodeCrunchyrollIdRepository
     
     public Task<Result<CrunchyrollId?>> GetEpisodeIdByNumber(CrunchyrollId seasonId, string episodeNumber,
         CancellationToken cancellationToken);
+    
+    public Task<Result<CrunchyrollId?>> GetDuplicateNextSeasonIdAsync(CrunchyrollId seasonId, CrunchyrollId seriesId,
+        CancellationToken cancellationToken);
+    
+    public Task<Result<CrunchyrollId?>> GetEpisodeIdByNumberDuplicateNextSeasonAsync(CrunchyrollId seasonId, CrunchyrollId seriesId, string episodeNumber,
+        CancellationToken cancellationToken);
 }

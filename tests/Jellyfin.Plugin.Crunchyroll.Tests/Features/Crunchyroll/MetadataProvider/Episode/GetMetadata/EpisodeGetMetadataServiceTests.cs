@@ -55,6 +55,7 @@ public class EpisodeGetMetadataServiceTests
         var episodeInfo = EpisodeInfoFaker.Generate();
         var episode = EpisodeFaker.Generate();
         var episodeId = CrunchyrollIdFaker.Generate();
+        var seriesId = new CrunchyrollId(episodeInfo.SeriesProviderIds[CrunchyrollExternalKeys.SeriesId]);
         var seasonId = new CrunchyrollId(episodeInfo.SeasonProviderIds[CrunchyrollExternalKeys.SeasonId]);
         
         _scrapEpisodeMetadataService
@@ -63,7 +64,8 @@ public class EpisodeGetMetadataServiceTests
             .Returns(Result.Ok());
 
         _getEpisodeCrunchyrollIdService
-            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<int?>(),
+            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<string>(), Arg.Any<int?>(),
                 Arg.Any<CancellationToken>())
             .Returns(episodeId);
 
@@ -88,7 +90,8 @@ public class EpisodeGetMetadataServiceTests
 
         await _getEpisodeCrunchyrollIdService
             .Received(1)
-            .GetEpisodeIdAsync(seasonId, Path.GetFileNameWithoutExtension(episodeInfo.Path), episodeInfo.IndexNumber,
+            .GetEpisodeIdAsync(seasonId, seriesId, episodeInfo.GetPreferredMetadataCultureInfo(),
+                Path.GetFileNameWithoutExtension(episodeInfo.Path), episodeInfo.IndexNumber,
                 Arg.Any<CancellationToken>());
 
         await _setMetadataToEpisodeService
@@ -114,7 +117,8 @@ public class EpisodeGetMetadataServiceTests
             .Returns(Result.Ok());
 
         _getEpisodeCrunchyrollIdService
-            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<int?>(),
+            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<string>(), Arg.Any<int?>(),
                 Arg.Any<CancellationToken>())
             .Returns(episodeId);
 
@@ -137,7 +141,8 @@ public class EpisodeGetMetadataServiceTests
 
         await _getEpisodeCrunchyrollIdService
             .DidNotReceive()
-            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<int?>(),
+            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<string>(), Arg.Any<int?>(),
                 Arg.Any<CancellationToken>());
 
         await _setMetadataToEpisodeService
@@ -153,6 +158,7 @@ public class EpisodeGetMetadataServiceTests
         var episodeInfo = EpisodeInfoFaker.Generate();
         var episode = EpisodeFaker.Generate();
         var episodeId = CrunchyrollIdFaker.Generate();
+        var seriesId = new CrunchyrollId(episodeInfo.SeriesProviderIds[CrunchyrollExternalKeys.SeriesId]);
         var seasonId = new CrunchyrollId(episodeInfo.SeasonProviderIds[CrunchyrollExternalKeys.SeasonId]);
         
         _scrapEpisodeMetadataService
@@ -161,7 +167,8 @@ public class EpisodeGetMetadataServiceTests
             .Returns(Result.Fail(Guid.NewGuid().ToString()));
 
         _getEpisodeCrunchyrollIdService
-            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<int?>(),
+            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<string>(), Arg.Any<int?>(),
                 Arg.Any<CancellationToken>())
             .Returns(episodeId);
 
@@ -184,7 +191,8 @@ public class EpisodeGetMetadataServiceTests
 
         await _getEpisodeCrunchyrollIdService
             .Received(1)
-            .GetEpisodeIdAsync(seasonId, Path.GetFileNameWithoutExtension(episodeInfo.Path), episodeInfo.IndexNumber,
+            .GetEpisodeIdAsync(seasonId, seriesId, episodeInfo.GetPreferredMetadataCultureInfo(),
+                Path.GetFileNameWithoutExtension(episodeInfo.Path), episodeInfo.IndexNumber,
                 Arg.Any<CancellationToken>());
 
         await _setMetadataToEpisodeService
@@ -198,6 +206,7 @@ public class EpisodeGetMetadataServiceTests
     {
         //Arrange
         var episodeInfo = EpisodeInfoFaker.Generate();
+        var seriesId = new CrunchyrollId(episodeInfo.SeriesProviderIds[CrunchyrollExternalKeys.SeriesId]);
         var seasonId = new CrunchyrollId(episodeInfo.SeasonProviderIds[CrunchyrollExternalKeys.SeasonId]);
         
         _scrapEpisodeMetadataService
@@ -206,7 +215,8 @@ public class EpisodeGetMetadataServiceTests
             .Returns(Result.Ok());
         
         _getEpisodeCrunchyrollIdService
-            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<int?>(),
+            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<string>(), Arg.Any<int?>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Fail(Guid.NewGuid().ToString()));
         
@@ -224,7 +234,8 @@ public class EpisodeGetMetadataServiceTests
 
         await _getEpisodeCrunchyrollIdService
             .Received(1)
-            .GetEpisodeIdAsync(seasonId, Path.GetFileNameWithoutExtension(episodeInfo.Path), episodeInfo.IndexNumber,
+            .GetEpisodeIdAsync(seasonId, seriesId, episodeInfo.GetPreferredMetadataCultureInfo(),
+                Path.GetFileNameWithoutExtension(episodeInfo.Path), episodeInfo.IndexNumber,
                 Arg.Any<CancellationToken>());
 
         await _setMetadataToEpisodeService
@@ -238,6 +249,7 @@ public class EpisodeGetMetadataServiceTests
     {
         //Arrange
         var episodeInfo = EpisodeInfoFaker.Generate();
+        var seriesId = new CrunchyrollId(episodeInfo.SeriesProviderIds[CrunchyrollExternalKeys.SeriesId]);
         var seasonId = new CrunchyrollId(episodeInfo.SeasonProviderIds[CrunchyrollExternalKeys.SeasonId]);
         
         _scrapEpisodeMetadataService
@@ -246,7 +258,8 @@ public class EpisodeGetMetadataServiceTests
             .Returns(Result.Ok());
         
         _getEpisodeCrunchyrollIdService
-            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<int?>(),
+            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<string>(), Arg.Any<int?>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok<CrunchyrollId?>(null));
         
@@ -264,7 +277,8 @@ public class EpisodeGetMetadataServiceTests
 
         await _getEpisodeCrunchyrollIdService
             .Received(1)
-            .GetEpisodeIdAsync(seasonId, Path.GetFileNameWithoutExtension(episodeInfo.Path), episodeInfo.IndexNumber,
+            .GetEpisodeIdAsync(seasonId, seriesId, episodeInfo.GetPreferredMetadataCultureInfo(),
+                Path.GetFileNameWithoutExtension(episodeInfo.Path), episodeInfo.IndexNumber,
                 Arg.Any<CancellationToken>());
 
         await _setMetadataToEpisodeService
@@ -279,6 +293,7 @@ public class EpisodeGetMetadataServiceTests
         //Arrange
         var episodeInfo = EpisodeInfoFaker.Generate();
         var episodeId = CrunchyrollIdFaker.Generate();
+        var seriesId = new CrunchyrollId(episodeInfo.SeriesProviderIds[CrunchyrollExternalKeys.SeriesId]);
         var seasonId = new CrunchyrollId(episodeInfo.SeasonProviderIds[CrunchyrollExternalKeys.SeasonId]);
         
         _scrapEpisodeMetadataService
@@ -287,7 +302,8 @@ public class EpisodeGetMetadataServiceTests
             .Returns(Result.Ok());
 
         _getEpisodeCrunchyrollIdService
-            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<int?>(),
+            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<string>(), Arg.Any<int?>(),
                 Arg.Any<CancellationToken>())
             .Returns(episodeId);
 
@@ -310,7 +326,8 @@ public class EpisodeGetMetadataServiceTests
 
         await _getEpisodeCrunchyrollIdService
             .Received(1)
-            .GetEpisodeIdAsync(seasonId, Path.GetFileNameWithoutExtension(episodeInfo.Path), episodeInfo.IndexNumber,
+            .GetEpisodeIdAsync(seasonId, seriesId, episodeInfo.GetPreferredMetadataCultureInfo(),
+                Path.GetFileNameWithoutExtension(episodeInfo.Path), episodeInfo.IndexNumber,
                 Arg.Any<CancellationToken>());
 
         await _setMetadataToEpisodeService
@@ -355,7 +372,8 @@ public class EpisodeGetMetadataServiceTests
 
         await _getEpisodeCrunchyrollIdService
             .DidNotReceive()
-            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<int?>(),
+            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<string>(), Arg.Any<int?>(),
                 Arg.Any<CancellationToken>());
 
         await _specialEpisodeCrunchyrollIdService
@@ -397,7 +415,8 @@ public class EpisodeGetMetadataServiceTests
 
         await _getEpisodeCrunchyrollIdService
             .DidNotReceive()
-            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<int?>(),
+            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<string>(), Arg.Any<int?>(),
                 Arg.Any<CancellationToken>());
 
         await _specialEpisodeCrunchyrollIdService

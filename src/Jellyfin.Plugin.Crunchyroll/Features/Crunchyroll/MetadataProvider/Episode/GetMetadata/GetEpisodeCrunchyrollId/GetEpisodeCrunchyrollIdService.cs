@@ -1,8 +1,11 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Domain;
+using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.GetEpisodeCrunchyrollId;
@@ -11,15 +14,19 @@ public partial class GetEpisodeCrunchyrollIdService : IGetEpisodeCrunchyrollIdSe
 {
     private readonly IGetEpisodeCrunchyrollIdRepository _repository;
     private readonly ILogger<GetEpisodeCrunchyrollIdService> _logger;
+    private readonly IScrapEpisodeMetadataService _scrapEpisodeMetadataService;
 
     public GetEpisodeCrunchyrollIdService(IGetEpisodeCrunchyrollIdRepository repository, 
-        ILogger<GetEpisodeCrunchyrollIdService> logger)
+        ILogger<GetEpisodeCrunchyrollIdService> logger,
+        IScrapEpisodeMetadataService scrapEpisodeMetadataService)
     {
         _repository = repository;
         _logger = logger;
+        _scrapEpisodeMetadataService = scrapEpisodeMetadataService;
     }
     
-    public async Task<Result<CrunchyrollId?>> GetEpisodeIdAsync(CrunchyrollId seasonId, string fileName, int? indexNumber, CancellationToken cancellationToken)
+    public async Task<Result<CrunchyrollId?>> GetEpisodeIdAsync(CrunchyrollId seasonId, CrunchyrollId seriesId, 
+        CultureInfo language, string fileName, int? indexNumber, CancellationToken cancellationToken)
     {
         string episodeIdentifier;
 
@@ -61,7 +68,32 @@ public partial class GetEpisodeCrunchyrollIdService : IGetEpisodeCrunchyrollIdSe
             return episodeIdResult.ToResult();
         }
 
-        return episodeIdResult.Value;
+        if (episodeIdResult.Value is null)
+        {
+            var duplicateSeasonIdResult = await _repository
+                .GetDuplicateNextSeasonIdAsync(seasonId, seriesId, cancellationToken);
+
+            if (duplicateSeasonIdResult.IsFailed)
+            {
+                return duplicateSeasonIdResult;
+            }
+
+            var duplicateSeasonId = duplicateSeasonIdResult.Value;
+
+            if (duplicateSeasonId is null)
+            {
+                _logger.LogDebug("Duplicate season not found for season Id {SeasonId}", seasonId);
+                return (CrunchyrollId?)null;
+            }
+
+            _ = await _scrapEpisodeMetadataService.ScrapEpisodeMetadataAsync(duplicateSeasonId, language, cancellationToken);
+            
+            episodeIdResult =
+                await _repository.GetEpisodeIdByNumberDuplicateNextSeasonAsync(seasonId, seriesId, episodeIdentifier,
+                    cancellationToken);
+        }
+
+        return episodeIdResult;
     }
     
     [GeneratedRegex(@"E\d*\.\d*|E\d*[A-z]")]

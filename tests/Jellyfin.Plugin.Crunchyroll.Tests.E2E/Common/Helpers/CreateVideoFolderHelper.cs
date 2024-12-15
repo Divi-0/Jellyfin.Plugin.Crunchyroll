@@ -218,32 +218,7 @@ public static class CreateVideoFolderHelper
         File.WriteAllBytesAsync(Path.Combine(seasonOneReEditedDirectory.FullName, "S01E02.mp4"), []);
         File.WriteAllBytesAsync(Path.Combine(seasonOneReEditedDirectory.FullName, "S01E03.mp4"), []);
         
-        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 2, nextEpisodeNumber: 1, episodeCount: 24);
-        var seasonTwoPartTwoDirectory = Directory.CreateDirectory(Path.Combine(seriesDirectory.FullName, "Season 2 - Battle in Egypt"));
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E25.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E26.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E27.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E28.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E29.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E30.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E31.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E32.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E33.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E34.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E35.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E36.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E37.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E38.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E39.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E40.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E41.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E42.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E43.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E44.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E45.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E46.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E47.mp4"), []);
-        File.WriteAllBytesAsync(Path.Combine(seasonTwoPartTwoDirectory.FullName, "S02E48.mp4"), []);
+        CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 2, nextEpisodeNumber: 1, episodeCount: 48);
         
         CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 3, nextEpisodeNumber: 1, episodeCount: 39);
         var seasonFourDirectory = CreateSeasonsFolderWithEpisodes(seriesDirectory.FullName, seasonNumber: 4, nextEpisodeNumber: 1, episodeCount: 39);
