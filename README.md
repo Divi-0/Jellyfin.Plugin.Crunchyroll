@@ -1,5 +1,7 @@
 ## About
 
+DO NOT USE THE PLUGIN IN VERION 1.x.x, I work on version 2.0.0
+
 This plugin is a third party plugin and was not created by the official Jellyfin team.
 It collects metadata from Crunchyroll and sets Description, Images, ... to the existing Jellyfin Items.
 It also brings back reviews and comments, in a read-only mode. (Scraped from WaybackMachine)
