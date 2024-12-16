@@ -5,10 +5,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using FluentResults.Extensions;
 using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.Client;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.ScrapMissingEpisode;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.ScrapLockRepository;
 using Microsoft.Extensions.Logging;
 
@@ -21,23 +23,33 @@ public class ScrapEpisodeMetadataService : IScrapEpisodeMetadataService
     private readonly IScrapEpisodeMetadataRepository _repository;
     private readonly ILogger<ScrapEpisodeMetadataService> _logger;
     private readonly IScrapLockRepository _scrapLockRepository;
+    private readonly IScrapMissingEpisodeService _scrapMissingEpisodeService;
 
     public ScrapEpisodeMetadataService(IScrapEpisodeCrunchyrollClient client,
         ILoginService loginService, IScrapEpisodeMetadataRepository repository,
-        ILogger<ScrapEpisodeMetadataService> logger, IScrapLockRepository scrapLockRepository)
+        ILogger<ScrapEpisodeMetadataService> logger, IScrapLockRepository scrapLockRepository,
+        IScrapMissingEpisodeService scrapMissingEpisodeService)
     {
         _client = client;
         _loginService = loginService;
         _repository = repository;
         _logger = logger;
         _scrapLockRepository = scrapLockRepository;
+        _scrapMissingEpisodeService = scrapMissingEpisodeService;
     }
     
-    public async Task<Result> ScrapEpisodeMetadataAsync(CrunchyrollId seasonId, CultureInfo language, CancellationToken cancellationToken)
+    public async Task<Result> ScrapEpisodeMetadataAsync(CrunchyrollId seasonId, CrunchyrollId? episodeId, 
+        CultureInfo language, CancellationToken cancellationToken)
     {
         if (!await _scrapLockRepository.AddLockAsync(seasonId))
         {
             _logger.LogDebug("Episode metadata for season {SeasonId} is up to date, skipping...", seasonId);
+
+            if (episodeId is not null)
+            {
+                _ = await HandleMissingEpisode(episodeId, language, cancellationToken);
+            }
+            
             return Result.Ok();
         }
         
@@ -86,7 +98,8 @@ public class ScrapEpisodeMetadataService : IScrapEpisodeMetadataService
         
         _repository.UpdateSeason(season);
 
-        return await _repository.SaveChangesAsync(cancellationToken);
+        return await _repository.SaveChangesAsync(cancellationToken)
+            .Bind(async () => await HandleMissingEpisode(episodeId, language, cancellationToken));
     }
     
     private static void ApplyNewEpisodesToExistingEpisodes(Domain.Entities.Season season, Domain.Entities.Episode[] episodes)
@@ -98,5 +111,16 @@ public class ScrapEpisodeMetadataService : IScrapEpisodeMetadataService
                 season.Episodes.Add(currentListedCrunchyrollEpisode);
             }
         }
+    }
+
+    private async Task<Result> HandleMissingEpisode(CrunchyrollId? episodeId, CultureInfo language,
+        CancellationToken cancellationToken)
+    {
+        if (episodeId is null)
+        {
+            return Result.Ok();
+        }
+
+        return await _scrapMissingEpisodeService.ScrapMissingEpisodeAsync(episodeId, language, cancellationToken);
     }
 }

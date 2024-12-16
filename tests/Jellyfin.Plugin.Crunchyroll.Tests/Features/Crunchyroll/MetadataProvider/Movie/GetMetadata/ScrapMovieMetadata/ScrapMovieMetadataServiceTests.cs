@@ -61,7 +61,8 @@ public class ScrapMovieMetadataServiceTests
             .Returns(Result.Ok());
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), 
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
@@ -84,7 +85,8 @@ public class ScrapMovieMetadataServiceTests
 
         await _scrapEpisodeMetadataService
             .DidNotReceive()
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), 
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>());
     }
 
@@ -109,7 +111,8 @@ public class ScrapMovieMetadataServiceTests
             .Returns(Result.Fail(error));
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), 
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
@@ -132,7 +135,8 @@ public class ScrapMovieMetadataServiceTests
 
         await _scrapEpisodeMetadataService
             .DidNotReceive()
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), 
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>());
     }
 
@@ -157,7 +161,8 @@ public class ScrapMovieMetadataServiceTests
         
         var error = Guid.NewGuid().ToString();
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), 
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Fail(error));
         
@@ -180,7 +185,7 @@ public class ScrapMovieMetadataServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(seasonId, Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(seasonId, null, Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>());
     }
     
@@ -205,7 +210,8 @@ public class ScrapMovieMetadataServiceTests
             .Returns(Result.Ok());
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), 
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
@@ -240,7 +246,9 @@ public class ScrapMovieMetadataServiceTests
                 SeasonNumber = 0,
                 SeasonTitle = string.Empty,
                 SeasonDisplayNumber = string.Empty,
-                SeasonSequenceNumber = 0
+                SeasonSequenceNumber = 0,
+                SeriesTitle = string.Empty,
+                SeasonSlugTitle = string.Empty
             }
         };
         
@@ -276,7 +284,7 @@ public class ScrapMovieMetadataServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(seasonId, language,
+            .ScrapEpisodeMetadataAsync(seasonId, null, language,
                 Arg.Any<CancellationToken>());
 
         await _repository
@@ -316,7 +324,7 @@ public class ScrapMovieMetadataServiceTests
             .Returns(Result.Ok());
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId?>(), Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
@@ -351,7 +359,9 @@ public class ScrapMovieMetadataServiceTests
                 SeasonNumber = 0,
                 SeasonTitle = string.Empty,
                 SeasonDisplayNumber = string.Empty,
-                SeasonSequenceNumber = 0
+                SeasonSequenceNumber = 0,
+                SeriesTitle = string.Empty,
+                SeasonSlugTitle = string.Empty
             }
         };
         
@@ -388,7 +398,7 @@ public class ScrapMovieMetadataServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(seasonId, language,
+            .ScrapEpisodeMetadataAsync(seasonId, null, language,
                 Arg.Any<CancellationToken>());
 
         await _repository
@@ -433,7 +443,8 @@ public class ScrapMovieMetadataServiceTests
             .Returns(Result.Ok());
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId?>(),
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
@@ -463,7 +474,7 @@ public class ScrapMovieMetadataServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(seasonId, language,
+            .ScrapEpisodeMetadataAsync(seasonId, null, language,
                 Arg.Any<CancellationToken>());
 
         await _repository
@@ -504,7 +515,8 @@ public class ScrapMovieMetadataServiceTests
             .Returns(Result.Ok());
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId?>(),
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
@@ -532,7 +544,7 @@ public class ScrapMovieMetadataServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(seasonId, language,
+            .ScrapEpisodeMetadataAsync(seasonId, null, language,
                 Arg.Any<CancellationToken>());
 
         await _repository
@@ -573,7 +585,8 @@ public class ScrapMovieMetadataServiceTests
             .Returns(Result.Ok());
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId?>(),
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
@@ -600,7 +613,7 @@ public class ScrapMovieMetadataServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(seasonId, language,
+            .ScrapEpisodeMetadataAsync(seasonId, null, language,
                 Arg.Any<CancellationToken>());
 
         await _repository
@@ -641,7 +654,8 @@ public class ScrapMovieMetadataServiceTests
             .Returns(Result.Ok());
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId?>(),
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
@@ -674,7 +688,7 @@ public class ScrapMovieMetadataServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(seasonId, language,
+            .ScrapEpisodeMetadataAsync(seasonId, null, language,
                 Arg.Any<CancellationToken>());
 
         await _repository
@@ -715,7 +729,8 @@ public class ScrapMovieMetadataServiceTests
             .Returns(Result.Ok());
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId?>(),
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
@@ -750,7 +765,9 @@ public class ScrapMovieMetadataServiceTests
                 SeasonNumber = 0,
                 SeasonTitle = string.Empty,
                 SeasonDisplayNumber = string.Empty,
-                SeasonSequenceNumber = 0
+                SeasonSequenceNumber = 0,
+                SeriesTitle = string.Empty,
+                SeasonSlugTitle = string.Empty
             }
         };
         
@@ -782,7 +799,7 @@ public class ScrapMovieMetadataServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(seasonId, language,
+            .ScrapEpisodeMetadataAsync(seasonId, null, language,
                 Arg.Any<CancellationToken>());
 
         await _repository
@@ -823,7 +840,8 @@ public class ScrapMovieMetadataServiceTests
             .Returns(Result.Ok());
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId?>(),
+                Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
@@ -858,7 +876,9 @@ public class ScrapMovieMetadataServiceTests
                 SeasonNumber = 0,
                 SeasonTitle = string.Empty,
                 SeasonDisplayNumber = string.Empty,
-                SeasonSequenceNumber = 0
+                SeasonSequenceNumber = 0,
+                SeriesTitle = string.Empty,
+                SeasonSlugTitle = string.Empty
             }
         };
         
@@ -894,7 +914,7 @@ public class ScrapMovieMetadataServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(seasonId, language,
+            .ScrapEpisodeMetadataAsync(seasonId, null, language,
                 Arg.Any<CancellationToken>());
 
         await _repository
@@ -935,7 +955,7 @@ public class ScrapMovieMetadataServiceTests
             .Returns(Result.Ok());
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId?>(),Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Fail(EpisodesErrorCodes.RequestFailed));
 
@@ -970,7 +990,9 @@ public class ScrapMovieMetadataServiceTests
                 SeasonNumber = 0,
                 SeasonTitle = string.Empty,
                 SeasonDisplayNumber = string.Empty,
-                SeasonSequenceNumber = 0
+                SeasonSequenceNumber = 0,
+                SeriesTitle = string.Empty,
+                SeasonSlugTitle = string.Empty
             }
         };
         
@@ -1006,7 +1028,7 @@ public class ScrapMovieMetadataServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(seasonId, language,
+            .ScrapEpisodeMetadataAsync(seasonId, null, language,
                 Arg.Any<CancellationToken>());
 
         await _repository

@@ -60,7 +60,7 @@ public class ScrapMovieMetadataService : IScrapMovieMetadataService
         }
 
         var scrapEpisodeResult = await _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(seasonId, language, cancellationToken);
+            .ScrapEpisodeMetadataAsync(seasonId, null, language, cancellationToken);
 
         if (scrapEpisodeResult.IsFailed && scrapEpisodeResult.Errors.First().Message != EpisodesErrorCodes.RequestFailed)
         {

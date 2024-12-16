@@ -84,7 +84,8 @@ public class GetEpisodeCrunchyrollIdServiceTests
             .Returns(duplicateSeasonId);
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), 
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         _repository
@@ -113,7 +114,8 @@ public class GetEpisodeCrunchyrollIdServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(duplicateSeasonId, language, Arg.Any<CancellationToken>());
+            .ScrapEpisodeMetadataAsync(duplicateSeasonId, Arg.Any<CrunchyrollId>(), 
+                language, Arg.Any<CancellationToken>());
         
         await _repository
             .Received(1)
@@ -162,7 +164,8 @@ public class GetEpisodeCrunchyrollIdServiceTests
 
         await _scrapEpisodeMetadataService
             .DidNotReceive()
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), 
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         
         await _repository
             .DidNotReceive()
@@ -209,7 +212,8 @@ public class GetEpisodeCrunchyrollIdServiceTests
 
         await _scrapEpisodeMetadataService
             .DidNotReceive()
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), 
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
         
         await _repository
             .DidNotReceive()
@@ -237,7 +241,8 @@ public class GetEpisodeCrunchyrollIdServiceTests
             .Returns(duplicateSeasonId);
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), 
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail(Guid.NewGuid().ToString()));
         
         _repository
@@ -266,7 +271,8 @@ public class GetEpisodeCrunchyrollIdServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(duplicateSeasonId, language, Arg.Any<CancellationToken>());
+            .ScrapEpisodeMetadataAsync(duplicateSeasonId, Arg.Any<CrunchyrollId>(), 
+                language, Arg.Any<CancellationToken>());
         
         await _repository
             .Received(1)
@@ -293,7 +299,8 @@ public class GetEpisodeCrunchyrollIdServiceTests
             .Returns(duplicateSeasonId);
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), 
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
         var error = Guid.NewGuid().ToString();
@@ -323,7 +330,8 @@ public class GetEpisodeCrunchyrollIdServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(duplicateSeasonId, language, Arg.Any<CancellationToken>());
+            .ScrapEpisodeMetadataAsync(duplicateSeasonId, Arg.Any<CrunchyrollId>(), 
+                language, Arg.Any<CancellationToken>());
         
         await _repository
             .Received(1)
@@ -510,7 +518,8 @@ public class GetEpisodeCrunchyrollIdServiceTests
             .Returns(duplicateSeasonId);
 
         _scrapEpisodeMetadataService
-            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), 
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
         _repository
@@ -540,7 +549,8 @@ public class GetEpisodeCrunchyrollIdServiceTests
 
         await _scrapEpisodeMetadataService
             .Received(1)
-            .ScrapEpisodeMetadataAsync(duplicateSeasonId, language, Arg.Any<CancellationToken>());
+            .ScrapEpisodeMetadataAsync(duplicateSeasonId, Arg.Any<CrunchyrollId>(), 
+                language, Arg.Any<CancellationToken>());
         
         await _repository
             .Received(1)

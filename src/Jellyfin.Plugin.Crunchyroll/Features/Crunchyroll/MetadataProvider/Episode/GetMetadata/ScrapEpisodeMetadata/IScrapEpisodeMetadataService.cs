@@ -8,6 +8,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Epis
 
 public interface IScrapEpisodeMetadataService
 {
-    public Task<Result> ScrapEpisodeMetadataAsync(CrunchyrollId seasonId, CultureInfo language, 
+    public Task<Result> ScrapEpisodeMetadataAsync(CrunchyrollId seasonId, CrunchyrollId? episodeId, CultureInfo language, 
         CancellationToken cancellationToken);
 }

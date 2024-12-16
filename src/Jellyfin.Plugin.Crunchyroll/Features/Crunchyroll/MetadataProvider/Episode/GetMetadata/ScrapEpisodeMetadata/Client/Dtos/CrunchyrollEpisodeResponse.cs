@@ -39,6 +39,9 @@ public record CrunchyrollEpisodeDataItemEpisodeMetadata
     [JsonPropertyName("season_title")]
     public required string SeasonTitle { get; init; }
     
+    [JsonPropertyName("season_slug_title")]
+    public required string SeasonSlugTitle { get; init; }
+    
     [JsonPropertyName("season_number")]
     public required int SeasonNumber { get; init; }
     
@@ -50,6 +53,9 @@ public record CrunchyrollEpisodeDataItemEpisodeMetadata
     
     [JsonPropertyName("series_id")]
     public required string SeriesId { get; init; }
+    
+    [JsonPropertyName("series_title")]
+    public required string SeriesTitle { get; init; }
     
     [JsonPropertyName("series_slug_title")]
     public required string SeriesSlugTitle { get; init; }

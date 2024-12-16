@@ -10,6 +10,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.Client.Dtos;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.ScrapMissingEpisode;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.ScrapLockRepository;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Microsoft.Extensions.Logging;
@@ -24,6 +25,7 @@ public class ScrapEpisodeMetadataServiceTests
     private readonly ILoginService _loginService;
     private readonly IScrapEpisodeMetadataRepository _repository;
     private readonly IScrapLockRepository _scrapLockRepository;
+    private readonly IScrapMissingEpisodeService _scrapMissingEpisodeService;
 
     private readonly Fixture _fixture;
     
@@ -34,7 +36,9 @@ public class ScrapEpisodeMetadataServiceTests
         _repository = Substitute.For<IScrapEpisodeMetadataRepository>();
         _scrapLockRepository = Substitute.For<IScrapLockRepository>();
         var logger = Substitute.For<ILogger<ScrapEpisodeMetadataService>>();
-        _sut = new ScrapEpisodeMetadataService(_client, _loginService, _repository, logger, _scrapLockRepository);
+        _scrapMissingEpisodeService = Substitute.For<IScrapMissingEpisodeService>();
+        _sut = new ScrapEpisodeMetadataService(_client, _loginService, _repository, logger, _scrapLockRepository,
+            _scrapMissingEpisodeService);
 
         _fixture = new Fixture();
     }
@@ -45,6 +49,7 @@ public class ScrapEpisodeMetadataServiceTests
         //Arrange
         var season = CrunchyrollSeasonFaker.Generate();
         var language = new CultureInfo("en-US");
+        var episodeId = CrunchyrollIdFaker.Generate();
         
         _loginService
             .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
@@ -66,9 +71,13 @@ public class ScrapEpisodeMetadataServiceTests
         _scrapLockRepository
             .AddLockAsync(season.CrunchyrollId)
             .Returns(true);
+        
+        _scrapMissingEpisodeService
+            .ScrapMissingEpisodeAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
 
         //Act
-        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, language, CancellationToken.None);
+        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, episodeId, language, CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();
@@ -117,6 +126,7 @@ public class ScrapEpisodeMetadataServiceTests
         //Arrange
         var season = CrunchyrollSeasonFaker.Generate();
         var language = new CultureInfo("en-US");
+        var episodeId = CrunchyrollIdFaker.Generate();
         
         var error = Guid.NewGuid().ToString();
         _repository
@@ -128,7 +138,7 @@ public class ScrapEpisodeMetadataServiceTests
             .Returns(true);
         
         //Act
-        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, language, CancellationToken.None);
+        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, episodeId, language, CancellationToken.None);
 
         //Assert
         result.IsFailed.Should().BeTrue();
@@ -157,6 +167,7 @@ public class ScrapEpisodeMetadataServiceTests
         //Arrange
         var season = CrunchyrollSeasonFaker.Generate();
         var language = new CultureInfo("en-US");
+        var episodeId = CrunchyrollIdFaker.Generate();
         
         _repository
             .GetSeasonAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
@@ -172,7 +183,7 @@ public class ScrapEpisodeMetadataServiceTests
             .Returns(true);
         
         //Act
-        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, language, CancellationToken.None);
+        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, episodeId, language, CancellationToken.None);
 
         //Assert
         result.IsFailed.Should().BeTrue();
@@ -201,6 +212,7 @@ public class ScrapEpisodeMetadataServiceTests
         //Arrange
         var season = CrunchyrollSeasonFaker.Generate();
         var language = new CultureInfo("en-US");
+        var episodeId = CrunchyrollIdFaker.Generate();
         
         _repository
             .GetSeasonAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
@@ -220,7 +232,7 @@ public class ScrapEpisodeMetadataServiceTests
             .Returns(true);
         
         //Act
-        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, language, CancellationToken.None);
+        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, episodeId, language, CancellationToken.None);
 
         //Assert
         result.IsFailed.Should().BeTrue();
@@ -249,6 +261,7 @@ public class ScrapEpisodeMetadataServiceTests
         //Arrange
         var season = CrunchyrollSeasonFaker.Generate();
         var language = new CultureInfo("en-US");
+        var episodeId = CrunchyrollIdFaker.Generate();
 
         var existingEpisodes = Enumerable.Range(1, 10)
             .Select(_ => CrunchyrollEpisodeFaker.Generate())
@@ -276,8 +289,12 @@ public class ScrapEpisodeMetadataServiceTests
             .AddLockAsync(season.CrunchyrollId)
             .Returns(true);
 
+        _scrapMissingEpisodeService
+            .ScrapMissingEpisodeAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
         //Act
-        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, language, CancellationToken.None);
+        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, episodeId, language, CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();
@@ -330,6 +347,7 @@ public class ScrapEpisodeMetadataServiceTests
         //Arrange
         var season = CrunchyrollSeasonFaker.Generate();
         var language = new CultureInfo("en-US");
+        var episodeId = CrunchyrollIdFaker.Generate();
         
         _loginService
             .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
@@ -354,7 +372,7 @@ public class ScrapEpisodeMetadataServiceTests
             .Returns(true);
 
         //Act
-        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, language, CancellationToken.None);
+        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, episodeId, language, CancellationToken.None);
 
         //Assert
         result.IsFailed.Should().BeTrue();
@@ -387,6 +405,7 @@ public class ScrapEpisodeMetadataServiceTests
         //Arrange
         var season = CrunchyrollSeasonFaker.Generate();
         var language = new CultureInfo("en-US");
+        var episodeId = CrunchyrollIdFaker.Generate();
         
         _loginService
             .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
@@ -406,7 +425,7 @@ public class ScrapEpisodeMetadataServiceTests
             .Returns(true);
 
         //Act
-        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, language, CancellationToken.None);
+        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, episodeId, language, CancellationToken.None);
 
         //Assert
         result.IsFailed.Should().BeTrue();
@@ -435,13 +454,14 @@ public class ScrapEpisodeMetadataServiceTests
         //Arrange
         var season = CrunchyrollSeasonFaker.Generate();
         var language = new CultureInfo("en-US");
+        var episodeId = CrunchyrollIdFaker.Generate();
 
         _scrapLockRepository
             .AddLockAsync(season.CrunchyrollId)
             .Returns(false);
 
         //Act
-        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, language, CancellationToken.None);
+        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, episodeId, language, CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();

@@ -28,6 +28,7 @@ public class ScrapEpisodeMetadataRepository : IScrapEpisodeMetadataRepository
         try
         {
             return await _dbContext.Seasons
+                .Include(x => x.Episodes)
                 .FirstOrDefaultAsync(x =>
                     x.CrunchyrollId == seasonId.ToString() &&
                     x.Language == language.Name, 

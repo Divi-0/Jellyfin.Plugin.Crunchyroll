@@ -40,6 +40,8 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
         var seasonId = info.SeasonProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.SeasonId);
         var language = info.GetPreferredMetadataCultureInfo();
         
+        var episodeId = info.ProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.EpisodeId);
+        
         if (!IsEpisodeInsideOfSpecialsSeason(info))
         {
             if (string.IsNullOrWhiteSpace(seasonId))
@@ -48,12 +50,17 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
                 return FailedResult;
             }
 
+            CrunchyrollId? crunchyrollEpisodeId = null;
+
+            if (episodeId is not null)
+            {
+                crunchyrollEpisodeId = episodeId;
+            }
+
             //ignore result
-            _ = await _scrapEpisodeMetadataService.ScrapEpisodeMetadataAsync(seasonId,
+            _ = await _scrapEpisodeMetadataService.ScrapEpisodeMetadataAsync(seasonId, crunchyrollEpisodeId,
                 language, cancellationToken);
         }
-        
-        var episodeId = info.ProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.EpisodeId);
 
         if (string.IsNullOrWhiteSpace(episodeId))
         {

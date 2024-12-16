@@ -10,20 +10,36 @@ using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Movie.GetMetadata.ScrapMovieMetadata;
+namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.ScrapMissingEpisode;
 
-public class ScrapMovieMetadataRepository : IScrapMovieMetadataRepository
+public class ScrapMissingEpisodeRepository : IScrapMissingEpisodeRepository
 {
     private readonly CrunchyrollDbContext _dbContext;
-    private readonly ILogger<ScrapMovieMetadataRepository> _logger;
+    private readonly ILogger<ScrapMissingEpisodeRepository> _logger;
 
-    public ScrapMovieMetadataRepository(CrunchyrollDbContext dbContext,
-        ILogger<ScrapMovieMetadataRepository> logger)
+    public ScrapMissingEpisodeRepository(CrunchyrollDbContext dbContext,
+        ILogger<ScrapMissingEpisodeRepository> logger)
     {
         _dbContext = dbContext;
         _logger = logger;
     }
-    
+
+    public async Task<Result<bool>> EpisodeExistsAsync(CrunchyrollId episodeId, CultureInfo language, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _dbContext.Episodes.AnyAsync(x =>
+                x.CrunchyrollId == episodeId.ToString() &&
+                x.Language == language.Name, 
+                cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to check if episode exists for id {EpisodeId}", episodeId);
+            return Result.Fail(ErrorCodes.Internal);
+        }
+    }
+
     public async Task<Result<Domain.Entities.TitleMetadata?>> GetTitleMetadataAsync(CrunchyrollId titleId, CultureInfo language, CancellationToken cancellationToken)
     {
         try

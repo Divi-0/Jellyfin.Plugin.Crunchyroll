@@ -876,7 +876,9 @@ public static class WireMockAdminApiExtensions
                         SeasonNumber = Random.Shared.Next(1, 10),
                         SeasonTitle = faker.Random.Words(3),
                         SeasonDisplayNumber = string.Empty,
-                        SeasonSequenceNumber = 0
+                        SeasonSequenceNumber = 0,
+                        SeriesTitle = faker.Random.Words(3),
+                        SeasonSlugTitle = CrunchyrollSlugFaker.Generate()
                     },
                 }
             ]

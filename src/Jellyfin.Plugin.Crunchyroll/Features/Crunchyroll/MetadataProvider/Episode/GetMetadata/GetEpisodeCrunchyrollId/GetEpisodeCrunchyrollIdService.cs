@@ -86,7 +86,7 @@ public partial class GetEpisodeCrunchyrollIdService : IGetEpisodeCrunchyrollIdSe
                 return (CrunchyrollId?)null;
             }
 
-            _ = await _scrapEpisodeMetadataService.ScrapEpisodeMetadataAsync(duplicateSeasonId, language, cancellationToken);
+            _ = await _scrapEpisodeMetadataService.ScrapEpisodeMetadataAsync(duplicateSeasonId, null, language, cancellationToken);
             
             episodeIdResult =
                 await _repository.GetEpisodeIdByNumberDuplicateNextSeasonAsync(seasonId, seriesId, episodeIdentifier,

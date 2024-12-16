@@ -1,5 +1,6 @@
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.Client;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.ScrapMissingEpisode;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata;
@@ -13,5 +14,7 @@ public static class ScrapEpisodeMetadataServiceExtension
         serviceCollection.AddHttpClient<IScrapEpisodeCrunchyrollClient, ScrapEpisodeCrunchyrollClient>()
             .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
+
+        serviceCollection.AddScrapMissingEpisode();
     }
 }
