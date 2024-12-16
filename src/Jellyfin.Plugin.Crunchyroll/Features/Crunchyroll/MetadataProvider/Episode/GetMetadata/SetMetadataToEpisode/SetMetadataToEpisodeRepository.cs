@@ -29,7 +29,6 @@ public class SetMetadataToEpisodeRepository : ISetMetadataToEpisodeRepository
         {
             return await _dbContext.Episodes
                 .AsNoTracking()
-                .Include(x => x.Season)
                 .FirstOrDefaultAsync(x =>
                         x.CrunchyrollId == episodeId.ToString() &&
                         x.Language == language.Name, 

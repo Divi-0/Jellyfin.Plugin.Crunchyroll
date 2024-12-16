@@ -8,6 +8,6 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Seas
 
 public interface IGetSeasonCrunchyrollIdService
 {
-    public Task<Result<CrunchyrollId?>> GetSeasonCrunchyrollId(CrunchyrollId seriesId, string seasonName, int? indexNumber, CultureInfo language,
+    public Task<Result<CrunchyrollId?>> GetSeasonCrunchyrollId(CrunchyrollId seriesId, string folderName, int? indexNumber, CultureInfo language,
         CancellationToken cancellationToken);
 }

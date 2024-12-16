@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,7 +74,6 @@ public class SetMetadataToSeasonService : ISetMetadataToSeasonService
         }
         
         season.ForcedSortName = crunchyrollSeason.SeasonSequenceNumber.ToString();
-        season.PresentationUniqueKey = season.CreatePresentationUniqueKey(); //Create new key to visually split duplicate seasons
     }
 
     private void SetSeasonTitle(MediaBrowser.Controller.Entities.TV.Season season, Domain.Entities.Season crunchyrollSeason)

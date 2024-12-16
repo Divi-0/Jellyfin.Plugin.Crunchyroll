@@ -61,8 +61,7 @@ public class GetSeasonCrunchyrollIdRepository : IGetSeasonCrunchyrollIdRepositor
                 .Include(x => x.Series)
                 .Where(x =>
                     x.Series!.CrunchyrollId == crunchyrollTitleId.ToString() &&
-                    x.Title.Replace(":", string.Empty) //Replace ':' to make folder names compatible
-                        .Contains(name.Replace(":", string.Empty)) &&
+                    EF.Functions.Like(x.Title, $"%{name}%") &&
                     x.Language == language.Name)
                 .Select(x => new CrunchyrollId(x.CrunchyrollId))
                 .FirstOrDefaultAsync(cancellationToken);
