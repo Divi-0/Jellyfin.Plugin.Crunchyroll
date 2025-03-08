@@ -130,7 +130,6 @@ public class GetEpisodeCrunchyrollIdServiceTests
         var seriesId = CrunchyrollIdFaker.Generate();
         var fileName = _faker.Random.Word();
         var indexNumber = (int?)Random.Shared.Next(1, int.MaxValue);
-        var episodeId = CrunchyrollIdFaker.Generate();
         var language = new CultureInfo("en-US");
 
         _repository
