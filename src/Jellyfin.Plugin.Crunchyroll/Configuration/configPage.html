@@ -29,39 +29,11 @@
                     <input id="CrunchyrollUpdateThresholdInDays" name="WaybackMachineWaitTimeoutInSeconds" type="number" is="emby-input" min="0" />
                     <div class="fieldDescription">Defines after how many days the local Crunchyroll data may be overwritten again; default: 1 day</div>
                 </div>
-                <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="LibraryName">LibraryName</label>
-                    <input id="LibraryName" name="LibraryName" type="text" is="emby-input" />
-                    <div class="fieldDescription">It is recommended to specify which collection/library to scan for. 
-                        Good if you have an Anime-Library and specify only the name here.
-                        Keep it empty to scan in all collections</div>
-                </div>
-                <div class="inputContainer">
-                    <label class="emby-checkbox-label">
-                        <input id="IsScanInAllLibrariesEnabled" name="IsScanInAllLibrariesEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Run Crunchyroll-Scan in all libraries</span>
-                    </label>
-                    <div class="fieldDescription">
-                        This enforces the plugin to ignore the setting for the library name, and it runs the scan in all libraries.
-                        Should only be enabled if you have only libraries with anime content
-                    </div>
-                </div>
                 
                 <hr/>
                 
                 <h1>Features</h1>
                 <h3>Crunchyroll</h3>
-                <div class="inputContainer">
-                    <label class="emby-checkbox-label">
-                        <input id="IsFeatureCrunchyrollUpdateEnabled" name="IsFeatureCrunchyrollUpdateEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Update to the newest Crunchyroll data</span>
-                    </label>
-                    <div class="fieldDescription">
-                        This is necessary to get the latest Crunchyroll data, but you can choose to disable it. If disabled,
-                        the metadata that is overwritten to your jellyfin items will be old and new series, seasons & episodes,
-                        won't get metadata from Crunchyroll.
-                    </div>
-                </div>
                 
                 <h3>Series</h3>
                 <div class="inputContainer">
@@ -89,20 +61,6 @@
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureSeriesRatingsEnabled" name="IsFeatureSeriesRatingsEnabled" type="checkbox" is="emby-checkbox" />
                         <span id="IsFeatureSeriesRatingsEnabled-span">Use Crunchyroll ratings as community ratings</span>
-                    </label>
-                    <div class="fieldDescription"></div>
-                </div>
-                <div class="inputContainer">
-                    <label class="emby-checkbox-label">
-                        <input id="IsFeatureSeriesCoverImageEnabled" name="IsFeatureSeriesCoverImageEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Download and use Crunchyroll cover image</span>
-                    </label>
-                    <div class="fieldDescription"></div>
-                </div>
-                <div class="inputContainer">
-                    <label class="emby-checkbox-label">
-                        <input id="IsFeatureSeriesBackgroundImageEnabled" name="IsFeatureSeriesBackgroundImageEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Download and use Crunchyroll backdrop image</span>
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
@@ -144,13 +102,6 @@
                 </div>
                 <div class="inputContainer">
                     <label class="emby-checkbox-label">
-                        <input id="IsFeatureEpisodeThumbnailImageEnabled" name="IsFeatureEpisodeThumbnailImageEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Download and use Crunchyroll thumbnail image</span>
-                    </label>
-                    <div class="fieldDescription"></div>
-                </div>
-                <div class="inputContainer">
-                    <label class="emby-checkbox-label">
                         <input id="IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled" name="IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled" type="checkbox" is="emby-checkbox" />
                         <span id="IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled-span">Use Crunchyroll description</span>
                     </label>
@@ -180,13 +131,6 @@
                     <label class="emby-checkbox-label">
                         <input id="IsFeatureMovieStudioEnabled" name="IsFeatureMovieStudioEnabled" type="checkbox" is="emby-checkbox" />
                         <span id="IsFeatureMovieStudioEnabled-span">Use Crunchyroll studio info</span>
-                    </label>
-                    <div class="fieldDescription"></div>
-                </div>
-                <div class="inputContainer">
-                    <label class="emby-checkbox-label">
-                        <input id="IsFeatureMovieThumbnailImageEnabled" name="IsFeatureMovieThumbnailImageEnabled" type="checkbox" is="emby-checkbox" />
-                        <span>Download and use Crunchyroll thumbnail image</span>
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
@@ -240,30 +184,23 @@
                     document.querySelector('#CrunchyrollUpdateThresholdInDays').value = config.CrunchyrollUpdateThresholdInDays;
                     document.querySelector('#IsFeatureReviewsEnabled').checked = config.IsFeatureReviewsEnabled;
                     document.querySelector('#IsFeatureCommentsEnabled').checked = config.IsFeatureCommentsEnabled;
-                    document.querySelector('#LibraryName').value = config.LibraryName;
-                    document.querySelector('#IsScanInAllLibrariesEnabled').checked = config.IsScanInAllLibrariesEnabled;
                     document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value = config.WaybackMachineWaitTimeoutInSeconds;
-                    document.querySelector('#IsFeatureCrunchyrollUpdateEnabled').checked = config.IsFeatureCrunchyrollUpdateEnabled;
 
                     document.querySelector('#IsFeatureSeriesTitleEnabled').checked = config.IsFeatureSeriesTitleEnabled;
                     document.querySelector('#IsFeatureSeriesDescriptionEnabled').checked = config.IsFeatureSeriesDescriptionEnabled;
                     document.querySelector('#IsFeatureSeriesStudioEnabled').checked = config.IsFeatureSeriesStudioEnabled;
                     document.querySelector('#IsFeatureSeriesRatingsEnabled').checked = config.IsFeatureSeriesRatingsEnabled;
-                    document.querySelector('#IsFeatureSeriesCoverImageEnabled').checked = config.IsFeatureSeriesCoverImageEnabled;
-                    document.querySelector('#IsFeatureSeriesBackgroundImageEnabled').checked = config.IsFeatureSeriesBackgroundImageEnabled;
                     
                     document.querySelector('#IsFeatureSeasonTitleEnabled').checked = config.IsFeatureSeasonTitleEnabled;
                     document.querySelector('#IsFeatureSeasonOrderByCrunchyrollOrderEnabled').checked = config.IsFeatureSeasonOrderByCrunchyrollOrderEnabled;
                     
                     document.querySelector('#IsFeatureEpisodeTitleEnabled').checked = config.IsFeatureEpisodeTitleEnabled;
                     document.querySelector('#IsFeatureEpisodeDescriptionEnabled').checked = config.IsFeatureEpisodeDescriptionEnabled;
-                    document.querySelector('#IsFeatureEpisodeThumbnailImageEnabled').checked = config.IsFeatureEpisodeThumbnailImageEnabled;
                     document.querySelector('#IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled').checked = config.IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled;
                     
                     document.querySelector('#IsFeatureMovieTitleEnabled').checked = config.IsFeatureMovieTitleEnabled;
                     document.querySelector('#IsFeatureMovieDescriptionEnabled').checked = config.IsFeatureMovieDescriptionEnabled;
                     document.querySelector('#IsFeatureMovieStudioEnabled').checked = config.IsFeatureMovieStudioEnabled;
-                    document.querySelector('#IsFeatureMovieThumbnailImageEnabled').checked = config.IsFeatureMovieThumbnailImageEnabled;
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -276,32 +213,25 @@
                     config.ArchiveOrgUrl = document.querySelector('#ArchiveOrgUrl').value;
                     config.LocalDatabasePath = document.querySelector('#LocalDatabasePath').value;
                     config.CrunchyrollUpdateThresholdInDays = document.querySelector('#CrunchyrollUpdateThresholdInDays').value;
-                    config.LibraryName = document.querySelector('#LibraryName').value;
-                    config.IsScanInAllLibrariesEnabled = document.querySelector('#IsScanInAllLibrariesEnabled').checked;
                     config.WaybackMachineWaitTimeoutInSeconds = document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value;
                     config.IsFeatureReviewsEnabled = document.querySelector('#IsFeatureReviewsEnabled').checked;
                     config.IsFeatureCommentsEnabled = document.querySelector('#IsFeatureCommentsEnabled').checked;
-                    config.IsFeatureCrunchyrollUpdateEnabled = document.querySelector('#IsFeatureCrunchyrollUpdateEnabled').checked;
                     
                     config.IsFeatureSeriesTitleEnabled = document.querySelector('#IsFeatureSeriesTitleEnabled').checked;
                     config.IsFeatureSeriesDescriptionEnabled = document.querySelector('#IsFeatureSeriesDescriptionEnabled').checked;
                     config.IsFeatureSeriesStudioEnabled = document.querySelector('#IsFeatureSeriesStudioEnabled').checked;
                     config.IsFeatureSeriesRatingsEnabled = document.querySelector('#IsFeatureSeriesRatingsEnabled').checked;
-                    config.IsFeatureSeriesCoverImageEnabled = document.querySelector('#IsFeatureSeriesCoverImageEnabled').checked;
-                    config.IsFeatureSeriesBackgroundImageEnabled = document.querySelector('#IsFeatureSeriesBackgroundImageEnabled').checked;
                     
                     config.IsFeatureSeasonTitleEnabled = document.querySelector('#IsFeatureSeasonTitleEnabled').checked;
                     config.IsFeatureSeasonOrderByCrunchyrollOrderEnabled = document.querySelector('#IsFeatureSeasonOrderByCrunchyrollOrderEnabled').checked;
                     
                     config.IsFeatureEpisodeTitleEnabled = document.querySelector('#IsFeatureEpisodeTitleEnabled').checked;
                     config.IsFeatureEpisodeDescriptionEnabled = document.querySelector('#IsFeatureEpisodeDescriptionEnabled').checked;
-                    config.IsFeatureEpisodeThumbnailImageEnabled = document.querySelector('#IsFeatureEpisodeThumbnailImageEnabled').checked;
                     config.IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled = document.querySelector('#IsFeatureEpisodeIncludeSpecialsInNormalSeasonsEnabled').checked;
                     
                     config.IsFeatureMovieTitleEnabled = document.querySelector('#IsFeatureMovieTitleEnabled').checked;
                     config.IsFeatureMovieDescriptionEnabled = document.querySelector('#IsFeatureMovieDescriptionEnabled').checked;
                     config.IsFeatureMovieStudioEnabled = document.querySelector('#IsFeatureMovieStudioEnabled').checked;
-                    config.IsFeatureMovieThumbnailImageEnabled = document.querySelector('#IsFeatureMovieThumbnailImageEnabled').checked;
                     ApiClient.updatePluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
