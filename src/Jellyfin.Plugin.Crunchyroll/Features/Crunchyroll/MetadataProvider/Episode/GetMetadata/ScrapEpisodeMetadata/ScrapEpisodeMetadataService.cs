@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using FluentResults.Extensions;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
@@ -24,11 +25,15 @@ public class ScrapEpisodeMetadataService : IScrapEpisodeMetadataService
     private readonly ILogger<ScrapEpisodeMetadataService> _logger;
     private readonly IScrapLockRepository _scrapLockRepository;
     private readonly IScrapMissingEpisodeService _scrapMissingEpisodeService;
+    private readonly TimeProvider _timeProvider;
+    private readonly PluginConfiguration _config;
 
     public ScrapEpisodeMetadataService(IScrapEpisodeCrunchyrollClient client,
         ILoginService loginService, IScrapEpisodeMetadataRepository repository,
         ILogger<ScrapEpisodeMetadataService> logger, IScrapLockRepository scrapLockRepository,
-        IScrapMissingEpisodeService scrapMissingEpisodeService)
+        IScrapMissingEpisodeService scrapMissingEpisodeService,
+        TimeProvider timeProvider,
+        PluginConfiguration config)
     {
         _client = client;
         _loginService = loginService;
@@ -36,6 +41,8 @@ public class ScrapEpisodeMetadataService : IScrapEpisodeMetadataService
         _logger = logger;
         _scrapLockRepository = scrapLockRepository;
         _scrapMissingEpisodeService = scrapMissingEpisodeService;
+        _timeProvider = timeProvider;
+        _config = config;
     }
     
     public async Task<Result> ScrapEpisodeMetadataAsync(CrunchyrollId seasonId, CrunchyrollId? episodeId, 
@@ -68,6 +75,12 @@ public class ScrapEpisodeMetadataService : IScrapEpisodeMetadataService
                 seasonId,
                 language.Name);
             return Result.Fail(ErrorCodes.NotFound);
+        }
+
+        if (season.LastUpdatedAt.AddDays(_config.CrunchyrollUpdateThresholdInDays) > _timeProvider.GetUtcNow())
+        {
+            _logger.LogInformation("Not updating episodes from season {SeasonId}, threshold is not reached", seasonId);
+            return Result.Ok();
         }
 
         var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);

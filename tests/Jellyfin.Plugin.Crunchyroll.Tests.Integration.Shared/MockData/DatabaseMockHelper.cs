@@ -127,6 +127,8 @@ public static class DatabaseMockHelper
         metadata.Description.Should().Be(seriesContentResponse.Description);
         metadata.Studio.Should().Be(seriesContentResponse.ContentProvider);
         metadata.Rating.Should().Be(float.Parse(ratingResponse.Average, CultureInfo.InvariantCulture));
+        metadata.LastUpdatedAt.Should().BeAfter(new DateTime());
+        
         var posteTall = JsonSerializer.Deserialize<ImageSource>(metadata.PosterTall)!;
         var posteWide = JsonSerializer.Deserialize<ImageSource>(metadata.PosterWide)!;
         posteTall.Uri.Should().Be(seriesContentResponse.Images.PosterTall.First().Last().Source);
@@ -154,7 +156,8 @@ public static class DatabaseMockHelper
             metadata.Seasons.Should().Contain(x => 
                 x.CrunchyrollId == seasonsItem.Id &&
                 x.Title == seasonsItem.Title &&
-                x.SlugTitle == seasonsItem.SlugTitle);
+                x.SlugTitle == seasonsItem.SlugTitle &&
+                x.LastUpdatedAt != new DateTime());
         }
     }
     
@@ -175,7 +178,8 @@ public static class DatabaseMockHelper
             season.Episodes.Should().Contain(x => 
                 x.CrunchyrollId == episodeItem.Id &&
                 x.Title == episodeItem.Title &&
-                x.SlugTitle == episodeItem.SlugTitle);
+                x.SlugTitle == episodeItem.SlugTitle &&
+                x.LastUpdatedAt != new DateTime());
         }
     }
     
@@ -200,6 +204,8 @@ public static class DatabaseMockHelper
         metadata.Description.Should().Be(seriesContentResponse.Description);
         metadata.Studio.Should().Be(seriesContentResponse.ContentProvider);
         metadata.Rating.Should().Be(float.Parse(ratingResponse.Average, CultureInfo.InvariantCulture));
+        metadata.LastUpdatedAt.Should().BeAfter(new DateTime());
+        
         var posteTall = JsonSerializer.Deserialize<ImageSource>(metadata.PosterTall)!;
         var posteWide = JsonSerializer.Deserialize<ImageSource>(metadata.PosterWide)!;
         posteTall.Uri.Should().Be(seriesContentResponse.Images.PosterTall.First().Last().Source);
@@ -217,7 +223,8 @@ public static class DatabaseMockHelper
             metadata.Seasons.Should().Contain(x => 
                 x.CrunchyrollId == seasonsItem.Id &&
                 x.Title == seasonsItem.Title &&
-                x.SlugTitle == seasonsItem.SlugTitle);
+                x.SlugTitle == seasonsItem.SlugTitle &&
+                x.LastUpdatedAt != new DateTime());
         }
 
         metadata.Seasons.Should().AllSatisfy(season =>
@@ -230,7 +237,8 @@ public static class DatabaseMockHelper
                 season.Episodes.Should().Contain(x => 
                     x.CrunchyrollId == episodeItem.Id &&
                     x.Title == episodeItem.Title &&
-                    x.SlugTitle == episodeItem.SlugTitle);
+                    x.SlugTitle == episodeItem.SlugTitle &&
+                    x.LastUpdatedAt != new DateTime());
             }
         });
     }

@@ -25,6 +25,11 @@
                     <div class="fieldDescription">default: empty; if you want a different path instead of the plugin folder, enter here the absolute path</div>
                 </div>
                 <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="CrunchyrollUpdateThresholdInDays">CrunchyrollUpdateThresholdInDays</label>
+                    <input id="CrunchyrollUpdateThresholdInDays" name="WaybackMachineWaitTimeoutInSeconds" type="number" is="emby-input" min="0" />
+                    <div class="fieldDescription">Defines after how many days the local Crunchyroll data may be overwritten again; default: 1 day</div>
+                </div>
+                <div class="inputContainer">
                     <label class="inputLabel inputLabelUnfocused" for="LibraryName">LibraryName</label>
                     <input id="LibraryName" name="LibraryName" type="text" is="emby-input" />
                     <div class="fieldDescription">It is recommended to specify which collection/library to scan for. 
@@ -232,6 +237,7 @@
                     document.querySelector('#CrunchyrollUrl').value = config.CrunchyrollUrl;
                     document.querySelector('#ArchiveOrgUrl').value = config.ArchiveOrgUrl;
                     document.querySelector('#LocalDatabasePath').value = config.LocalDatabasePath;
+                    document.querySelector('#CrunchyrollUpdateThresholdInDays').value = config.CrunchyrollUpdateThresholdInDays;
                     document.querySelector('#IsFeatureReviewsEnabled').checked = config.IsFeatureReviewsEnabled;
                     document.querySelector('#IsFeatureCommentsEnabled').checked = config.IsFeatureCommentsEnabled;
                     document.querySelector('#LibraryName').value = config.LibraryName;
@@ -269,6 +275,7 @@
                     config.CrunchyrollUrl = document.querySelector('#CrunchyrollUrl').value;
                     config.ArchiveOrgUrl = document.querySelector('#ArchiveOrgUrl').value;
                     config.LocalDatabasePath = document.querySelector('#LocalDatabasePath').value;
+                    config.CrunchyrollUpdateThresholdInDays = document.querySelector('#CrunchyrollUpdateThresholdInDays').value;
                     config.LibraryName = document.querySelector('#LibraryName').value;
                     config.IsScanInAllLibrariesEnabled = document.querySelector('#IsScanInAllLibrariesEnabled').checked;
                     config.WaybackMachineWaitTimeoutInSeconds = document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value;

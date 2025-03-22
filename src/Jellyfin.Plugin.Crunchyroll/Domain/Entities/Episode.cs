@@ -2,7 +2,7 @@ using System;
 
 namespace Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 
-public record Episode
+public record Episode : CrunchyrollBaseEntity
 {
     public Guid Id { get; init; } = default;
     public required string CrunchyrollId { get; init; }

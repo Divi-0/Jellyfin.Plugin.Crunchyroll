@@ -1,3 +1,4 @@
+using System;
 using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments;
@@ -16,6 +17,7 @@ public static class CrunchyrollServiceExtension
     public static IServiceCollection AddCrunchyroll(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddSingleton<ICrunchyrollSessionRepository, CrunchyrollSessionRepository>();
+        serviceCollection.AddSingleton<TimeProvider>(TimeProvider.System);
         serviceCollection.AddTransient<HttpUserAgentHeaderMessageHandler>();
         
         serviceCollection.AddCrunchyrollLogin();

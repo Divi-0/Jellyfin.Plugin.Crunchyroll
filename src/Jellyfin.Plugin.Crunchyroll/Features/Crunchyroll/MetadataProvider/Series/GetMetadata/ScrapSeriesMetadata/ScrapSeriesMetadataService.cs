@@ -6,11 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using FluentResults.Extensions;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata.ScrapSeriesMetadata.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata.ScrapSeriesMetadata.Client.Dtos;
+using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata.ScrapSeriesMetadata;
 
@@ -19,13 +21,20 @@ public class ScrapSeriesMetadataService : IScrapSeriesMetadataService
     private readonly IScrapSeriesMetadataRepository _repository;
     private readonly ILoginService _loginService;
     private readonly ICrunchyrollSeriesClient _crunchyrollSeriesClient;
+    private readonly TimeProvider _timeProvider;
+    private readonly PluginConfiguration _config;
+    private readonly ILogger<ScrapSeriesMetadataService> _logger;
 
     public ScrapSeriesMetadataService(IScrapSeriesMetadataRepository repository, ILoginService loginService,
-        ICrunchyrollSeriesClient crunchyrollSeriesClient)
+        ICrunchyrollSeriesClient crunchyrollSeriesClient, TimeProvider timeProvider, PluginConfiguration config,
+        ILogger<ScrapSeriesMetadataService> logger)
     {
         _repository = repository;
         _loginService = loginService;
         _crunchyrollSeriesClient = crunchyrollSeriesClient;
+        _timeProvider = timeProvider;
+        _config = config;
+        _logger = logger;
     }
     
     public async Task<Result> ScrapSeriesMetadataAsync(CrunchyrollId crunchyrollId, CultureInfo language,
@@ -37,6 +46,13 @@ public class ScrapSeriesMetadataService : IScrapSeriesMetadataService
         if (titleMetadataResult.IsFailed)
         {
             return titleMetadataResult.ToResult();
+        }
+        
+        if (titleMetadataResult.Value is not null &&
+            titleMetadataResult.Value.LastUpdatedAt.AddDays(_config.CrunchyrollUpdateThresholdInDays) > _timeProvider.GetUtcNow())
+        {
+            _logger.LogInformation("Not updating metadata for series {SeriesId}, threshold is not reached", crunchyrollId);
+            return Result.Ok();
         }
         
         var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);

@@ -1,5 +1,4 @@
 using Jellyfin.Plugin.Crunchyroll.Common;
-using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
@@ -14,14 +13,12 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Integration.Tests.Crunchyroll.Metada
 public class CrunchyrollSeriesMetadataProviderTests
 {
     private readonly WireMockFixture _wireMockFixture;
-    private readonly PluginConfiguration _config;
     private readonly CrunchyrollSeriesProvider _provider;
     private readonly IWireMockAdminApi _wireMockAdminApi;
     
     public CrunchyrollSeriesMetadataProviderTests(WireMockFixture wireMockFixture)
     {
         _wireMockFixture = wireMockFixture;
-        _config = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
         _provider = PluginWebApplicationFactory.Instance.Services.GetRequiredService<CrunchyrollSeriesProvider>();
         _wireMockAdminApi = wireMockFixture.AdminApiClient;
     }

@@ -46,6 +46,7 @@ public class PluginWebApplicationFactory : WebApplicationFactory<Program>, IDisp
             LibraryManagerMock = Substitute.For<ILibraryManager>();
             ItemRepositoryMock = Substitute.For<IItemRepository>();
             MediaSourceManagerMock = Substitute.For<IMediaSourceManager>();
+            
             BaseItem.LibraryManager = LibraryManagerMock;
             BaseItem.ItemRepository = ItemRepositoryMock;
             BaseItem.MediaSourceManager = MediaSourceManagerMock;

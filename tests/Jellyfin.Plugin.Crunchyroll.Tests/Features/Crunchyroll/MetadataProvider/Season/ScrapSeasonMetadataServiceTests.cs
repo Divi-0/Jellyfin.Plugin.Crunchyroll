@@ -1,7 +1,9 @@
 using System.Globalization;
 using AutoFixture;
+using Bogus;
 using FluentAssertions;
 using FluentResults;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
@@ -20,10 +22,13 @@ public class ScrapSeasonMetadataServiceTests
     private readonly ICrunchyrollSeasonsClient _client;
     private readonly ILoginService _loginService;
     private readonly IScrapLockRepository _scrapLockRepository;
+    private readonly TimeProvider _timeProvider;
+    private readonly PluginConfiguration _config;
     
     private readonly ScrapSeasonMetadataService _sut;
 
     private readonly Fixture _fixture;
+    private readonly Faker _faker;
 
     public ScrapSeasonMetadataServiceTests()
     {
@@ -32,9 +37,21 @@ public class ScrapSeasonMetadataServiceTests
         _loginService = Substitute.For<ILoginService>();
         _scrapLockRepository = Substitute.For<IScrapLockRepository>();
         var logger = Substitute.For<ILogger<ScrapSeasonMetadataService>>();
-        _sut = new ScrapSeasonMetadataService(logger, _repository, _client, _loginService, _scrapLockRepository);
+        _timeProvider = Substitute.For<TimeProvider>();
+        _config = new PluginConfiguration
+        {
+            CrunchyrollUpdateThresholdInDays = 0
+        };
+        
+        _sut = new ScrapSeasonMetadataService(logger, _repository, _client, _loginService, _scrapLockRepository,
+            _timeProvider, _config);
 
         _fixture = new Fixture();
+        _faker = new Faker();
+        
+        _timeProvider
+            .GetUtcNow()
+            .Returns(DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -49,6 +66,7 @@ public class ScrapSeasonMetadataServiceTests
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Build<Domain.Entities.TitleMetadata>()
+            .With(x => x.LastUpdatedAt, _faker.Date.Past().ToUniversalTime)
             .Without(x => x.Seasons)
             .Create();
         
@@ -138,6 +156,7 @@ public class ScrapSeasonMetadataServiceTests
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Build<Domain.Entities.TitleMetadata>()
+            .With(x => x.LastUpdatedAt, _faker.Date.Past().ToUniversalTime)
             .Without(x => x.Seasons)
             .Create();
         
@@ -217,6 +236,60 @@ public class ScrapSeasonMetadataServiceTests
     }
     
     [Fact]
+    public async Task ReturnsSuccessAndDoesNotUpdateSeasons_WhenLastUpdatedAtThresholdIsNotReached_GivenTitleId()
+    {
+        //Arrange
+        var seriesId = CrunchyrollIdFaker.Generate();
+        var language = new CultureInfo("en-US");
+        
+        var titleMetadata = _fixture.Build<Domain.Entities.TitleMetadata>()
+            .Without(x => x.Seasons)
+            .Create();
+        
+        _repository
+            .GetTitleMetadataAsync(seriesId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(titleMetadata);
+        
+        _config.CrunchyrollUpdateThresholdInDays = 999;
+
+        var lastUpdatedAtDate = _faker.Date.Past().ToUniversalTime();
+        var currentDateTime = _faker.Date.Future().ToUniversalTime();
+
+        _timeProvider.GetUtcNow().Returns(currentDateTime);
+        titleMetadata.LastUpdatedAt = lastUpdatedAtDate;
+        
+        _scrapLockRepository
+            .AddLockAsync(seriesId)
+            .Returns(true);
+        
+        //Act
+        var result = await _sut.ScrapSeasonMetadataAsync(seriesId, language, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+
+        await _repository
+            .Received(1)
+            .GetTitleMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+
+        await _loginService
+            .DidNotReceive()
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
+        
+        await _client
+            .DidNotReceive()
+            .GetSeasonsAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+        
+        _repository
+            .DidNotReceive()
+            .UpdateTitleMetadata(Arg.Any<Domain.Entities.TitleMetadata>());
+
+        await _repository
+            .DidNotReceive()
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
     public async Task ReturnsSuccessAndDoesNotDeleteSeasons_WhenOldSeasonsWereRemoved_GivenTitleId()
     {
         //Arrange
@@ -228,6 +301,7 @@ public class ScrapSeasonMetadataServiceTests
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Build<Domain.Entities.TitleMetadata>()
+            .With(x => x.LastUpdatedAt, _faker.Date.Past().ToUniversalTime)
             .Without(x => x.Seasons)
             .Create();
         
@@ -286,15 +360,23 @@ public class ScrapSeasonMetadataServiceTests
         //Arrange
         var seriesId = CrunchyrollIdFaker.Generate();
         var language = new CultureInfo("en-US");
-
-        var error = Guid.NewGuid().ToString();
-        _loginService
-            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
-            .Returns(Result.Fail(error));
+        var titleMetadata = _fixture.Build<Domain.Entities.TitleMetadata>()
+            .With(x => x.LastUpdatedAt, _faker.Date.Past().ToUniversalTime)
+            .Without(x => x.Seasons)
+            .Create();
         
         _scrapLockRepository
             .AddLockAsync(seriesId)
             .Returns(true);
+
+        _repository
+            .GetTitleMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(titleMetadata);
+        
+        var error = Guid.NewGuid().ToString();
+        _loginService
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Fail(error));
         
         //Act
         var result = await _sut.ScrapSeasonMetadataAsync(seriesId, language, CancellationToken.None);
@@ -303,6 +385,10 @@ public class ScrapSeasonMetadataServiceTests
         result.IsFailed.Should().BeTrue();
         result.Errors.First().Message.Should().Be(error);
 
+        await _repository
+            .Received(1)
+            .GetTitleMetadataAsync(seriesId, language, Arg.Any<CancellationToken>());
+        
         await _loginService
             .Received(1)
             .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
@@ -313,7 +399,7 @@ public class ScrapSeasonMetadataServiceTests
 
         await _repository
             .DidNotReceive()
-            .GetTitleMetadataAsync(seriesId, language, Arg.Any<CancellationToken>());
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
     }
     
     [Fact]
@@ -343,13 +429,13 @@ public class ScrapSeasonMetadataServiceTests
         result.IsFailed.Should().BeTrue();
         result.Errors.First().Message.Should().Be(error);
 
-        await _loginService
-            .Received(1)
-            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
-
         await _repository
             .Received(1)
             .GetTitleMetadataAsync(seriesId, language, Arg.Any<CancellationToken>());
+        
+        await _loginService
+            .DidNotReceive()
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         
         await _client
             .DidNotReceive()
@@ -382,13 +468,13 @@ public class ScrapSeasonMetadataServiceTests
         result.IsFailed.Should().BeTrue();
         result.Errors.First().Message.Should().Be(ErrorCodes.NotFound);
 
-        await _loginService
-            .Received(1)
-            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
-
         await _repository
             .Received(1)
             .GetTitleMetadataAsync(seriesId, language, Arg.Any<CancellationToken>());
+        
+        await _loginService
+            .DidNotReceive()
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
         
         await _client
             .DidNotReceive()
@@ -407,6 +493,7 @@ public class ScrapSeasonMetadataServiceTests
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Build<Domain.Entities.TitleMetadata>()
+            .With(x => x.LastUpdatedAt, _faker.Date.Past().ToUniversalTime)
             .Without(x => x.Seasons)
             .Create();
         
@@ -459,6 +546,7 @@ public class ScrapSeasonMetadataServiceTests
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Build<Domain.Entities.TitleMetadata>()
+            .With(x => x.LastUpdatedAt, _faker.Date.Past().ToUniversalTime)
             .Without(x => x.Seasons)
             .Create();
         
@@ -522,6 +610,7 @@ public class ScrapSeasonMetadataServiceTests
             .Returns(Result.Ok());
         
         var titleMetadata = _fixture.Build<Domain.Entities.TitleMetadata>()
+            .With(x => x.LastUpdatedAt, _faker.Date.Past().ToUniversalTime)
             .Without(x => x.Seasons)
             .Create();
         

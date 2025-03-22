@@ -31,4 +31,5 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public bool IsFeatureReviewsEnabled { get; set; } = false;
     public bool IsFeatureCommentsEnabled { get; set; } = false;
+    public int CrunchyrollUpdateThresholdInDays { get; set; } = 1;
 }

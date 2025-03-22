@@ -4,6 +4,7 @@ using AutoFixture;
 using Bogus;
 using FluentAssertions;
 using FluentResults;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
@@ -11,6 +12,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.G
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata.ScrapSeriesMetadata.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata.ScrapSeriesMetadata.Client.Dtos;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
+using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.MetadataProvider.Series.ScrapSeriesMetadata;
 
@@ -19,6 +21,8 @@ public class ScrapSeriesMetadataServiceTests
     private readonly IScrapSeriesMetadataRepository _repository;
     private readonly ILoginService _loginService;
     private readonly ICrunchyrollSeriesClient _crunchyrollSeriesClient;
+    private readonly TimeProvider _timeProvider;
+    private readonly PluginConfiguration _config;
     
     private readonly ScrapSeriesMetadataService _sut;
 
@@ -30,11 +34,23 @@ public class ScrapSeriesMetadataServiceTests
         _repository = Substitute.For<IScrapSeriesMetadataRepository>();
         _loginService = Substitute.For<ILoginService>();
         _crunchyrollSeriesClient = Substitute.For<ICrunchyrollSeriesClient>();
+        _timeProvider = Substitute.For<TimeProvider>();
+        _config = new PluginConfiguration
+        {
+            CrunchyrollUpdateThresholdInDays = 0
+        };
+
+        var logger = Substitute.For<ILogger<ScrapSeriesMetadataService>>();
         
-        _sut = new ScrapSeriesMetadataService(_repository, _loginService, _crunchyrollSeriesClient);
+        _sut = new ScrapSeriesMetadataService(_repository, _loginService, _crunchyrollSeriesClient, _timeProvider, 
+            _config, logger);
 
         _faker = new Faker();
         _fixture = new Fixture();
+        
+        _timeProvider
+            .GetUtcNow()
+            .Returns(DateTimeOffset.UtcNow);
     }
     
     [Fact]
@@ -97,11 +113,11 @@ public class ScrapSeriesMetadataServiceTests
         
         _repository
             .GetTitleMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Ok<Domain.Entities.TitleMetadata?>(null));
+            .Returns(Result.Ok<TitleMetadata?>(null));
 
-        Domain.Entities.TitleMetadata actualTitleMetadata = null!;
+        TitleMetadata actualTitleMetadata = null!;
          _repository
-             .AddOrUpdateTitleMetadata(Arg.Do<Domain.Entities.TitleMetadata>(
+             .AddOrUpdateTitleMetadata(Arg.Do<TitleMetadata>(
                     x => actualTitleMetadata = x),
                 Arg.Any<CancellationToken>())
              .Returns(Result.Ok());
@@ -124,7 +140,7 @@ public class ScrapSeriesMetadataServiceTests
             .Received(1)
             .GetSeriesMetadataAsync(seriesCrunchyrollId, language, Arg.Any<CancellationToken>());
 
-        var expectedTitleMetadata = new Domain.Entities.TitleMetadata()
+        var expectedTitleMetadata = new TitleMetadata()
         {
             CrunchyrollId = seriesCrunchyrollId,
             Title = seriesMetadataResponse.Title,
@@ -158,7 +174,52 @@ public class ScrapSeriesMetadataServiceTests
             .SaveChangesAsync(Arg.Any<CancellationToken>());
     }
     
-        [Fact]
+    [Fact]
+    public async Task ReturnsSuccessAndDoesNotUpdateTitleMetadata_WhenLastUpdatedAtThresholdIsNotReached_GivenTitleId()
+    {
+        //Arrange
+        var seriesCrunchyrollId = CrunchyrollIdFaker.Generate();
+        var language = new CultureInfo("en-US");
+        var titleMetadata = _fixture.Build<TitleMetadata>()
+            .Without(x => x.Seasons)
+            .Create();
+        
+        var lastUpdatedAtDate = _faker.Date.Past().ToUniversalTime();
+        var currentDateTime = _faker.Date.Future().ToUniversalTime();
+
+        _config.CrunchyrollUpdateThresholdInDays = 999;
+        
+        _timeProvider.GetUtcNow().Returns(currentDateTime);
+        titleMetadata.LastUpdatedAt = lastUpdatedAtDate;
+        
+        _repository
+            .GetTitleMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<TitleMetadata?>(titleMetadata));
+        
+        //Act
+        var result = await _sut.ScrapSeriesMetadataAsync(seriesCrunchyrollId, language, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+
+        await _repository
+            .Received(1)
+            .GetTitleMetadataAsync(seriesCrunchyrollId, language, Arg.Any<CancellationToken>());
+        
+        await _loginService
+            .DidNotReceive()
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
+
+        await _crunchyrollSeriesClient
+            .DidNotReceive()
+            .GetSeriesMetadataAsync(seriesCrunchyrollId, language, Arg.Any<CancellationToken>());
+        
+        await _repository
+            .DidNotReceive()
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
     public async Task SetsTitleMetadataRatingToZero_WhenGetSeriesRatingFailed_GivenTitleId()
     {
         //Arrange
@@ -217,11 +278,11 @@ public class ScrapSeriesMetadataServiceTests
         
         _repository
             .GetTitleMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Ok<Domain.Entities.TitleMetadata?>(null));
+            .Returns(Result.Ok<TitleMetadata?>(null));
 
-        Domain.Entities.TitleMetadata actualTitleMetadata = null!;
+        TitleMetadata actualTitleMetadata = null!;
          _repository
-             .AddOrUpdateTitleMetadata(Arg.Do<Domain.Entities.TitleMetadata>(
+             .AddOrUpdateTitleMetadata(Arg.Do<TitleMetadata>(
                     x => actualTitleMetadata = x),
                 Arg.Any<CancellationToken>())
              .Returns(Result.Ok());
@@ -244,7 +305,7 @@ public class ScrapSeriesMetadataServiceTests
             .Received(1)
             .GetSeriesMetadataAsync(seriesCrunchyrollId, language, Arg.Any<CancellationToken>());
 
-        var expectedTitleMetadata = new Domain.Entities.TitleMetadata()
+        var expectedTitleMetadata = new TitleMetadata()
         {
             CrunchyrollId = seriesCrunchyrollId,
             Title = seriesMetadataResponse.Title,
@@ -309,7 +370,7 @@ public class ScrapSeriesMetadataServiceTests
         
         await _repository
             .DidNotReceive()
-            .AddOrUpdateTitleMetadata(Arg.Any<Domain.Entities.TitleMetadata>(), 
+            .AddOrUpdateTitleMetadata(Arg.Any<TitleMetadata>(), 
                 Arg.Any<CancellationToken>());
         
         await _repository
@@ -330,7 +391,7 @@ public class ScrapSeriesMetadataServiceTests
 
         _repository
             .GetTitleMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Ok<Domain.Entities.TitleMetadata?>(null));
+            .Returns(Result.Ok<TitleMetadata?>(null));
 
         var error = Guid.NewGuid().ToString();
         _crunchyrollSeriesClient
@@ -354,7 +415,7 @@ public class ScrapSeriesMetadataServiceTests
 
         await _repository
             .DidNotReceive()
-            .AddOrUpdateTitleMetadata(Arg.Any<Domain.Entities.TitleMetadata>(),
+            .AddOrUpdateTitleMetadata(Arg.Any<TitleMetadata>(),
                 Arg.Any<CancellationToken>());
         
         await _repository
@@ -405,7 +466,8 @@ public class ScrapSeriesMetadataServiceTests
             .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
         
-        var titleMetadata = _fixture.Build<Domain.Entities.TitleMetadata>()
+        var titleMetadata = _fixture.Build<TitleMetadata>()
+            .With(x => x.LastUpdatedAt, _faker.Date.Past().ToUniversalTime)
             .Without(x => x.Seasons)
             .Create();
         
@@ -460,10 +522,10 @@ public class ScrapSeriesMetadataServiceTests
             .GetRatingAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
             .Returns(rating);
         
-        Domain.Entities.TitleMetadata actualMetadata = null!;
+        TitleMetadata actualMetadata = null!;
         _repository
             .AddOrUpdateTitleMetadata(
-                Arg.Do<Domain.Entities.TitleMetadata>(x => actualMetadata = x),
+                Arg.Do<TitleMetadata>(x => actualMetadata = x),
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 
@@ -561,11 +623,11 @@ public class ScrapSeriesMetadataServiceTests
         
         _repository
             .GetTitleMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result.Ok<Domain.Entities.TitleMetadata?>(null)));
+            .Returns(Task.FromResult(Result.Ok<TitleMetadata?>(null)));
         
         _repository
             .AddOrUpdateTitleMetadata(
-                Arg.Any<Domain.Entities.TitleMetadata>(), 
+                Arg.Any<TitleMetadata>(), 
                 Arg.Any<CancellationToken>())
             .Returns(Result.Fail("error"));
         
@@ -643,7 +705,7 @@ public class ScrapSeriesMetadataServiceTests
         
         _repository
             .GetTitleMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result.Ok<Domain.Entities.TitleMetadata?>(null)));
+            .Returns(Task.FromResult(Result.Ok<TitleMetadata?>(null)));
         
         var rating = 1.2f;
         _crunchyrollSeriesClient
@@ -652,7 +714,7 @@ public class ScrapSeriesMetadataServiceTests
         
         _repository
             .AddOrUpdateTitleMetadata(
-                Arg.Any<Domain.Entities.TitleMetadata>(), 
+                Arg.Any<TitleMetadata>(), 
                 Arg.Any<CancellationToken>())
             .Returns(Result.Ok());
 

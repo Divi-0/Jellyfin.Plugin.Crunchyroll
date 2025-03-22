@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 
-public record TitleMetadata
+public record TitleMetadata : CrunchyrollBaseEntity
 {
     public Guid Id { get; init; } = default;
     public required string CrunchyrollId { get; init; }

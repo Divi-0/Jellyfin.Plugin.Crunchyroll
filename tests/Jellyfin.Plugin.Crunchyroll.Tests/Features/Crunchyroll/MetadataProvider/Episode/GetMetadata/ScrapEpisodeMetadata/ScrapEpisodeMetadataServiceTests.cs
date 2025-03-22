@@ -1,8 +1,10 @@
 using System.Globalization;
 using System.Text.Json;
 using AutoFixture;
+using Bogus;
 using FluentAssertions;
 using FluentResults;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
@@ -26,8 +28,11 @@ public class ScrapEpisodeMetadataServiceTests
     private readonly IScrapEpisodeMetadataRepository _repository;
     private readonly IScrapLockRepository _scrapLockRepository;
     private readonly IScrapMissingEpisodeService _scrapMissingEpisodeService;
+    private readonly TimeProvider _timeProvider;
+    private readonly PluginConfiguration _config;
 
     private readonly Fixture _fixture;
+    private readonly Faker _faker;
     
     public ScrapEpisodeMetadataServiceTests()
     {
@@ -37,10 +42,21 @@ public class ScrapEpisodeMetadataServiceTests
         _scrapLockRepository = Substitute.For<IScrapLockRepository>();
         var logger = Substitute.For<ILogger<ScrapEpisodeMetadataService>>();
         _scrapMissingEpisodeService = Substitute.For<IScrapMissingEpisodeService>();
+        _timeProvider = Substitute.For<TimeProvider>();
+        _config = new PluginConfiguration
+        {
+            CrunchyrollUpdateThresholdInDays = 0
+        };
+        
         _sut = new ScrapEpisodeMetadataService(_client, _loginService, _repository, logger, _scrapLockRepository,
-            _scrapMissingEpisodeService);
+            _scrapMissingEpisodeService, _timeProvider, _config);
 
         _fixture = new Fixture();
+        _faker = new Faker();
+
+        _timeProvider
+            .GetUtcNow()
+            .Returns(DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -117,6 +133,57 @@ public class ScrapEpisodeMetadataServiceTests
 
         await _repository
             .Received(1)
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task ReturnsSuccessAndDoesNotUpdateEpisodes_WhenLastUpdatedAtThresholdIsNotReached_GivenNoStoredEpisodes()
+    {
+        //Arrange
+        var season = CrunchyrollSeasonFaker.Generate();
+        var language = new CultureInfo("en-US");
+        var episodeId = CrunchyrollIdFaker.Generate();
+
+        _config.CrunchyrollUpdateThresholdInDays = 999;
+
+        var lastUpdatedAtDate = _faker.Date.Past().ToUniversalTime();
+        var currentDateTime = _faker.Date.Future().ToUniversalTime();
+
+        _timeProvider.GetUtcNow().Returns(currentDateTime);
+        season.LastUpdatedAt = lastUpdatedAtDate;
+        
+        _repository
+            .GetSeasonAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(season);
+
+        _scrapLockRepository
+            .AddLockAsync(season.CrunchyrollId)
+            .Returns(true);
+
+        //Act
+        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, episodeId, language, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+
+        await _repository
+            .Received(1)
+            .GetSeasonAsync(season.CrunchyrollId, language, Arg.Any<CancellationToken>());
+        
+        await _loginService
+            .DidNotReceive()
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
+
+        await _client
+            .DidNotReceive()
+            .GetEpisodesAsync(season.CrunchyrollId, language, Arg.Any<CancellationToken>());
+
+        _repository
+            .DidNotReceive()
+            .UpdateSeason(season);
+
+        await _repository
+            .DidNotReceive()
             .SaveChangesAsync(Arg.Any<CancellationToken>());
     }
     

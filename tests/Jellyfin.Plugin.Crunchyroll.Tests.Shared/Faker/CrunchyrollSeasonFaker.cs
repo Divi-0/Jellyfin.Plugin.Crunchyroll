@@ -19,6 +19,7 @@ public static class CrunchyrollSeasonFaker
             .RuleFor(x => x.SeasonDisplayNumber, seasonNumber.ToString())
             .RuleFor(x => x.Identifier, $"{CrunchyrollIdFaker.Generate()}|S{seasonNumber}")
             .RuleFor(x => x.Language, "en-US")
+            .RuleFor(x => x.LastUpdatedAt, f => f.Date.Past().ToUniversalTime())
             .Generate();
     }
 }

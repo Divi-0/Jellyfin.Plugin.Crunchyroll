@@ -1,8 +1,4 @@
-using Jellyfin.Plugin.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
-using Jellyfin.Plugin.Crunchyroll.Configuration;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login.Client;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Library;
@@ -35,7 +31,6 @@ public class PluginFixture : IDisposable
 
     private static void ExtendServiceCollection(IServiceCollection serviceCollection)
     {
-
     }
 
     public void Dispose()

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
@@ -23,19 +24,24 @@ public class ScrapSeasonMetadataService : IScrapSeasonMetadataService
     private readonly ICrunchyrollSeasonsClient _client;
     private readonly ILoginService _loginService;
     private readonly IScrapLockRepository _scrapLockRepository;
+    private readonly TimeProvider _timeProvider;
+    private readonly PluginConfiguration _config;
 
     private static readonly ConcurrentDictionary<CrunchyrollId, SemaphoreSlim> SemaphoreSlims =
         new ConcurrentDictionary<CrunchyrollId, SemaphoreSlim>();
 
     public ScrapSeasonMetadataService(ILogger<ScrapSeasonMetadataService> logger, 
         IScrapSeasonMetadataRepository repository, ICrunchyrollSeasonsClient client,
-        ILoginService loginService, IScrapLockRepository scrapLockRepository)
+        ILoginService loginService, IScrapLockRepository scrapLockRepository,
+        TimeProvider timeProvider, PluginConfiguration config)
     {
         _logger = logger;
         _repository = repository;
         _client = client;
         _loginService = loginService;
         _scrapLockRepository = scrapLockRepository;
+        _timeProvider = timeProvider;
+        _config = config;
     }
     
     public async Task<Result> ScrapSeasonMetadataAsync(CrunchyrollId seriesId, CultureInfo language, CancellationToken cancellationToken)
@@ -65,27 +71,33 @@ public class ScrapSeasonMetadataService : IScrapSeasonMetadataService
                 return Result.Ok();
             }
             
-            var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);
-
-            if (loginResult.IsFailed)
-            {
-                return loginResult;
-            }
-
             var titleMetadataResult = await _repository.GetTitleMetadataAsync(seriesId, language, cancellationToken);
 
             if (titleMetadataResult.IsFailed)
             {
                 return titleMetadataResult.ToResult();
             }
-
+            
             var titleMetadata = titleMetadataResult.Value;
-
+            
             if (titleMetadata is null)
             {
                 _logger.LogError("TitleMetadata for id {SeriesId} & language {Language} not found", seriesId,
                     language.Name);
                 return Result.Fail(ErrorCodes.NotFound);
+            }
+
+            if (titleMetadata.LastUpdatedAt.AddDays(_config.CrunchyrollUpdateThresholdInDays) > _timeProvider.GetUtcNow())
+            {
+                _logger.LogInformation("Not updating seasons from series {SeriesId}, threshold is not reached", seriesId);
+                return Result.Ok();
+            }
+            
+            var loginResult = await _loginService.LoginAnonymouslyAsync(cancellationToken);
+
+            if (loginResult.IsFailed)
+            {
+                return loginResult;
             }
 
             var crunchyrollSeasonsResult = await _client.GetSeasonsAsync(seriesId, language, cancellationToken);
