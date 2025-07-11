@@ -55,7 +55,7 @@ public partial class SeriesGetMetadataService : ISeriesGetMetadataService
                 {
                     ProviderIds =
                     {
-                        {CrunchyrollExternalKeys.SeriesId, string.Empty} //TODO: Test if its working with real jellyfin server
+                        {CrunchyrollExternalKeys.SeriesId, string.Empty}
                     }
                 }
             };
