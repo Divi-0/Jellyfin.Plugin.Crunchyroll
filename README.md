@@ -1,5 +1,7 @@
 ## About
 
+Current Situation: Crunchyroll has updated their bot protection, unless I find a way to bypass it, this plugin is not functional
+
 DO NOT USE THE PLUGIN IN VERION 1.x.x, I work on version 2.0.0
 
 This plugin is a third party plugin and was not created by the official Jellyfin team.
@@ -11,7 +13,7 @@ some animes might not be recognized correctly.
 If you find any bugs you are welcome to create an issue.
 
 ## Features
-Metadata that will be fetched from Crunchyroll
+Metadata that can be fetched from Crunchyroll
 - Series
   - Title/Name
   - Description
