@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.Crunchyroll.Common;
+using Jellyfin.Plugin.Crunchyroll.Common.FlareSolverr;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata.GetSeriesCrunchyrollId.Client;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,7 +11,7 @@ public static class GetSeriesCrunchyrollIdServiceExtension
     {
         serviceCollection.AddScoped<IGetSeriesCrunchyrollIdService, GetSeriesCrunchyrollIdService>();
         serviceCollection.AddHttpClient<ICrunchyrollSeriesIdClient, CrunchyrollSeriesIdClient>()
-            .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
+            .AddHttpMessageHandler<FlareSolverrMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
     }
 }

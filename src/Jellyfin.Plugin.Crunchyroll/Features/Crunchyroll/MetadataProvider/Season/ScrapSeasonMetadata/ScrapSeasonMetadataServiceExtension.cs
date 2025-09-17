@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.Crunchyroll.Common;
+using Jellyfin.Plugin.Crunchyroll.Common.FlareSolverr;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Season.ScrapSeasonMetadata.Client;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,7 +12,7 @@ public static class ScrapSeasonMetadataServiceExtension
         serviceCollection.AddScoped<IScrapSeasonMetadataService, ScrapSeasonMetadataService>();
         serviceCollection.AddScoped<IScrapSeasonMetadataRepository, ScrapSeasonMetadataRepository>();
         serviceCollection.AddHttpClient<ICrunchyrollSeasonsClient, CrunchyrollSeasonsClient>()
-            .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
+            .AddHttpMessageHandler<FlareSolverrMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
     }
 }

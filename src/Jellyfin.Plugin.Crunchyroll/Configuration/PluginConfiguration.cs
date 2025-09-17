@@ -8,6 +8,9 @@ public class PluginConfiguration : BasePluginConfiguration
     public string ArchiveOrgUrl { get; set; } = "http://web.archive.org";
     public string LocalDatabasePath { get; set; } = string.Empty;
     public int WaybackMachineWaitTimeoutInSeconds { get; set; } = 120;
+    public string FlareSolverrUrl { get; set; } = string.Empty;
+    public string FlareSolverrMitmProxyUrl { get; set; } = string.Empty;
+    public bool IsFlareSolverrEnabled { get; set; } = true;
     
     //Series Features
     public bool IsFeatureSeriesTitleEnabled { get; set; } = false;
@@ -29,6 +32,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool IsFeatureMovieDescriptionEnabled { get; set; } = false;
     public bool IsFeatureMovieStudioEnabled { get; set; } = false;
 
+    //Other
     public bool IsFeatureReviewsEnabled { get; set; } = false;
     public bool IsFeatureCommentsEnabled { get; set; } = false;
     public int CrunchyrollUpdateThresholdInDays { get; set; } = 1;

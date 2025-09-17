@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.Crunchyroll.Common;
+using Jellyfin.Plugin.Crunchyroll.Common.FlareSolverr;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
@@ -29,7 +30,7 @@ public static class CrunchyrollClientHelper
                 .AddMemoryCache()
                 .AddCrunchyrollLogin()
                 .AddSingleton<ICrunchyrollSessionRepository, CrunchyrollSessionRepository>()
-                .AddScoped<HttpUserAgentHeaderMessageHandler>()
+                .AddScoped<FlareSolverrMessageHandler>()
                 .AddSingleton(new PluginConfiguration());
 
             serviceCollection.AddScrapEpisodeMetadata();

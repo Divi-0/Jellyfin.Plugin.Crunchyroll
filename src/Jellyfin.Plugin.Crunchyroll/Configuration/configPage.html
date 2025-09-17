@@ -29,6 +29,16 @@
                     <input id="CrunchyrollUpdateThresholdInDays" name="WaybackMachineWaitTimeoutInSeconds" type="number" is="emby-input" min="0" />
                     <div class="fieldDescription">Defines after how many days the local Crunchyroll data may be overwritten again; default: 1 day</div>
                 </div>
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="FlareSolverrUrl">FlareSolverrUrl</label>
+                    <input id="FlareSolverrUrl" name="FlareSolverrUrl" type="text" is="emby-input" />
+                    <div class="fieldDescription">FlareSolverrUrl</div>
+                </div>
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="FlareSolverrMitmProxyUrl">FlareSolverrMitmProxyUrl</label>
+                    <input id="FlareSolverrMitmProxyUrl" name="FlareSolverrMitmProxyUrl" type="text" is="emby-input" />
+                    <div class="fieldDescription">FlareSolverrMitmProxyUrl</div>
+                </div>
                 
                 <hr/>
                 
@@ -185,6 +195,8 @@
                     document.querySelector('#IsFeatureReviewsEnabled').checked = config.IsFeatureReviewsEnabled;
                     document.querySelector('#IsFeatureCommentsEnabled').checked = config.IsFeatureCommentsEnabled;
                     document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value = config.WaybackMachineWaitTimeoutInSeconds;
+                    document.querySelector('#FlareSolverrUrl').value = config.FlareSolverrUrl;
+                    document.querySelector('#FlareSolverrMitmProxyUrl').value = config.FlareSolverrMitmProxyUrl;
 
                     document.querySelector('#IsFeatureSeriesTitleEnabled').checked = config.IsFeatureSeriesTitleEnabled;
                     document.querySelector('#IsFeatureSeriesDescriptionEnabled').checked = config.IsFeatureSeriesDescriptionEnabled;
@@ -214,6 +226,8 @@
                     config.LocalDatabasePath = document.querySelector('#LocalDatabasePath').value;
                     config.CrunchyrollUpdateThresholdInDays = document.querySelector('#CrunchyrollUpdateThresholdInDays').value;
                     config.WaybackMachineWaitTimeoutInSeconds = document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value;
+                    config.FlareSolverrUrl = document.querySelector('#FlareSolverrUrl').value;
+                    config.FlareSolverrMitmProxyUrl = document.querySelector('#FlareSolverrMitmProxyUrl').value;
                     config.IsFeatureReviewsEnabled = document.querySelector('#IsFeatureReviewsEnabled').checked;
                     config.IsFeatureCommentsEnabled = document.querySelector('#IsFeatureCommentsEnabled').checked;
                     

@@ -1,5 +1,6 @@
 using System;
 using Jellyfin.Plugin.Crunchyroll.Common;
+using Jellyfin.Plugin.Crunchyroll.Common.FlareSolverr;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.DeleteTitleMetadata;
@@ -18,7 +19,7 @@ public static class CrunchyrollServiceExtension
     {
         serviceCollection.AddSingleton<ICrunchyrollSessionRepository, CrunchyrollSessionRepository>();
         serviceCollection.AddSingleton<TimeProvider>(TimeProvider.System);
-        serviceCollection.AddTransient<HttpUserAgentHeaderMessageHandler>();
+        serviceCollection.AddTransient<FlareSolverrMessageHandler>();
         
         serviceCollection.AddCrunchyrollLogin();
         serviceCollection.AddCrunchyrollComments();

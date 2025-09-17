@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.Crunchyroll.Common;
+using Jellyfin.Plugin.Crunchyroll.Common.FlareSolverr;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Movie.GetMetadata.GetMovieCrunchyrollId.Client;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,7 +11,7 @@ public static class GetMovieCrunchyrollIdServiceExtension
     {
         serviceCollection.AddScoped<IGetMovieCrunchyrollIdService, GetMovieCrunchyrollIdService>();
         serviceCollection.AddHttpClient<ICrunchyrollMovieEpisodeIdClient, CrunchyrollMovieEpisodeIdClient>()
-            .AddHttpMessageHandler<HttpUserAgentHeaderMessageHandler>()
+            .AddHttpMessageHandler<FlareSolverrMessageHandler>()
             .AddPollyHttpClientDefaultPolicy();
     }
 }
