@@ -96,9 +96,25 @@ public partial class GetEpisodeCrunchyrollIdService : IGetEpisodeCrunchyrollIdSe
         return episodeIdResult;
     }
     
+    //S01E10.5
+    //S01E13A
     [GeneratedRegex(@"E\d*\.\d*|E\d*[A-z]")]
     private static partial Regex IsDecimalNumberOrNumberWithLetterRegex();
 
-    [GeneratedRegex(@"E-?([^ -]+)")]
+    // Match episode identifiers after an "E" (optionally followed by a hyphen).
+    // Capture group 1 should contain the identifier. Acceptable forms:
+    // - Numeric (e.g. 502, 1124)
+    // - Decimal (e.g. 6.5, 32.9)
+    // - Numeric with trailing letters (e.g. 13A, 52b)
+    // - Short uppercase codes optionally followed by digits (e.g. SP, SP1, FMI1)
+    // Do not match long words like "Harbors" so those will fall back to name-based lookup.
+    // Match episode identifiers after an "E" (optionally followed by a hyphen).
+    // Capture group 1 should contain the identifier. Acceptable forms:
+    // - Numeric (e.g. 502, 1124)
+    // - Decimal (e.g. 6.5, 32.9)
+    // - Numeric with trailing letters (e.g. 13A, 52b)
+    // - Short uppercase codes (2-3 letters) optionally followed by digits (e.g. SP, SP1, FMI1)
+    // Ensure the identifier is a whole token (not the first letter of a longer lowercase word like "Harbors").
+    [GeneratedRegex(@"E-?((?:[0-9]+(?:\.[0-9]+)?[A-Za-z]*)|(?:[A-Z]{2,3}[0-9]*))(?=$|[^A-Za-z0-9]|\b)")]
     private static partial Regex EpisodeNameFormatRegex();
 }

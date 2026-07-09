@@ -143,6 +143,98 @@ public class ScrapSeasonMetadataServiceTests
             .Received(1)
             .SaveChangesAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task ReturnsSuccessAndAddsSeasons_WhenLastUpdatedAtThresholdIsNotReached_GivenTitleMetadataWithoutSeason()
+    {
+        //Arrange
+        var seriesId = CrunchyrollIdFaker.Generate();
+        var language = new CultureInfo("en-US");
+
+        _config.CrunchyrollUpdateThresholdInDays = 999;
+        
+        _loginService
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
+        var titleMetadata = _fixture.Build<Domain.Entities.TitleMetadata>()
+            .With(x => x.LastUpdatedAt, _faker.Date.Past().ToUniversalTime)
+            .Without(x => x.Seasons)
+            .Create();
+        
+        _repository
+            .GetTitleMetadataAsync(seriesId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(titleMetadata);
+
+        _scrapLockRepository
+            .AddLockAsync(seriesId)
+            .Returns(true);
+
+        var crunchyrollSeasonsItems = new List<CrunchyrollSeasonsItem>();
+        var expectedSeasons = new List<Domain.Entities.Season>();
+        for (var index = 0; index < 5; index++)
+        {
+            var seasonResponseItem = _fixture
+                .Build<CrunchyrollSeasonsItem>()
+                .With(x => x.Id, CrunchyrollIdFaker.Generate().ToString)
+                .Create();
+            
+            crunchyrollSeasonsItems.Add(seasonResponseItem);
+            
+            expectedSeasons.Add(new Domain.Entities.Season()
+            {
+                CrunchyrollId = seasonResponseItem.Id,
+                Language = language.Name,
+                Title = seasonResponseItem.Title,
+                SlugTitle = seasonResponseItem.SlugTitle,
+                Identifier = seasonResponseItem.Identifier,
+                SeasonNumber = seasonResponseItem.SeasonNumber,
+                SeasonSequenceNumber = seasonResponseItem.SeasonSequenceNumber,
+                SeasonDisplayNumber = seasonResponseItem.SeasonDisplayNumber,
+                SeriesId = titleMetadata.Id
+            });
+        }
+        
+        _client
+            .GetSeasonsAsync(seriesId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok(new CrunchyrollSeasonsResponse{Data = crunchyrollSeasonsItems}));
+        
+        Domain.Entities.TitleMetadata actualMetadata = null!;
+        _repository
+            .UpdateTitleMetadata(
+                Arg.Do<Domain.Entities.TitleMetadata>(x => actualMetadata = x));
+        
+        _repository
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
+        //Act
+        var result = await _sut.ScrapSeasonMetadataAsync(seriesId, language, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        actualMetadata.Seasons.Should().BeEquivalentTo(expectedSeasons);
+        
+        await _loginService
+            .Received(1)
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
+        
+        await _client
+            .Received(1)
+            .GetSeasonsAsync(seriesId, language, Arg.Any<CancellationToken>());
+
+        await _repository
+            .Received(1)
+            .GetTitleMetadataAsync(seriesId, language, Arg.Any<CancellationToken>());
+
+        _repository
+            .Received(1)
+            .UpdateTitleMetadata(Arg.Any<Domain.Entities.TitleMetadata>());
+
+        await _repository
+            .Received(1)
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
     
     [Fact]
     public async Task ReturnsSuccessAndAddsNewerSeasonsToSeasonsList_WhenNewSeasonsWereListed_GivenTitleId()
@@ -236,7 +328,7 @@ public class ScrapSeasonMetadataServiceTests
     }
     
     [Fact]
-    public async Task ReturnsSuccessAndDoesNotUpdateSeasons_WhenLastUpdatedAtThresholdIsNotReached_GivenTitleId()
+    public async Task ReturnsSuccessAndDoesNotUpdateSeasons_WhenLastUpdatedAtThresholdIsNotReached_GivenTitleMetadataWithSeason()
     {
         //Arrange
         var seriesId = CrunchyrollIdFaker.Generate();
@@ -245,6 +337,19 @@ public class ScrapSeasonMetadataServiceTests
         var titleMetadata = _fixture.Build<Domain.Entities.TitleMetadata>()
             .Without(x => x.Seasons)
             .Create();
+        
+        titleMetadata.Seasons.Add(new Domain.Entities.Season()
+        {
+            CrunchyrollId = CrunchyrollIdFaker.Generate(),
+            Language = language.Name,
+            Title = _faker.Lorem.Sentence(),
+            SlugTitle = _faker.Lorem.Slug(),
+            Identifier = _faker.Random.AlphaNumeric(10),
+            SeasonNumber = _faker.Random.Int(1, 10),
+            SeasonSequenceNumber = _faker.Random.Int(1, 10),
+            SeasonDisplayNumber = _faker.Random.Int(1, 10).ToString(),
+            SeriesId = titleMetadata.Id
+        });
         
         _repository
             .GetTitleMetadataAsync(seriesId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())

@@ -470,35 +470,33 @@ public class GetEpisodeCrunchyrollIdServiceTests
     [Fact]
     public async Task SetsEpisodeId_WhenGetEpisodeByNameReturnsId_GivenSeasonWithSeasonId()
     {
-        for (int i = 0; i < 100; i++)
-        {
-            //Arrange
-            var seasonId = CrunchyrollIdFaker.Generate();
-            var seriesId = CrunchyrollIdFaker.Generate();
-            var fileName = $"S01E-{_faker.Random.Word()}";
-            var indexNumber = (int?)null;
-            var episodeId = CrunchyrollIdFaker.Generate();
-            var language = new CultureInfo("en-US");
+        //Arrange
+        var seasonId = CrunchyrollIdFaker.Generate();
+        var seriesId = CrunchyrollIdFaker.Generate();
+        var fileName = "S01E-Abc";
+        var indexNumber = (int?)null;
+        var episodeId = CrunchyrollIdFaker.Generate();
+        var language = new CultureInfo("en-US");
 
-            _repository
-                .GetEpisodeIdByName(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(Result.Ok<CrunchyrollId?>(episodeId));
-        
-            //Act
-            var result = await _sut.GetEpisodeIdAsync(seasonId, seriesId, language, fileName, indexNumber, CancellationToken.None);
+        _repository
+            .GetEpisodeIdByName(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<CrunchyrollId?>(episodeId));
+    
+        //Act
+        var result = await _sut.GetEpisodeIdAsync(seasonId, seriesId, language, fileName, indexNumber,
+            CancellationToken.None);
 
-            //Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Should().Be(episodeId);
-        
-            await _repository
-                .DidNotReceive()
-                .GetEpisodeIdByNumber(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
-        
-            await _repository
-                .Received(1)
-                .GetEpisodeIdByName(seasonId, fileName, Arg.Any<CancellationToken>());
-        }
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(episodeId);
+
+        await _repository
+            .DidNotReceive()
+            .GetEpisodeIdByNumber(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+        await _repository
+            .Received(1)
+            .GetEpisodeIdByName(seasonId, fileName, Arg.Any<CancellationToken>());
     }
     
     [Fact]

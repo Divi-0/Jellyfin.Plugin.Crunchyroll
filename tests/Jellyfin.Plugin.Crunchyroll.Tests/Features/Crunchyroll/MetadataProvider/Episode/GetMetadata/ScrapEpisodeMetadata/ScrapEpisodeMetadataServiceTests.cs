@@ -135,6 +135,85 @@ public class ScrapEpisodeMetadataServiceTests
             .Received(1)
             .SaveChangesAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task ReturnsSuccessAndStoresEpisodes_WhenWhenLastUpdatedAtThresholdIsNotReached_GivenSeasonWithoutEpisodes()
+    {
+        //Arrange
+        var season = CrunchyrollSeasonFaker.Generate();
+        var language = new CultureInfo("en-US");
+        var episodeId = CrunchyrollIdFaker.Generate();
+        
+        _config.CrunchyrollUpdateThresholdInDays = 999;
+        
+        _loginService
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
+        var crunchyrollEpisodes = _fixture.Create<CrunchyrollEpisodesResponse>();
+        _client
+            .GetEpisodesAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(crunchyrollEpisodes);
+
+        _repository
+            .GetSeasonAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(season);
+
+        _repository
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _scrapLockRepository
+            .AddLockAsync(season.CrunchyrollId)
+            .Returns(true);
+        
+        _scrapMissingEpisodeService
+            .ScrapMissingEpisodeAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        //Act
+        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, episodeId, language, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        season.Episodes.Should().BeEquivalentTo(crunchyrollEpisodes.Data.Select(x => new Domain.Entities.Episode
+        {
+            CrunchyrollId = x.Id,
+            Title = x.Title,
+            Description = x.Description,
+            EpisodeNumber = x.Episode,
+            SequenceNumber = x.SequenceNumber,
+            Language = language.Name,
+            SlugTitle = x.SlugTitle,
+            SeasonId = season.Id,
+            Thumbnail = JsonSerializer.Serialize(new ImageSource
+            {
+                Uri = x.Images.Thumbnail.First().Last().Source,
+                Height = x.Images.Thumbnail.First().Last().Height,
+                Width = x.Images.Thumbnail.First().Last().Width,
+            })
+        }));
+
+        await _loginService
+            .Received(1)
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
+
+        await _client
+            .Received(1)
+            .GetEpisodesAsync(season.CrunchyrollId, language, Arg.Any<CancellationToken>());
+
+        await _repository
+            .Received(1)
+            .GetSeasonAsync(season.CrunchyrollId, language, Arg.Any<CancellationToken>());
+
+        _repository
+            .Received(1)
+            .UpdateSeason(season);
+
+        await _repository
+            .Received(1)
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
     
     [Fact]
     public async Task ReturnsSuccessAndDoesNotUpdateEpisodes_WhenLastUpdatedAtThresholdIsNotReached_GivenNoStoredEpisodes()
@@ -142,7 +221,9 @@ public class ScrapEpisodeMetadataServiceTests
         //Arrange
         var season = CrunchyrollSeasonFaker.Generate();
         var language = new CultureInfo("en-US");
-        var episodeId = CrunchyrollIdFaker.Generate();
+        var episode = CrunchyrollEpisodeFaker.Generate(seasonId: season.Id);
+        
+        season.Episodes.Add(episode);
 
         _config.CrunchyrollUpdateThresholdInDays = 999;
 
@@ -161,7 +242,7 @@ public class ScrapEpisodeMetadataServiceTests
             .Returns(true);
 
         //Act
-        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, episodeId, language, CancellationToken.None);
+        var result = await _sut.ScrapEpisodeMetadataAsync(season.CrunchyrollId, episode.CrunchyrollId, language, CancellationToken.None);
 
         //Assert
         result.IsSuccess.Should().BeTrue();

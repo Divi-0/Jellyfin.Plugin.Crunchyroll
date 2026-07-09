@@ -9,11 +9,16 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.E2E.Tests;
 public class RunScanTests
 {
     private readonly JellyfinFixture _jellyfinFixture;
+    private readonly FlareSolverrFixture _flareSolverrFixture;
+    private readonly FlareSolverrProxyFixture _flareSolverrProxyFixture;
     private readonly IBrowser _browser;
     
-    public RunScanTests(PlaywrightFixture playwrightFixture, JellyfinFixture jellyfinFixture)
+    public RunScanTests(PlaywrightFixture playwrightFixture, JellyfinFixture jellyfinFixture, FlareSolverrFixture flareSolverrFixture,
+        FlareSolverrProxyFixture flareSolverrProxyFixture)
     {
         _jellyfinFixture = jellyfinFixture;
+        _flareSolverrFixture = flareSolverrFixture;
+        _flareSolverrProxyFixture = flareSolverrProxyFixture;
         _browser = playwrightFixture.Browser;
     }
 
@@ -28,9 +33,9 @@ public class RunScanTests
             await page.FinishWizardAsync(_jellyfinFixture.Url, JellyfinFixture.VideoContainerPath, animeCollectioName);
             await page.LoginAsync();
             await page.GoToDashboardAsync();
-            await page.SetCrunchyrollPluginConfigAsync(_jellyfinFixture.Url, animeCollectioName);
+            await page.SetCrunchyrollPluginConfigAsync(_jellyfinFixture.Url, _flareSolverrFixture.DockerNetworkUrl, _flareSolverrProxyFixture.DockerNetworkUrlShort, animeCollectioName);
             await page.SetupLibraryAsync(JellyfinFixture.VideoContainerPath);
-
+            Console.WriteLine();
             //One Piece
             // await page.SeriesShouldHaveDataFromCrunchyrollAsync(_jellyfinFixture.Url, "GRMG8ZQZR", 
             //     new CultureInfo("en-US"), 5);

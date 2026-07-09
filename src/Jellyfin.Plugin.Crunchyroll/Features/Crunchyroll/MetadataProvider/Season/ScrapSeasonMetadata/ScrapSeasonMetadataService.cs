@@ -87,7 +87,7 @@ public class ScrapSeasonMetadataService : IScrapSeasonMetadataService
                 return Result.Fail(ErrorCodes.NotFound);
             }
 
-            if (titleMetadata.LastUpdatedAt.AddDays(_config.CrunchyrollUpdateThresholdInDays) > _timeProvider.GetUtcNow())
+            if (titleMetadata.Seasons.Count > 0 && titleMetadata.LastUpdatedAt.AddDays(_config.CrunchyrollUpdateThresholdInDays) > _timeProvider.GetUtcNow())
             {
                 _logger.LogInformation("Not updating seasons from series {SeriesId}, threshold is not reached", seriesId);
                 return Result.Ok();

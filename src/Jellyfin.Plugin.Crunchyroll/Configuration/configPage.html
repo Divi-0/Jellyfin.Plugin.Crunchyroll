@@ -37,8 +37,26 @@
                 <div class="inputContainer">
                     <label class="inputLabel inputLabelUnfocused" for="FlareSolverrMitmProxyUrl">FlareSolverrMitmProxyUrl</label>
                     <input id="FlareSolverrMitmProxyUrl" name="FlareSolverrMitmProxyUrl" type="text" is="emby-input" />
-                    <div class="fieldDescription">FlareSolverrMitmProxyUrl</div>
+                    <div class="fieldDescription">FlareSolverrMitmProxyUrl; format: domain:port</div>
                 </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button id="FlareSolverrTestButton" type="button" is="emby-button" class="raised block emby-button">
+                        <span>Test FlareSolverr Connection</span>
+                    </button>
+                    <button id="FlareSolverrTestCancelButton" type="button" is="emby-button" class="raised block emby-button" style="display: none; background-color: #dc3545;">
+                        <span>Cancel</span>
+                    </button>
+                    <div id="FlareSolverrTestStatus" style="display: none; align-items: center; gap: 10px;">
+                        <div id="FlareSolverrTestSpinner" style="display: none;">
+                            <span style="display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></span>
+                        </div>
+                        <div id="FlareSolverrTestSuccess" style="display: none; color: green; font-weight: bold;">
+                            ✓ Success
+                        </div>
+                        <div id="FlareSolverrTestError" style="display: none; color: red; font-weight: bold;"></div>
+                    </div>
+                </div>
+                <div class="fieldDescription">Save, before testing</div>
                 
                 <hr/>
                 
@@ -181,8 +199,110 @@
     </div>
     <script type="text/javascript">
         var CrunchyrollPluginConfig = {
-            pluginUniqueId: 'c6f8461a-9a6f-4c65-8bb9-825866cabc91'
+            pluginUniqueId: 'c6f8461a-9a6f-4c65-8bb9-825866cabc91',
+            testAbortController: null
         };
+
+        // CSS for spinner animation
+        var style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Test Button Click Handler
+        document.querySelector('#FlareSolverrTestButton').addEventListener('click', function(e) {
+            e.preventDefault();
+            performFlareSolverrTest();
+        });
+
+        // Cancel Button Click Handler
+        document.querySelector('#FlareSolverrTestCancelButton').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (CrunchyrollPluginConfig.testAbortController) {
+                CrunchyrollPluginConfig.testAbortController.abort();
+                resetTestStatus();
+            }
+        });
+
+        function performFlareSolverrTest() {
+            // Disable test button and show UI elements
+            document.querySelector('#FlareSolverrTestButton').disabled = true;
+            document.querySelector('#FlareSolverrTestButton').style.display = 'none';
+            document.querySelector('#FlareSolverrTestCancelButton').style.display = 'block';
+            document.querySelector('#FlareSolverrTestStatus').style.display = 'flex';
+            document.querySelector('#FlareSolverrTestSpinner').style.display = 'inline-block';
+            document.querySelector('#FlareSolverrTestSuccess').style.display = 'none';
+            document.querySelector('#FlareSolverrTestError').style.display = 'none';
+
+            // Create AbortController for request cancellation
+            CrunchyrollPluginConfig.testAbortController = new AbortController();
+
+            // Make the API call
+            fetch('/api/crunchyrollPlugin/flaresolverr/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                signal: CrunchyrollPluginConfig.testAbortController.signal
+            })
+            .then(function(response) {
+                if (response.ok && response.status === 200) {
+                    showTestSuccess();
+                } else {
+                    showTestError('Test failed with status: ' + response.status);
+                }
+            })
+            .catch(function(error) {
+                if (error.name === 'AbortError') {
+                    resetTestStatus();
+                } else {
+                    showTestError('Error: ' + error.message);
+                }
+            });
+        }
+
+        function showTestSuccess() {
+            document.querySelector('#FlareSolverrTestSpinner').style.display = 'none';
+            document.querySelector('#FlareSolverrTestSuccess').style.display = 'block';
+            document.querySelector('#FlareSolverrTestError').style.display = 'none';
+            document.querySelector('#FlareSolverrTestCancelButton').style.display = 'none';
+
+            // Reset after 3 seconds
+            setTimeout(function() {
+                resetTestStatus();
+            }, 3000);
+        }
+
+        function showTestError(message) {
+            document.querySelector('#FlareSolverrTestSpinner').style.display = 'none';
+            document.querySelector('#FlareSolverrTestSuccess').style.display = 'none';
+            document.querySelector('#FlareSolverrTestError').style.display = 'block';
+            document.querySelector('#FlareSolverrTestError').textContent = '✗ ' + message;
+            document.querySelector('#FlareSolverrTestCancelButton').style.display = 'none';
+
+            // Reset after 5 seconds
+            setTimeout(function() {
+                resetTestStatus();
+            }, 5000);
+        }
+
+        function resetTestStatus() {
+            document.querySelector('#FlareSolverrTestButton').disabled = false;
+            document.querySelector('#FlareSolverrTestButton').style.display = 'block';
+            document.querySelector('#FlareSolverrTestCancelButton').style.display = 'none';
+            document.querySelector('#FlareSolverrTestStatus').style.display = 'none';
+            document.querySelector('#FlareSolverrTestSpinner').style.display = 'none';
+            document.querySelector('#FlareSolverrTestSuccess').style.display = 'none';
+            document.querySelector('#FlareSolverrTestError').style.display = 'none';
+            CrunchyrollPluginConfig.testAbortController = null;
+        }
+
+        // ...existing code...
+
 
         document.querySelector('#CrunchyrollPluginConfigPage')
             .addEventListener('pageshow', function() {

@@ -1,92 +1,195 @@
+# Jellyfin Crunchyroll Plugin
+
+> 🎬 A third-party Jellyfin plugin for enriching your anime library with Crunchyroll metadata
+
+**⚠️ Disclaimer:** This plugin is a community project and was not created by the official Jellyfin team.
+
+## Table of Contents
+
+- [About](#about)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Build](#build)
+
+---
+
 ## About
 
-Current Situation: Crunchyroll has updated their bot protection, unless I find a way to bypass it, this plugin is not functional
+This plugin automatically enriches your Jellyfin anime library with metadata from Crunchyroll:
 
-DO NOT USE THE PLUGIN IN VERION 1.x.x, I work on version 2.0.0
+- **Metadata Collection**: Fetches titles, descriptions, studio information, ratings, and high-resolution images via the Crunchyroll API (no web scraping)
+- **Rich Media**: Adds background images, cover images, and episode thumbnails
+- **Community Content**: Brings back reviews and comments in read-only mode (archived from WaybackMachine)
 
-This plugin is a third party plugin and was not created by the official Jellyfin team.
-It collects metadata from Crunchyroll and sets Description, Images, ... to the existing Jellyfin Items.
-It also brings back reviews and comments, in a read-only mode. (Scraped from WaybackMachine)
+### 📝 Important Notes
 
-Disclaimer: I could not test every anime because Crunchyroll is region locked. So please take this into consideration, 
-some animes might not be recognized correctly. 
-If you find any bugs you are welcome to create an issue.
+- **Region Locking**: Due to Crunchyroll's regional restrictions, not all anime may be recognized correctly in your region
+- **Community Project**: If you encounter issues, please [report them](https://github.com/Divi-0/Jellyfin.Plugin.Crunchyroll/issues)
+
+---
 
 ## Features
-Metadata that can be fetched from Crunchyroll
-- Series
-  - Title/Name
-  - Description
-  - Studio
-  - Ratings
-  - Background Image
-  - Cover Image
-  - Reviews via WayBackMachine
-- Seasons
-  - Title
-  - Order (Seasons will be ordered by Crunchyroll listing)
-- Episodes
-  - Title/Name
-  - Description
-  - Thumbnail Image
-  - Comments via WayBackMachine
-- Movies
-  - Title/Name
-  - Description
-  - Studio
-  - Reviews via WayBackMachine 
-  - Thumbnail Image
-  - Comments via WayBackMachine
 
-More details of the features can be found in the wiki [Features](https://github.com/Divi-0/Jellyfin.Plugin.Crunchyroll/wiki/Features) <br>
+### 📺 Series
+
+- Title/Name
+- Description
+- Studio
+- Ratings
+- Background Image
+- Cover Image  
+- Reviews via WayBackMachine
+
+### 🎞️ Episodes
+
+- Title/Name
+- Description
+- Thumbnail Image
+- Comments via WayBackMachine
+
+### 🎬 Movies
+
+- Title/Name
+- Description
+- Studio
+- Reviews via WayBackMachine
+- Thumbnail Image
+- Comments via WayBackMachine
+
+### 📚 Seasons
+
+- Title/Name
+- Episode Order (based on Crunchyroll listing)
+
+**📖 For more details, see the [Features Wiki](https://github.com/Divi-0/Jellyfin.Plugin.Crunchyroll/wiki/Features)**
+
+---
 
 ## Installation
-#### Steps
-1. In the Jellyfin Dashboard select the `Plugins -> Repositories` Tab and add the manifest `https://raw.githubusercontent.com/Divi-0/Jellyfin.Plugin.Crunchyroll/refs/heads/main/manifest.json`
-2. Go to the `Catalog` and install `"Crunchyroll"`
-3. Go to the configuration page of the "Crunchyroll" plugin `Plugins -> My Plugins -> Crunchyroll`
-4. Enter the name of your anime jellyfin collection/library you want to scan (Example: `Anime`)
-5. Enable all the features you would like to have, in the "Features" section
-6. Change your folder structure to reflect the structure of Crunchyroll [Usage](#Usage)
-7. Restart Jellyfin-Server if you made some changes to the config
-8. Done. Run a library scan
+
+### Quick Setup
+
+1. **Add Repository** - In Jellyfin Dashboard:
+   - Go to `Plugins → Repositories`
+   - Click "Add Repository"
+   - Paste: `https://raw.githubusercontent.com/Divi-0/Jellyfin.Plugin.Crunchyroll/refs/heads/main/manifest.json`
+
+2. **Install Plugin** - In the Catalog:
+   - Search for `Crunchyroll`
+   - Click Install
+
+3. **Configure** - In Plugin Settings:
+   - Navigate to `Plugins → My Plugins → Crunchyroll`
+   - Configure FlareSolverr and MITM proxy URLs (see [FlareSolverr Setup](#flaresolverr-setup) below)
+   - Enable desired features in the "Features" section
+
+4. **Organize Library** - Structure your folders per [Folder Structure Guide](#folder-structure) below
+
+5. **Restart** - Restart your Jellyfin Server if you made configuration changes
+
+6. **Scan** - Run a library scan to fetch metadata
+
+### FlareSolverr Setup
+
+This plugin uses FlareSolverr to fetch content from Crunchyroll. You must run a FlareSolverr instance and a MITM proxy that FlareSolverr can use.
+
+
+- FlareSolverr: `flaresolverr/flaresolverr:latest`
+- MITM proxy image: `zelak312/flaresolverr-mitm-proxy:latest` (required for additional HTTP-Header)
+
+Example Docker Compose (minimal):
+
+```yaml
+version: '3.8'
+services:
+  jellyfin:
+    image: jellyfin/jellyfin
+    ...
+    
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+       - LOG_LEVEL=${LOG_LEVEL:-info}
+       - LOG_HTML=${LOG_HTML:-false}
+       - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+       - TZ=Europe/London
+    ports:
+      - "8191:8191"
+    restart: unless-stopped
+
+  # https://github.com/Zelak312/flaresolverr-mitm-proxy
+  flaresolverr-mitm-proxy:
+    image: ghcr.io/zelak312/flaresolverr-mitm-proxy:latest
+    container_name: flaresolverr-mitm-proxy
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+```
+
+Example Docker run commands (quick):
+
+```powershell
+docker run -d --name flaresolverr -p 8191:8191 flaresolverr/flaresolverr:latest
+docker run -d --name flaresolverr-mitm-proxy -p 8080:8080 zelak312/flaresolverr-mitm-proxy:latest
+```
+
+Configuration values to set in the Jellyfin plugin configuration page:
+
+- `FlareSolverrUrl` — the FlareSolverr base URL **including** the API path, e.g. `http://flaresolverr:8191/v1`
+- `FlareSolverrMitmProxyUrl` — the proxy URL used by FlareSolverr (absolute URL), e.g. `flaresolverr-mitm-proxy:8080`
+
+When running in the same docker network, docker container names can be used, if not host.docker.internal can be an option as domain/hostname
+Without docker compose: FlareSolverrUrl: http://localhost:8191/v1, FlareSolverrUrl: host.docker.internal:8080
+
+After configuring those values in `Plugins → My Plugins → Crunchyroll` press Save, restart the server and run a scan.
+
+---
 
 ## Usage
-The Plugin runs as a post task on a library scan, so to get the metadata from Crunchyroll just run a library scan. 
-The first scan can take multiple minutes or even hours, depending on your collection/library size.
-You can enable debug logging in Jellyfin to see the logs.
 
-### Folder structure
-Crunchyroll has some clusterfuck season-numbers, some are correct, some are completely off, almost every big anime is different... To assign the Crunchyroll series and episodes to the Jellyfin items, the folder structure must be adapted to the Crunchyroll structure.
-There are some rules that must be followed.
+### How It Works
 
-**_Seasons with the same season-number and continuous episode numbers_** <br>
-Some Seasons have the same season-number, in that case create a duplicate folder for the same season.
-Here is an example for `One Piece` (Notice: Swort Art Online: `S3: Sword Art Online Alicization` & `S3: Sword Art Online Alicization War of Underworld` do not match this rule, so don't create duplicate season folders for them)
+The plugin runs automatically during Jellyfin library scans. Simply trigger a library scan to fetch metadata from Crunchyroll.
+
+### ⏱️ Performance Notes
+
+- **First Scan**: May take several minutes to hours depending on library size
+- **Subsequent Scans**: Faster as metadata is cached
+- **Enable Logging**: Turn on debug logging in Jellyfin to monitor progress
+
+
+---
+
+## Configuration
+
+### Folder Structure
+
+To automatically match your files with Crunchyroll's database, organize your folders according to Crunchyroll's structure. Follow these rules:
+
+#### Rule 1️⃣ - Duplicate Seasons (Same Season Number)
+
+When multiple seasons share the same season number with continuous episode ranges, create duplicate folders with slightly different names (so Jellyfin recognizes them as the same season).
+
+**Example: One Piece**
+
 ```
 One Piece/
-├─ Season .../
 ├─ Season 9 - (630-699)/
-├─ Season 9 - (700-746)/ (Change the foldername slightly, but so that Jellyfin still recognizes it as the same season)
-├─ Season .../
+└─ Season 9 - (700-746)/    ← Different range in name
 ```
 
+**Note:** Not all anime follow this pattern (e.g., Sword Art Online Season 3 variants don't use this method).
 
-**_Season without a season-number_** <br>
-Some series have seasons without a season-number, like `Attack on Titan` or `One Piece`.
-In that case the `Season`-folder has to be named to the exact Crunchyroll-Season-Name.
+---
 
-Here is an example for `One Piece` & `Attack on Titan`
-```
-One Piece/
-├─ Season 1/
-│  ├─ S01E0001
-│  ├─ S01E0002
-├─ Season 2/
-├─ Season .../
-├─ ONE PIECE FAN LETTER/
-│  ├─ E1124
-```
+#### Rule 2️⃣ - Unnamed Seasons
+
+Some series have seasons without standard season numbers. Name these folders to match **exactly** the Crunchyroll season name.
+
+**Example: Attack on Titan & One Piece**
 
 ```
 Attack on Titan/
@@ -94,111 +197,59 @@ Attack on Titan/
 │  ├─ S01E01
 │  ├─ S01E02
 ├─ Season 2/
-├─ Season .../
-├─ Attack on Titan OADs/
-│  ├─ E01
+└─ Attack on Titan OADs/     ← Exact Crunchyroll name
+   └─ E01
 ```
 
-**_Episodes with decimals/specials between normal episodes_** <br>
-If an episode has a decimal number like `E1.5` or a letter `E13A`, just add it to the episode filename. <br>
-The plugin will detect it and if it can be matched to a crunchyroll episode, it will automatically be sorted to air
-between those episodes.
+---
 
-Example:
-```
-├─ Season 1/
-│  ├─ S01E0001.5
-```
+#### Rule 3️⃣ - Special & Decimal Episodes
+
+Episodes with decimal numbers (e.g., `E1.5`) or letter suffixes (e.g., `E13A`) are automatically sorted between episodes where they air.
+
+**Examples:**
 
 ```
-├─ Season 1/
-│  ├─ S01E13A
+Season 1/
+├─ S01E13      ← Regular episode
+├─ S01E13A     ← Special episode variant
+└─ S01E14      ← Next episode
 ```
 
-**_Complete Examples_** <br>
+Or:
+
+```
+Season 1/
+├─ S01E0001
+├─ S01E0001.5  ← Decimal episode
+└─ S01E0002
+```
+
+---
+
+### Quick Structure Examples
 
 <details>
-  <summary>One Piece</summary>
+<summary><b>One Piece (Condensed)</b></summary>
 
 ```
-└───One Piece
-    ├───ONE PIECE FAN LETTER
-    │       E1124 - Special ONE PIECE FAN LETTER.mp4
-    │
-    ├───One Piece Log Fish-Man Island Saga (Current)
-    │       E-FMI1 - Abc.mp4
-    │       E-FMI2 - Def.mp4
-    │
-    ├───Season 1
-    │       S1E0001.mp4
-    │       S1E0002.mp4
-    │       S1E0003.mp4
-    │       S1E0004.mp4
-    │       S1E0005.mp4
-    │       S1E0006.mp4
-    │       S1E0007.mp4
-    │       S1E0008.mp4
-    │       S1E0009.mp4
-    │       S1E0010.mp4
-    │       S1E0011.mp4
-    │       S1E0012.mp4
-    │       S1E0013.mp4
-    │       S1E0014.mp4
-    │       S1E0015.mp4
-    │       S1E0016.mp4
-    │       S1E0017.mp4
-    │       S1E0018.mp4
-    │       S1E0019.mp4
-    │       S1E0020.mp4
-    │       S1E0021.mp4
-    │       S1E0022.mp4
-    │       S1E0023.mp4
-    │       S1E0024.mp4
-    │       S1E0025.mp4
-    │       S1E0026.mp4
-    │       S1E0027.mp4
-    │       S1E0028.mp4
-    │       S1E0029.mp4
-    │       S1E0030.mp4
-    │       S1E0031.mp4
-    │       S1E0032.mp4
-    │       S1E0033.mp4
-    │       S1E0034.mp4
-    │       S1E0035.mp4
-    │       S1E0036.mp4
-    │       S1E0037.mp4
-    │       S1E0038.mp4
-    │       S1E0039.mp4
-    │       S1E0040.mp4
-    │       S1E0041.mp4
-    │       S1E0042.mp4
-    │       S1E0043.mp4
-    │       S1E0044.mp4
-    │       S1E0045.mp4
-    │       S1E0046.mp4
-    │       S1E0047.mp4
-    │       S1E0048.mp4
-    │       S1E0049.mp4
-    │       S1E0050.mp4
-    │       S1E0051.mp4
-    │       S1E0052.mp4
-    │       S1E0053.mp4
-    │       S1E0054.mp4
-    │       S1E0055.mp4
-    │       S1E0056.mp4
-    │       S1E0057.mp4
-    │       S1E0058.mp4
-    │       S1E0059.mp4
-    │       S1E0060.mp4
-    │       S1E0061.mp4
-    │
-    ├───Season 10
-    │       S10E0747.mp4
-    │       S10E0748.mp4
-    │       S10E0749.mp4
-    │       S10E0750.mp4
-    │
-    ├───Season 10 - 2
+One Piece/
+├─ Season 1/           (61 episodes)
+├─ Season 10/          (4 episodes)
+├─ Season 10 - 2/      (36 episodes)
+├─ Season 11/          (96 episodes)
+├─ ONE PIECE FAN LETTER/
+│  └─ E1124
+└─ One Piece Log Fish-Man Island Saga/
+   ├─ E-FMI1
+   └─ E-FMI2
+```
+
+
+</details>
+
+<details>
+<summary><b>Sword Art Online</b></summary>
     │       S10E0751.mp4
     │       S10E0752.mp4
     │       S10E0753.mp4
@@ -1305,766 +1356,187 @@ Example:
 </details>
 
 <details>
-  <summary>Sword Art Online</summary>
+<summary><b>Sword Art Online</b></summary>
 
 ```
-├───Alicization War of Underworld
-│       E01.mp4
-│       E02.mp4
-│       E03.mp4
-│       E04.mp4
-│       E05.mp4
-│       E06.mp4
-│       E07.mp4
-│       E08.mp4
-│       E09.mp4
-│       E10.mp4
-│       E11.mp4
-│       E12.mp4
-│       E13.mp4
-│       E14.mp4
-│       E15.mp4
-│       E16.mp4
-│       E17.mp4
-│       E18.mp4
-│       E19.mp4
-│       E20.mp4
-│       E21.mp4
-│       E22.mp4
-│       E23.mp4
-│
-├───Season 1
-│       S1E0001.mp4
-│       S1E0002.mp4
-│       S1E0003.mp4
-│       S1E0004.mp4
-│       S1E0005.mp4
-│       S1E0006.mp4
-│       S1E0007.mp4
-│       S1E0008.mp4
-│       S1E0009.mp4
-│       S1E0010.mp4
-│       S1E0011.mp4
-│       S1E0012.mp4
-│       S1E0013.mp4
-│       S1E0014.mp4
-│       S1E0015.mp4
-│       S1E0016.mp4
-│       S1E0017.mp4
-│       S1E0018.mp4
-│       S1E0019.mp4
-│       S1E0020.mp4
-│       S1E0021.mp4
-│       S1E0022.mp4
-│       S1E0023.mp4
-│       S1E0024.mp4
-│       S1E0025.mp4
-│
-├───Season 2
-│       S2E0001.mp4
-│       S2E0002.mp4
-│       S2E0003.mp4
-│       S2E0004.mp4
-│       S2E0005.mp4
-│       S2E0006.mp4
-│       S2E0007.mp4
-│       S2E0008.mp4
-│       S2E0009.mp4
-│       S2E0010.mp4
-│       S2E0011.mp4
-│       S2E0012.mp4
-│       S2E0013.mp4
-│       S2E0014.mp4
-│       S2E0015.mp4
-│       S2E0016.mp4
-│       S2E0017.mp4
-│       S2E0018.mp4
-│       S2E0019.mp4
-│       S2E0020.mp4
-│       S2E0021.mp4
-│       S2E0022.mp4
-│       S2E0023.mp4
-│       S2E0024.mp4
-│       S2E14.5.mp4
-│
-├───Season 3
-│       S3E0001.mp4
-│       S3E0002.mp4
-│       S3E0003.mp4
-│       S3E0004.mp4
-│       S3E0005.mp4
-│       S3E0006.mp4
-│       S3E0007.mp4
-│       S3E0008.mp4
-│       S3E0009.mp4
-│       S3E0010.mp4
-│       S3E0011.mp4
-│       S3E0012.mp4
-│       S3E0013.mp4
-│       S3E0014.mp4
-│       S3E0015.mp4
-│       S3E0016.mp4
-│       S3E0017.mp4
-│       S3E0018.mp4
-│       S3E0019.mp4
-│       S3E0020.mp4
-│       S3E0021.mp4
-│       S3E0022.mp4
-│       S3E0023.mp4
-│       S3E0024.mp4
-│
-├───Sword Art Online the Movie -Ordinal Scale-
-│       Ordinal Scale.mp4
-│
-├───Sword Art Online the Movie -Progressive- Aria of a Starless Night
-│       Sword Art Online the Movie -Progressive- Aria of a Starless Night.mp4
-│
-└───Sword Art Online the Movie -Progressive- Scherzo of Deep Night
-        Sword Art Online the Movie -Progressive- Scherzo.mp4
+Sword Art Online/
+├─ Season 1/           (25 episodes)
+├─ Season 2/           (24 episodes)
+├─ Season 3/           (24 episodes)
+├─ Alicization War of Underworld/  (23 episodes)
+├─ Sword Art Online the Movie -Ordinal Scale-
+├─ Sword Art Online the Movie -Progressive- Aria of a Starless Night
+└─ Sword Art Online the Movie -Progressive- Scherzo of Deep Night
 ```
 
 </details>
 
 <details>
-  <summary>Blue Exorcist</summary>
+<summary><b>Blue Exorcist</b></summary>
 
 ```
-├───Season 3 - (1) Shimane Illuminati Saga
-│       S03E01.mp4
-│       S03E02.mp4
-│       S03E03.mp4
-│       S03E04.mp4
-│       S03E05.mp4
-│       S03E06.mp4
-│       S03E07.mp4
-│       S03E08.mp4
-│       S03E09.mp4
-│       S03E10.mp4
-│       S03E11.mp4
-│       S03E12.mp4
-│
-└───Season 3 - (2) Beyond the Snow Saga
-        S03E01.mp4
-        S03E02.mp4
-        S03E03.mp4
-        S03E04.mp4
-        S03E05.mp4
-        S03E06.mp4
+Blue Exorcist/
+├─ Season 3 - (1) Shimane Illuminati Saga  (12 episodes)
+└─ Season 3 - (2) Beyond the Snow Saga     (6 episodes)
 ```
 
 </details>
 
 <details>
-  <summary>CARDFIGHT!! VANGUARD overDress</summary>
+<summary><b>CARDFIGHT!! VANGUARD overDress</b></summary>
 
 ```
-├───CARDFIGHT!! VANGUARD Divinez Season 2
-│       E01.mp4
-│       E02.mp4
-│       E03.mp4
-│       E04.mp4
-│       E05.mp4
-│       E06.mp4
-│       E07.mp4
-│       E08.mp4
-│       E09.mp4
-│       E10.mp4
-│       E11.mp4
-│       E12.mp4
-│       E13.mp4
-│
-├───Season 1
-│       S01E0001.mp4
-│       S01E0002.mp4
-│       S01E0003.mp4
-│       S01E0004.mp4
-│       S01E0005.mp4
-│       S01E0006.mp4
-│       S01E0007.mp4
-│       S01E0008.mp4
-│       S01E0009.mp4
-│       S01E0010.mp4
-│       S01E0011.mp4
-│       S01E0012.mp4
-│       S01E0013.mp4
-│       S01E0014.mp4
-│       S01E0015.mp4
-│       S01E0016.mp4
-│       S01E0017.mp4
-│       S01E0018.mp4
-│       S01E0019.mp4
-│       S01E0020.mp4
-│       S01E0021.mp4
-│       S01E0022.mp4
-│       S01E0023.mp4
-│       S01E0024.mp4
-│       S01E0025.mp4
-│
-├───Season 1 - CARDFIGHT!! VANGUARD will+Dress
-│       E01.mp4
-│       E02.mp4
-│       E03.mp4
-│       E04.mp4
-│       E05.mp4
-│       E06.mp4
-│       E07.mp4
-│       E08.mp4
-│       E09.mp4
-│       E10.mp4
-│       E11.mp4
-│       E12.mp4
-│       E13.mp4
-│
-├───Season 2
-│       S02E0001.mp4
-│       S02E0002.mp4
-│       S02E0003.mp4
-│       S02E0004.mp4
-│       S02E0005.mp4
-│       S02E0006.mp4
-│       S02E0007.mp4
-│       S02E0008.mp4
-│       S02E0009.mp4
-│       S02E0010.mp4
-│       S02E0011.mp4
-│       S02E0012.mp4
-│       S02E0013.mp4
-│
-├───Season 3
-│       S03E0001.mp4
-│       S03E0002.mp4
-│       S03E0003.mp4
-│       S03E0004.mp4
-│       S03E0005.mp4
-│       S03E0006.mp4
-│       S03E0007.mp4
-│       S03E0008.mp4
-│       S03E0009.mp4
-│       S03E0010.mp4
-│       S03E0011.mp4
-│       S03E0012.mp4
-│       S03E0013.mp4
-│
-└───Season 4
-        S04E0001.mp4
-        S04E0002.mp4
-        S04E0003.mp4
-        S04E0004.mp4
-        S04E0005.mp4
-        S04E0006.mp4
-        S04E0007.mp4
-        S04E0008.mp4
-        S04E0009.mp4
-        S04E0010.mp4
-        S04E0011.mp4
-        S04E0012.mp4
-        S04E0013.mp4
+CARDFIGHT!! VANGUARD overDress/
+├─ Season 1                             (25 episodes)
+├─ Season 1 - CARDFIGHT!! VANGUARD will+Dress  (13 episodes)
+├─ Season 2                             (13 episodes)
+├─ Season 3                             (13 episodes)
+├─ Season 4                             (13 episodes)
+└─ CARDFIGHT!! VANGUARD Divinez Season 2  (13 episodes)
 ```
 
 </details>
 
 <details>
-  <summary>JoJo's Bizarre Adventure</summary>
+<summary><b>JoJo's Bizarre Adventure</b></summary>
 
 ```
-├───Season 1
-│       S01E0001.mp4
-│       S01E0002.mp4
-│       S01E0003.mp4
-│       S01E0004.mp4
-│       S01E0005.mp4
-│       S01E0006.mp4
-│       S01E0007.mp4
-│       S01E0008.mp4
-│       S01E0009.mp4
-│       S01E0010.mp4
-│       S01E0011.mp4
-│       S01E0012.mp4
-│       S01E0013.mp4
-│       S01E0014.mp4
-│       S01E0015.mp4
-│       S01E0016.mp4
-│       S01E0017.mp4
-│       S01E0018.mp4
-│       S01E0019.mp4
-│       S01E0020.mp4
-│       S01E0021.mp4
-│       S01E0022.mp4
-│       S01E0023.mp4
-│       S01E0024.mp4
-│       S01E0025.mp4
-│       S01E0026.mp4
-│
-├───Season 1 - Re-Edited
-│       S01E01.mp4
-│       S01E02.mp4
-│       S01E03.mp4
-│
-├───Season 2
-│       S02E0001.mp4
-│       S02E0002.mp4
-│       S02E0003.mp4
-│       S02E0004.mp4
-│       S02E0005.mp4
-│       S02E0006.mp4
-│       S02E0007.mp4
-│       S02E0008.mp4
-│       S02E0009.mp4
-│       S02E0010.mp4
-│       S02E0011.mp4
-│       S02E0012.mp4
-│       S02E0013.mp4
-│       S02E0014.mp4
-│       S02E0015.mp4
-│       S02E0016.mp4
-│       S02E0017.mp4
-│       S02E0018.mp4
-│       S02E0019.mp4
-│       S02E0020.mp4
-│       S02E0021.mp4
-│       S02E0022.mp4
-│       S02E0023.mp4
-│       S02E0024.mp4
-│
-├───Season 2 - Battle in Egypt
-│       S02E25.mp4
-│       S02E26.mp4
-│       S02E27.mp4
-│       S02E28.mp4
-│       S02E29.mp4
-│       S02E30.mp4
-│       S02E31.mp4
-│       S02E32.mp4
-│       S02E33.mp4
-│       S02E34.mp4
-│       S02E35.mp4
-│       S02E36.mp4
-│       S02E37.mp4
-│       S02E38.mp4
-│       S02E39.mp4
-│       S02E40.mp4
-│       S02E41.mp4
-│       S02E42.mp4
-│       S02E43.mp4
-│       S02E44.mp4
-│       S02E45.mp4
-│       S02E46.mp4
-│       S02E47.mp4
-│       S02E48.mp4
-│
-├───Season 3
-│       S03E0001.mp4
-│       S03E0002.mp4
-│       S03E0003.mp4
-│       S03E0004.mp4
-│       S03E0005.mp4
-│       S03E0006.mp4
-│       S03E0007.mp4
-│       S03E0008.mp4
-│       S03E0009.mp4
-│       S03E0010.mp4
-│       S03E0011.mp4
-│       S03E0012.mp4
-│       S03E0013.mp4
-│       S03E0014.mp4
-│       S03E0015.mp4
-│       S03E0016.mp4
-│       S03E0017.mp4
-│       S03E0018.mp4
-│       S03E0019.mp4
-│       S03E0020.mp4
-│       S03E0021.mp4
-│       S03E0022.mp4
-│       S03E0023.mp4
-│       S03E0024.mp4
-│       S03E0025.mp4
-│       S03E0026.mp4
-│       S03E0027.mp4
-│       S03E0028.mp4
-│       S03E0029.mp4
-│       S03E0030.mp4
-│       S03E0031.mp4
-│       S03E0032.mp4
-│       S03E0033.mp4
-│       S03E0034.mp4
-│       S03E0035.mp4
-│       S03E0036.mp4
-│       S03E0037.mp4
-│       S03E0038.mp4
-│       S03E0039.mp4
-│
-└───Season 4
-        S04E0001.mp4
-        S04E0002.mp4
-        S04E0003.mp4
-        S04E0004.mp4
-        S04E0005.mp4
-        S04E0006.mp4
-        S04E0007.mp4
-        S04E0008.mp4
-        S04E0009.mp4
-        S04E0010.mp4
-        S04E0011.mp4
-        S04E0012.mp4
-        S04E0013.5.mp4
-        S04E0013.mp4
-        S04E0014.mp4
-        S04E0015.mp4
-        S04E0016.mp4
-        S04E0017.mp4
-        S04E0018.mp4
-        S04E0019.mp4
-        S04E0020.mp4
-        S04E0021.5.mp4
-        S04E0021.mp4
-        S04E0022.mp4
-        S04E0023.mp4
-        S04E0024.mp4
-        S04E0025.mp4
-        S04E0026.mp4
-        S04E0027.mp4
-        S04E0028.5.mp4
-        S04E0028.mp4
-        S04E0029.mp4
-        S04E0030.mp4
-        S04E0031.mp4
-        S04E0032.mp4
-        S04E0033.mp4
-        S04E0034.mp4
-        S04E0035.mp4
-        S04E0036.mp4
-        S04E0037.mp4
-        S04E0038.mp4
-        S04E0039.mp4
+JoJo's Bizarre Adventure/
+├─ Season 1                    (26 episodes)
+├─ Season 1 - Re-Edited        (3 episodes)
+├─ Season 2                    (24 episodes)
+├─ Season 2 - Battle in Egypt  (24 episodes)
+└─ Season 3-4                  (78+ episodes)
+```
+
+Note: Some seasons have episodes with decimal variants (e.g., S04E0013.5)
+
+</details>
+
+<details>
+<summary><b>Laid-Back Camp</b></summary>
+
+```
+Laid-Back Camp/
+├─ Laid-Back Camp Movie
+├─ Season 1            (12 episodes)
+├─ Season 2            (13 episodes)
+└─ Season 3            (13 regular + 3 variants)
 ```
 
 </details>
 
 <details>
-  <summary>Laid-Back Camp</summary>
+<summary><b>Rurouni Kenshin</b></summary>
 
 ```
-├───Laid-Back Camp Movie
-│       Laid-Back Camp Movie.mp4
-│
-├───Season 1
-│       S01E0001.mp4
-│       S01E0002.mp4
-│       S01E0003.mp4
-│       S01E0004.mp4
-│       S01E0005.mp4
-│       S01E0006.mp4
-│       S01E0007.mp4
-│       S01E0008.mp4
-│       S01E0009.mp4
-│       S01E0010.mp4
-│       S01E0011.mp4
-│       S01E0012.mp4
-│
-├───Season 2
-│       S02E0001.mp4
-│       S02E0002.mp4
-│       S02E0003.mp4
-│       S02E0004.mp4
-│       S02E0005.mp4
-│       S02E0006.mp4
-│       S02E0007.mp4
-│       S02E0008.mp4
-│       S02E0009.mp4
-│       S02E0010.mp4
-│       S02E0011.mp4
-│       S02E0012.mp4
-│       S02E0013.mp4
-│
-└───Season 3
-        S03E0001.mp4
-        S03E0002.mp4
-        S03E0003.mp4
-        S03E0004.mp4
-        S03E0005.mp4
-        S03E0006.mp4
-        S03E0007.mp4
-        S03E0008.mp4
-        S03E0009.mp4
-        S03E0010.mp4
-        S03E0011.mp4
-        S03E0012.mp4
-        S03E13A.mp4
-        S03E13B.mp4
-        S03E13C.mp4
+Rurouni Kenshin/
+├─ Season 1            (24 episodes)
+└─ Season 2            (7 episodes)
 ```
 
 </details>
 
 <details>
-  <summary>Rurouni Kenshin</summary>
+<summary><b>That Time I Got Reincarnated As A Slime</b></summary>
 
 ```
-├───Season 1
-│       S01E0001.mp4
-│       S01E0002.mp4
-│       S01E0003.mp4
-│       S01E0004.mp4
-│       S01E0005.mp4
-│       S01E0006.mp4
-│       S01E0007.mp4
-│       S01E0008.mp4
-│       S01E0009.mp4
-│       S01E0010.mp4
-│       S01E0011.mp4
-│       S01E0012.mp4
-│       S01E0013.mp4
-│       S01E0014.mp4
-│       S01E0015.mp4
-│       S01E0016.mp4
-│       S01E0017.mp4
-│       S01E0018.mp4
-│       S01E0019.mp4
-│       S01E0020.mp4
-│       S01E0021.mp4
-│       S01E0022.mp4
-│       S01E0023.mp4
-│       S01E0024.mp4
-│
-└───Season 2
-        S02E0025.mp4
-        S02E0026.mp4
-        S02E0027.mp4
-        S02E0028.mp4
-        S02E0029.mp4
-        S02E0030.mp4
-        S02E0031.mp4
+That Time I Got Reincarnated As A Slime/
+├─ Season 1                    (25 episodes)
+├─ Season 2                    (25 episodes)
+├─ Season 3                    (25 episodes)
+├─ OAD                         (5 episodes)
+├─ Movie Scarlet Bond
+└─ Visions of Coleus           (3 episodes)
 ```
 
 </details>
 
 <details>
-  <summary>That Time I Got Reincarnated As A Slime</summary>
+<summary><b>Attack on Titan</b></summary>
 
 ```
-├───Season 1
-│       S01E0001.mp4
-│       S01E0002.mp4
-│       S01E0003.mp4
-│       S01E0004.mp4
-│       S01E0005.mp4
-│       S01E0006.mp4
-│       S01E0007.mp4
-│       S01E0008.mp4
-│       S01E0009.mp4
-│       S01E0010.mp4
-│       S01E0011.mp4
-│       S01E0012.mp4
-│       S01E0013.mp4
-│       S01E0014.mp4
-│       S01E0015.mp4
-│       S01E0016.mp4
-│       S01E0017.mp4
-│       S01E0018.mp4
-│       S01E0019.mp4
-│       S01E0020.mp4
-│       S01E0021.mp4
-│       S01E0022.mp4
-│       S01E0023.mp4
-│       S01E0024.5.mp4
-│       S01E0024.mp4
-│
-├───Season 2
-│       S02E0024.9.mp4
-│       S02E0025.mp4
-│       S02E0026.mp4
-│       S02E0027.mp4
-│       S02E0028.mp4
-│       S02E0029.mp4
-│       S02E0030.mp4
-│       S02E0031.mp4
-│       S02E0032.mp4
-│       S02E0033.mp4
-│       S02E0034.mp4
-│       S02E0035.mp4
-│       S02E0036.5.mp4
-│       S02E0036.mp4
-│       S02E0037.mp4
-│       S02E0038.mp4
-│       S02E0039.mp4
-│       S02E0040.mp4
-│       S02E0041.mp4
-│       S02E0042.mp4
-│       S02E0043.mp4
-│       S02E0044.mp4
-│       S02E0045.mp4
-│       S02E0046.mp4
-│       S02E0047.mp4
-│       S02E0048.mp4
-│
-├───Season 3
-│       S03E0048.5.mp4
-│       S03E0049.mp4
-│       S03E0050.mp4
-│       S03E0051.mp4
-│       S03E0052.mp4
-│       S03E0053.mp4
-│       S03E0054.mp4
-│       S03E0055.mp4
-│       S03E0056.mp4
-│       S03E0057.mp4
-│       S03E0058.mp4
-│       S03E0059.mp4
-│       S03E0060.mp4
-│       S03E0061.mp4
-│       S03E0062.mp4
-│       S03E0063.mp4
-│       S03E0064.mp4
-│       S03E0065.5.mp4
-│       S03E0065.mp4
-│       S03E0066.mp4
-│       S03E0067.mp4
-│       S03E0068.mp4
-│       S03E0069.mp4
-│       S03E0070.mp4
-│       S03E0071.mp4
-│       S03E0072.mp4
-│
-├───That Time I Got Reincarnated as a Slime OAD
-│       E01.mp4
-│       E02.mp4
-│       E03.mp4
-│       E04.mp4
-│       E05.mp4
-│
-├───That Time I Got Reincarnated as a Slime the Movie Scarlet Bond
-│       That Time I Got Reincarnated as a Slime the Movie Scarlet Bond.mp4
-│
-└───That Time I Got Reincarnated as a Slime Visions of Coleus
-        E01.mp4
-        E02.mp4
-        E03.mp4
+Attack on Titan/
+├─ Attack on Titan OADs       (8 episodes)
+├─ Season 2                   (12 episodes)
+├─ Season 3                   (22 episodes)
+└─ Season 4                   (87+ episodes including specials)
 ```
 
 </details>
 
-<details>
-  <summary>Attack on Titan</summary>
+---
 
-```
-├───Attack on Titan OADs
-│       E01.mp4
-│       E02.mp4
-│       E03.mp4
-│       E04.mp4
-│       E05.mp4
-│       E06.mp4
-│       E07.mp4
-│       E08.mp4
-│
-├───Season 2
-│       S02E0026.mp4
-│       S02E0027.mp4
-│       S02E0028.mp4
-│       S02E0029.mp4
-│       S02E0030.mp4
-│       S02E0031.mp4
-│       S02E0032.mp4
-│       S02E0033.mp4
-│       S02E0034.mp4
-│       S02E0035.mp4
-│       S02E0036.mp4
-│       S02E0037.mp4
-│
-├───Season 3
-│       S03E0038.mp4
-│       S03E0039.mp4
-│       S03E0040.mp4
-│       S03E0041.mp4
-│       S03E0042.mp4
-│       S03E0043.mp4
-│       S03E0044.mp4
-│       S03E0045.mp4
-│       S03E0046.mp4
-│       S03E0047.mp4
-│       S03E0048.mp4
-│       S03E0049.mp4
-│       S03E0050.mp4
-│       S03E0051.mp4
-│       S03E0052.mp4
-│       S03E0053.mp4
-│       S03E0054.mp4
-│       S03E0055.mp4
-│       S03E0056.mp4
-│       S03E0057.mp4
-│       S03E0058.mp4
-│       S03E0059.mp4
-│
-└───Season 4
-        S04E-SP1.mp4
-        S04E-SP2.mp4
-        S04E0060.mp4
-        S04E0061.mp4
-        S04E0062.mp4
-        S04E0063.mp4
-        S04E0064.mp4
-        S04E0065.mp4
-        S04E0066.mp4
-        S04E0067.mp4
-        S04E0068.mp4
-        S04E0069.mp4
-        S04E0070.mp4
-        S04E0071.mp4
-        S04E0072.mp4
-        S04E0073.mp4
-        S04E0074.mp4
-        S04E0075.mp4
-        S04E0076.mp4
-        S04E0077.mp4
-        S04E0078.mp4
-        S04E0079.mp4
-        S04E0080.mp4
-        S04E0081.mp4
-        S04E0082.mp4
-        S04E0083.mp4
-        S04E0084.mp4
-        S04E0085.mp4
-        S04E0086.mp4
-        S04E0087.mp4
-```
+### Manual Crunchyroll ID Assignment
 
-</details>
+If the plugin can't find a series via search, you can manually assign a Crunchyroll ID:
 
-### Select Metadata Language
-The plugin uses the metadata language that was set in Jellyfin. Refer to the Jellyfin documentation.
+#### Option 1: Via Jellyfin UI
 
-### Add a Crunchyroll reference/id manually
-If a series could not be found via crunchyroll search, but you find it via Google or other search engine <br>
-then you can add it manually by editing the metadata of the series.
-1. Go and find the anime on Crunchyroll.
-2. Copy the Crunchyroll id from the url `https://www.crunchyroll.com/series/<id>/one-piece`
-3. Edit the metadata of your anime in the jellyfin ui
-4. You will find a textarea, in the "External IDs" section with the name "Crunchyroll Series Id" (it's the first one, if there are two)
-5. Paste the id into the textarea and save
+1. Find the anime on [Crunchyroll.com](https://www.crunchyroll.com)
+2. Copy the series ID from the URL: `https://www.crunchyroll.com/series/**<id>**/anime-name`
+3. In Jellyfin, edit the series metadata
+4. Locate the **"Crunchyroll Series Id"** field in the "External IDs" section
+5. Paste the ID and save
 6. Run a library scan
 
-Or extend the folder name of your series with `[CrunchyrollId-<id>]` like tvdbid <br> https://jellyfin.org/docs/general/server/media/shows/
+#### Option 2: Via Folder Name
 
-## Build
+Add the ID to your series folder name using the standard Jellyfin format:
 
-Install the dotnet 8 sdk and run `dotnet build` 
-(To copy the binaries automatically to the local plugins folder add the following code as post-build-event (windows only)
 ```
+My Anime Series [CrunchyrollId-g6z9m1k3w]
+```
+
+See [Jellyfin Media Structure Documentation](https://jellyfin.org/docs/general/server/media/shows/) for more details.
+
+---
+
+## Build & Development
+
+### Prerequisites
+
+- .NET 10 SDK
+
+### Building
+
+```bash
+dotnet build
+```
+
+### Debug Setup (Windows)
+
+Add this as a post-build event to automatically copy binaries to your local Jellyfin plugins folder:
+
+```batch
 if $(ConfigurationName) == Debug (
- xcopy /y "$(TargetDir)*.*" "%localAppData%/jellyfin/plugins/Crunchyroll"
+  xcopy /y "$(TargetDir)*.*" "%localAppData%/jellyfin/plugins/Crunchyroll"
 )
 ```
 
-E2E tests:
-Add this as post build event, to copy automatically changes from source code to the docker image
-```
+### E2E Testing
+
+For Docker-based E2E tests, add this post-build event to sync code changes:
+
+```batch
 rd /s /q "$(TargetDir)plugin"
 mkdir $(TargetDir)plugin
 xcopy /y "$(SolutionDir)src/Jellyfin.Plugin.Crunchyroll/$(OutDir)*.*" $(TargetDir)plugin
 ```
 
-#### Adding Code First EF-Migrations
-1. Remove `<IncludeAssets>compile</IncludeAssets>` from the Entity Framework Nuget Packages & `Jellyfin.Controller & Jellyfin.Model` in `Jellyfin.Plugin.Crunchyroll.csproj` <br>
-Or just remove the nuget packages with a package manager and re-add them. (ef-tool needs the runtime binaries) <br>
-2. Run `dotnet ef migrations add <migrationname>` in `/src/Jellyfin.Plugin.Crunchyroll`
-3. Add `<IncludeAssets>compile</IncludeAssets>` back to the Entity Framework Nuget Packages, otherwise running this plugin on `Jellyfin.Server` will result in errors/dependency conflicts 
+### Entity Framework Migrations
+
+To add new EF Code First migrations:
+
+1. **Remove build-only assets** from `Jellyfin.Plugin.Crunchyroll.csproj`:
+   - Remove `<IncludeAssets>compile</IncludeAssets>` from EF NuGet packages
+   - Remove the same from `Jellyfin.Controller` and `Jellyfin.Model` packages
+   - Alternatively, remove and re-add the packages via package manager (required for EF tooling)
+
+2. **Run migration command**:
+   ```bash
+   cd src/Jellyfin.Plugin.Crunchyroll
+   dotnet ef migrations add <MigrationName>
+   ```
+
+3. **Restore build-only assets** - Re-add `<IncludeAssets>compile</IncludeAssets>` to prevent dependency conflicts when running on Jellyfin.Server 
