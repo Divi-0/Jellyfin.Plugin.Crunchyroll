@@ -36,7 +36,7 @@ public class CrunchyrollExternalSeasonId : IExternalId
 
     public string Key => CrunchyrollExternalKeys.SeasonId;
     
-    public ExternalIdMediaType? Type => ExternalIdMediaType.Series;
+    public ExternalIdMediaType? Type => ExternalIdMediaType.Season;
     
     public string? UrlFormatString => string.Empty;
     
