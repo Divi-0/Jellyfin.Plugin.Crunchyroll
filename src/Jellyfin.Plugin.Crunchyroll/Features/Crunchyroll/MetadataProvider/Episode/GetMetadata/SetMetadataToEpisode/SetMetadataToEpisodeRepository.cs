@@ -11,6 +11,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.SetMetadataToEpisode;
 
+public interface ISetMetadataToEpisodeRepository
+{
+    public Task<Result<Domain.Entities.Episode?>> GetEpisodeAsync(CrunchyrollId episodeId, CultureInfo language,
+        CancellationToken cancellationToken);
+}
+
 public class SetMetadataToEpisodeRepository : ISetMetadataToEpisodeRepository
 {
     private readonly CrunchyrollDbContext _dbContext;

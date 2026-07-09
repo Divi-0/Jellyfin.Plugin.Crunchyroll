@@ -7,10 +7,15 @@ using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
-using MediaBrowser.Controller.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.SetMetadataToEpisode;
+
+public interface ISetMetadataToEpisodeService
+{
+    public Task<Result<MediaBrowser.Controller.Entities.TV.Episode>> SetMetadataToEpisodeAsync(CrunchyrollId episodeId,
+        int? currentIndexNumber, int? parentIndexNumber, CultureInfo language, CancellationToken cancellationToken);
+}
 
 public partial class SetMetadataToEpisodeService : ISetMetadataToEpisodeService
 {
@@ -68,6 +73,11 @@ public partial class SetMetadataToEpisodeService : ISetMetadataToEpisodeService
         {
             return;
         }
+
+        if (HasSpecialSeasonAsParent(parentIndexNumber))
+        {
+            return;
+        }
         
         if (string.IsNullOrWhiteSpace(crunchyrollEpisode.EpisodeNumber))
         {
@@ -120,6 +130,9 @@ public partial class SetMetadataToEpisodeService : ISetMetadataToEpisodeService
         
         episode.Overview = crunchyrollEpisode.Description;
     }
+
+    private static bool HasSpecialSeasonAsParent(int? parentIndexNumber)
+        => parentIndexNumber is null or 0;
     
     [GeneratedRegex(@"\d+")]
     private static partial Regex EpisodeNumberRegex();

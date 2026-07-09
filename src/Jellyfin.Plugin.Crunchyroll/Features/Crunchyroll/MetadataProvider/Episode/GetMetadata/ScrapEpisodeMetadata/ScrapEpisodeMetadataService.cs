@@ -17,6 +17,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata;
 
+public interface IScrapEpisodeMetadataService
+{
+    public Task<Result> ScrapEpisodeMetadataAsync(CrunchyrollId? seasonId, CrunchyrollId? episodeId, CultureInfo language, 
+        CancellationToken cancellationToken);
+}
+
 public class ScrapEpisodeMetadataService : IScrapEpisodeMetadataService
 {
     private readonly IScrapEpisodeCrunchyrollClient _client;
@@ -45,9 +51,20 @@ public class ScrapEpisodeMetadataService : IScrapEpisodeMetadataService
         _config = config;
     }
     
-    public async Task<Result> ScrapEpisodeMetadataAsync(CrunchyrollId seasonId, CrunchyrollId? episodeId, 
+    public async Task<Result> ScrapEpisodeMetadataAsync(CrunchyrollId? seasonId, CrunchyrollId? episodeId, 
         CultureInfo language, CancellationToken cancellationToken)
     {
+        if (seasonId is null)
+        {
+            if (episodeId is not null)
+            {
+                return await HandleMissingEpisode(episodeId, language, cancellationToken);
+            }
+            
+            _logger.LogError("No seasonId and no episodeId provided");
+            return Result.Fail(ErrorCodes.Internal);
+        }
+        
         if (!await _scrapLockRepository.AddLockAsync(seasonId))
         {
             _logger.LogDebug("Episode metadata for season {SeasonId} is up to date, skipping...", seasonId);

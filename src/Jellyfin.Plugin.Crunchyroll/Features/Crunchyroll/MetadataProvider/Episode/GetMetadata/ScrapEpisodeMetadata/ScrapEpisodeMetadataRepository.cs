@@ -11,6 +11,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata;
 
+public interface IScrapEpisodeMetadataRepository : ISaveChanges
+{
+    public Task<Result<Domain.Entities.Season?>> GetSeasonAsync(CrunchyrollId seasonId, CultureInfo language,
+        CancellationToken cancellationToken);
+
+    public void UpdateSeason(Domain.Entities.Season season);
+}
+
 public class ScrapEpisodeMetadataRepository : ScrapBaseRepository, IScrapEpisodeMetadataRepository
 {
     public ScrapEpisodeMetadataRepository(CrunchyrollDbContext dbContext,

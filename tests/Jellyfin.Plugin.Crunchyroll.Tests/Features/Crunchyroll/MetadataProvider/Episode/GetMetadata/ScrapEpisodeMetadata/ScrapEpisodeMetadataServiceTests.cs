@@ -137,6 +137,61 @@ public class ScrapEpisodeMetadataServiceTests
     }
 
     [Fact]
+    public async Task ReturnsSuccessAndCallsScrapMissingEpisode_WhenSuccessful_GivenEpisodeIdButNoSeasonId()
+    {
+        //Arrange
+        var language = new CultureInfo("en-US");
+        var episodeId = CrunchyrollIdFaker.Generate();
+        
+        _loginService
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
+        var crunchyrollEpisodes = _fixture.Create<CrunchyrollEpisodesResponse>();
+        _client
+            .GetEpisodesAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(crunchyrollEpisodes);
+
+        _repository
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+        
+        _scrapMissingEpisodeService
+            .ScrapMissingEpisodeAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        //Act
+        var result = await _sut.ScrapEpisodeMetadataAsync(seasonId: null, episodeId, language, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+
+        await _scrapMissingEpisodeService
+            .Received(1)
+            .ScrapMissingEpisodeAsync(episodeId, language, Arg.Any<CancellationToken>());
+        
+        await _loginService
+            .DidNotReceive()
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
+
+        await _client
+            .DidNotReceive()
+            .GetEpisodesAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+
+        await _repository
+            .DidNotReceive()
+            .GetSeasonAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+
+        _repository
+            .DidNotReceive()
+            .UpdateSeason(Arg.Any<Domain.Entities.Season>());
+
+        await _repository
+            .DidNotReceive()
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task ReturnsSuccessAndStoresEpisodes_WhenWhenLastUpdatedAtThresholdIsNotReached_GivenSeasonWithoutEpisodes()
     {
         //Arrange
@@ -352,6 +407,40 @@ public class ScrapEpisodeMetadataServiceTests
         await _repository
             .DidNotReceive()
             .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
+    public async Task ReturnsFailed_WhenNoSeasonIdAndNoEpisodeIdGiven_GivenNoEpisodeIdAndNoSeasonId()
+    {
+        //Arrange
+        var language = new CultureInfo("en-US");
+        
+        //Act
+        var result = await _sut.ScrapEpisodeMetadataAsync(seasonId: null, episodeId: null, language, CancellationToken.None);
+
+        //Assert
+        result.IsFailed.Should().BeTrue();
+        result.Errors.Should().Contain(x => x.Message == ErrorCodes.Internal);
+        
+        await _repository
+            .DidNotReceive()
+            .GetSeasonAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+        
+        await _loginService
+            .DidNotReceive()
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>());
+
+        await _client
+            .DidNotReceive()
+            .GetEpisodesAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+
+        await _repository
+            .DidNotReceive()
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+        
+        await _scrapMissingEpisodeService
+            .DidNotReceive()
+            .ScrapMissingEpisodeAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
     }
     
     [Fact]

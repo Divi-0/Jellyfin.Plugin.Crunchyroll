@@ -61,6 +61,12 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
             _ = await _scrapEpisodeMetadataService.ScrapEpisodeMetadataAsync(seasonId, crunchyrollEpisodeId,
                 language, cancellationToken);
         }
+        else if(!string.IsNullOrWhiteSpace(episodeId))
+        {
+            //episodes inside special seasons have no crunchyroll seasonId set in jellyfin
+            _ = await _scrapEpisodeMetadataService.ScrapEpisodeMetadataAsync(seasonId: null, episodeId,
+                language, cancellationToken);
+        }
 
         if (string.IsNullOrWhiteSpace(episodeId))
         {
@@ -127,6 +133,6 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
 
     private static bool IsEpisodeInsideOfSpecialsSeason(EpisodeInfo info)
     {
-        return info.ParentIndexNumber == 0;
+        return info.ParentIndexNumber is null or 0 ;
     }
 }

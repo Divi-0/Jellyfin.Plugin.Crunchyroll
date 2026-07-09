@@ -1,5 +1,4 @@
 using System.Globalization;
-using FluentAssertions;
 using FluentResults;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
@@ -132,6 +131,52 @@ public class SetMetadataToEpisodeServiceTests
         episodeWithNewMetadata.IndexNumber!.Should().Be(expectedIndexNumber == 0 
             ? int.Parse(crunchyrollEpisode.EpisodeNumber) 
             : expectedIndexNumber);
+        episodeWithNewMetadata.AirsBeforeEpisodeNumber.Should().BeNull();
+        
+        await _repository
+            .Received(1)
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, language, 
+                Arg.Any<CancellationToken>());
+    }
+    
+    [Theory]
+    [InlineData("", 0)]
+    [InlineData("432", 432)]
+    [InlineData("FMI1", 1)]
+    [InlineData("FMI2", 2)]
+    public async Task DoesNotSetIndexNumberAndNotTitleWithEpisodeNumber_WhenParentIndexNumberIsNull_GivenEpisodeId(
+        string episodeIdentifier, int? expectedIndexNumber)
+    {
+        //Arrange
+        var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate();
+        var language = new CultureInfo("en-US");
+        var currentIndexNumber = (int?)null;
+        var parentIndexNumber = (int?)null;
+        
+        if (!string.IsNullOrWhiteSpace(episodeIdentifier))
+        {
+            crunchyrollEpisode = crunchyrollEpisode with
+            {
+                EpisodeNumber = episodeIdentifier,
+                SequenceNumber = Convert.ToDouble(expectedIndexNumber)
+            };
+        }
+        
+        _repository
+            .GetEpisodeAsync(crunchyrollEpisode.CrunchyrollId, Arg.Any<CultureInfo>(), 
+                Arg.Any<CancellationToken>())
+            .Returns(crunchyrollEpisode);
+
+        //Act
+        var setMetadataResult = await _sut.SetMetadataToEpisodeAsync(crunchyrollEpisode.CrunchyrollId, 
+            currentIndexNumber, parentIndexNumber, language, CancellationToken.None);
+
+        //Assert
+        setMetadataResult.IsSuccess.Should().BeTrue();
+        var episodeWithNewMetadata = setMetadataResult.Value;
+        episodeWithNewMetadata.Name.Should().Be($"{crunchyrollEpisode.Title}");
+        episodeWithNewMetadata.Overview.Should().Be(crunchyrollEpisode.Description);
+        episodeWithNewMetadata.IndexNumber.Should().BeNull();
         episodeWithNewMetadata.AirsBeforeEpisodeNumber.Should().BeNull();
         
         await _repository

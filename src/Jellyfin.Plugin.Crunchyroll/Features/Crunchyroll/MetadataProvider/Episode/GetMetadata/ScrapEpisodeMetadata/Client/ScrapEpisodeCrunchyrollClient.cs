@@ -13,6 +13,14 @@ using Microsoft.Net.Http.Headers;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.Client;
 
+public interface IScrapEpisodeCrunchyrollClient
+{
+    public Task<Result<CrunchyrollEpisodesResponse>> GetEpisodesAsync(string seasonId, CultureInfo language, 
+        CancellationToken cancellationToken);
+    public Task<Result<CrunchyrollEpisodeDataItem>> GetEpisodeAsync(string episodeId, CultureInfo language, 
+        CancellationToken cancellationToken);
+}
+
 public sealed class ScrapEpisodeCrunchyrollClient : IScrapEpisodeCrunchyrollClient
 {
     private readonly HttpClient _httpClient;
@@ -120,7 +128,7 @@ public sealed class ScrapEpisodeCrunchyrollClient : IScrapEpisodeCrunchyrollClie
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError("request for episode with id {EpisodeOd} was not successful. StatusCode: {StatusCode}", 
+            _logger.LogError("request for episode with id {EpisodeId} was not successful. StatusCode: {StatusCode}", 
                 episodeId, response.StatusCode);
             return Result.Fail(EpisodesErrorCodes.RequestFailed);
         }
