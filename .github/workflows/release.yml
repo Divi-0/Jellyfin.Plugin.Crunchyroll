@@ -28,7 +28,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 9.0.x
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
@@ -42,7 +42,7 @@ jobs:
       - name: Create artifact
         id: artifact
         run: |
-          zip -r -j Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip src/Jellyfin.Plugin.Crunchyroll/bin/Release/net8.0/*
+          zip -r -j Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip src/Jellyfin.Plugin.Crunchyroll/bin/Release/net9.0/*
           MD5HASH=($(md5sum Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip))
           echo checksum=${MD5HASH} >> $GITHUB_OUTPUT
 

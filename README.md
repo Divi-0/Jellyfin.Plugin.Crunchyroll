@@ -2117,14 +2117,14 @@ Season 1/
         S04E0084.mp4
         S04E0085.mp4
         S04E0086.mp4
-        S04E0087.mp4
-```
-
-</details>
-
----
-
-### Manual Crunchyroll ID Assignment
+         S04E0087.mp4
+ ```
+ 
+ </details>
+ 
+ ---
+ 
+ ### Manual Crunchyroll ID Assignment
 
 If the plugin can't find a series via search, you can manually assign a Crunchyroll ID:
 
