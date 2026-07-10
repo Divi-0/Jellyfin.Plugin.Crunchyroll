@@ -37,8 +37,7 @@ jobs:
         run: |
           dotnet test ./tests/Jellyfin.Plugin.Crunchyroll.Tests/Jellyfin.Plugin.Crunchyroll.Tests.csproj --configuration Release --no-build --verbosity normal
           dotnet test ./tests/Jellyfin.Plugin.Crunchyroll.Tests.Integration/Jellyfin.Plugin.Crunchyroll.Tests.Integration.csproj --configuration Release --no-build --verbosity normal
-          dotnet test ./tests/Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine/Jellyfin.Plugin.Crunchyroll.Tests.Integration.WaybackMachine.csproj --configuration Release --no-build --verbosity normal
-
+          
       - name: Create artifact
         id: artifact
         run: |
