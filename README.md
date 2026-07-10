@@ -140,7 +140,7 @@ Configuration values to set in the Jellyfin plugin configuration page:
 When running in the same docker network, docker container names can be used, if not host.docker.internal can be an option as domain/hostname
 Without docker compose: FlareSolverrUrl: http://localhost:8191/v1, FlareSolverrUrl: host.docker.internal:8080
 
-After configuring those values in `Plugins → My Plugins → Crunchyroll` press Save, restart the server and run a scan.
+After configuring those values in `Plugins → My Plugins → Crunchyroll` press Save, restart the server, test the connection and run a scan.
 
 ---
 
