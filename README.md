@@ -210,7 +210,7 @@ Season 1/
 ### Quick Structure Examples
 
 <details>
-<summary><b>One Piece (Condensed)</b></summary>
+  <summary>One Piece</summary>
 
 ```
 └───One Piece
@@ -1394,827 +1394,6 @@ Season 1/
             S9E0746.mp4
 ```
 
-
-</details>
-
-<details>
-<summary><b>Sword Art Online</b></summary>
-
-    │       S13E1022.mp4
-    │       S13E1023.mp4
-    │       S13E1024.mp4
-    │       S13E1025.mp4
-    │       S13E1026.mp4
-    │       S13E1027.mp4
-    │       S13E1028.mp4
-    │       S13E1029.mp4
-    │       S13E1030.mp4
-    │       S13E1031.mp4
-    │       S13E1032.mp4
-    │       S13E1033.mp4
-    │       S13E1034.mp4
-    │       S13E1035.mp4
-    │       S13E1036.mp4
-    │       S13E1037.mp4
-    │       S13E1038.mp4
-    │       S13E1039.mp4
-    │       S13E1040.mp4
-    │       S13E1041.mp4
-    │       S13E1042.mp4
-    │       S13E1043.mp4
-    │       S13E1044.mp4
-    │       S13E1045.mp4
-    │       S13E1046.mp4
-    │       S13E1047.mp4
-    │       S13E1048.mp4
-    │       S13E1049.mp4
-    │       S13E1050.mp4
-    │       S13E1051.mp4
-    │       S13E1052.mp4
-    │       S13E1053.mp4
-    │       S13E1054.mp4
-    │       S13E1055.mp4
-    │       S13E1056.mp4
-    │       S13E1057.mp4
-    │       S13E1058.mp4
-    │       S13E1059.mp4
-    │       S13E1060.mp4
-    │       S13E1061.mp4
-    │       S13E1062.mp4
-    │       S13E1063.mp4
-    │       S13E1064.mp4
-    │       S13E1065.mp4
-    │       S13E1066.mp4
-    │       S13E1067.mp4
-    │       S13E1068.mp4
-    │       S13E1069.mp4
-    │       S13E1070.mp4
-    │       S13E1071.mp4
-    │       S13E1072.mp4
-    │       S13E1073.mp4
-    │       S13E1074.mp4
-    │       S13E1075.mp4
-    │       S13E1076.mp4
-    │       S13E1077.mp4
-    │       S13E1078.mp4
-    │       S13E1079.mp4
-    │       S13E1080.mp4
-    │       S13E1081.mp4
-    │       S13E1082.mp4
-    │       S13E1083.mp4
-    │       S13E1084.mp4
-    │       S13E1085.mp4
-    │       S13E1086.mp4
-    │       S13E1087.mp4
-    │       S13E1088.mp4
-    │
-    ├───Season 14
-    │       S14E-SP12 - A Project to Fully Enjoy! ‘Surgeon of Death’ Trafalgar Law.mp4
-    │       S14E-SP13 - The Log of the Rivalry! The Straw Hats vs. Cipher Pol.mp4
-    │       S14E-SP14 - Making History! The Turbulent Old and New Four Emperors!.mp4
-    │       S14E-SP15 - The Log of the Turbulent Revolution! The Revolutionary Army Maneuvers in Secret!.mp4
-    │       S14E-SP16 - Unwavering Justice! The Navy's Proud Log!.mp4
-    │       S14E1089.mp4
-    │       S14E1090.mp4
-    │       S14E1091.mp4
-    │       S14E1092.mp4
-    │       S14E1093.mp4
-    │       S14E1094.mp4
-    │       S14E1095.mp4
-    │       S14E1096.mp4
-    │       S14E1097.mp4
-    │       S14E1098.mp4
-    │       S14E1099.mp4
-    │       S14E1100.mp4
-    │       S14E1101.mp4
-    │       S14E1102.mp4
-    │       S14E1103.mp4
-    │       S14E1104.mp4
-    │       S14E1105.mp4
-    │       S14E1106.mp4
-    │       S14E1107.mp4
-    │       S14E1108.mp4
-    │       S14E1109.mp4
-    │       S14E1110.mp4
-    │       S14E1111.mp4
-    │       S14E1112.mp4
-    │       S14E1113.mp4
-    │       S14E1114.mp4
-    │       S14E1115.mp4
-    │       S14E1116.mp4
-    │       S14E1117.mp4
-    │       S14E1118.mp4
-    │       S14E1119.mp4
-    │       S14E1120.mp4
-    │       S14E1121.mp4
-    │       S14E1122.mp4
-    │       S14E1123.mp4
-    │       S14E1124.mp4
-    │       S14E1125.mp4
-    │       S14E1126.mp4
-    │       S14E1127.mp4
-    │
-    ├───Season 2
-    │       S2E0062.mp4
-    │       S2E0063.mp4
-    │       S2E0064.mp4
-    │       S2E0065.mp4
-    │       S2E0066.mp4
-    │       S2E0067.mp4
-    │       S2E0068.mp4
-    │       S2E0069.mp4
-    │       S2E0070.mp4
-    │       S2E0071.mp4
-    │       S2E0072.mp4
-    │       S2E0073.mp4
-    │       S2E0074.mp4
-    │       S2E0075.mp4
-    │       S2E0076.mp4
-    │       S2E0077.mp4
-    │       S2E0078.mp4
-    │       S2E0079.mp4
-    │       S2E0080.mp4
-    │       S2E0081.mp4
-    │       S2E0082.mp4
-    │       S2E0083.mp4
-    │       S2E0084.mp4
-    │       S2E0085.mp4
-    │       S2E0086.mp4
-    │       S2E0087.mp4
-    │       S2E0088.mp4
-    │       S2E0089.mp4
-    │       S2E0090.mp4
-    │       S2E0091.mp4
-    │       S2E0092.mp4
-    │       S2E0093.mp4
-    │       S2E0094.mp4
-    │       S2E0095.mp4
-    │       S2E0096.mp4
-    │       S2E0097.mp4
-    │       S2E0098.mp4
-    │       S2E0099.mp4
-    │       S2E0100.mp4
-    │       S2E0101.mp4
-    │       S2E0102.mp4
-    │       S2E0103.mp4
-    │       S2E0104.mp4
-    │       S2E0105.mp4
-    │       S2E0106.mp4
-    │       S2E0107.mp4
-    │       S2E0108.mp4
-    │       S2E0109.mp4
-    │       S2E0110.mp4
-    │       S2E0111.mp4
-    │       S2E0112.mp4
-    │       S2E0113.mp4
-    │       S2E0114.mp4
-    │       S2E0115.mp4
-    │       S2E0116.mp4
-    │       S2E0117.mp4
-    │       S2E0118.mp4
-    │       S2E0119.mp4
-    │       S2E0120.mp4
-    │       S2E0121.mp4
-    │       S2E0122.mp4
-    │       S2E0123.mp4
-    │       S2E0124.mp4
-    │       S2E0125.mp4
-    │       S2E0126.mp4
-    │       S2E0127.mp4
-    │       S2E0128.mp4
-    │       S2E0129.mp4
-    │       S2E0130.mp4
-    │       S2E0131.mp4
-    │       S2E0132.mp4
-    │       S2E0133.mp4
-    │       S2E0134.mp4
-    │       S2E0135.mp4
-    │
-    ├───Season 3
-    │       S3E0136.mp4
-    │       S3E0137.mp4
-    │       S3E0138.mp4
-    │       S3E0139.mp4
-    │       S3E0140.mp4
-    │       S3E0141.mp4
-    │       S3E0142.mp4
-    │       S3E0143.mp4
-    │       S3E0144.mp4
-    │       S3E0145.mp4
-    │       S3E0146.mp4
-    │       S3E0147.mp4
-    │       S3E0148.mp4
-    │       S3E0149.mp4
-    │       S3E0150.mp4
-    │       S3E0151.mp4
-    │       S3E0152.mp4
-    │       S3E0153.mp4
-    │       S3E0154.mp4
-    │       S3E0155.mp4
-    │       S3E0156.mp4
-    │       S3E0157.mp4
-    │       S3E0158.mp4
-    │       S3E0159.mp4
-    │       S3E0160.mp4
-    │       S3E0161.mp4
-    │       S3E0162.mp4
-    │       S3E0163.mp4
-    │       S3E0164.mp4
-    │       S3E0165.mp4
-    │       S3E0166.mp4
-    │       S3E0167.mp4
-    │       S3E0168.mp4
-    │       S3E0169.mp4
-    │       S3E0170.mp4
-    │       S3E0171.mp4
-    │       S3E0172.mp4
-    │       S3E0173.mp4
-    │       S3E0174.mp4
-    │       S3E0175.mp4
-    │       S3E0176.mp4
-    │       S3E0177.mp4
-    │       S3E0178.mp4
-    │       S3E0179.mp4
-    │       S3E0180.mp4
-    │       S3E0181.mp4
-    │       S3E0182.mp4
-    │       S3E0183.mp4
-    │       S3E0184.mp4
-    │       S3E0185.mp4
-    │       S3E0186.mp4
-    │       S3E0187.mp4
-    │       S3E0188.mp4
-    │       S3E0189.mp4
-    │       S3E0190.mp4
-    │       S3E0191.mp4
-    │       S3E0192.mp4
-    │       S3E0193.mp4
-    │       S3E0194.mp4
-    │       S3E0195.mp4
-    │       S3E0196.mp4
-    │       S3E0197.mp4
-    │       S3E0198.mp4
-    │       S3E0199.mp4
-    │       S3E0200.mp4
-    │       S3E0201.mp4
-    │       S3E0202.mp4
-    │       S3E0203.mp4
-    │       S3E0204.mp4
-    │       S3E0205.mp4
-    │       S3E0206.mp4
-    │
-    ├───Season 4
-    │       S4E0207.mp4
-    │       S4E0208.mp4
-    │       S4E0209.mp4
-    │       S4E0210.mp4
-    │       S4E0211.mp4
-    │       S4E0212.mp4
-    │       S4E0213.mp4
-    │       S4E0214.mp4
-    │       S4E0215.mp4
-    │       S4E0216.mp4
-    │       S4E0217.mp4
-    │       S4E0218.mp4
-    │       S4E0219.mp4
-    │       S4E0220.mp4
-    │       S4E0221.mp4
-    │       S4E0222.mp4
-    │       S4E0223.mp4
-    │       S4E0224.mp4
-    │       S4E0225.mp4
-    │       S4E0226.mp4
-    │       S4E0227.mp4
-    │       S4E0228.mp4
-    │       S4E0229.mp4
-    │       S4E0230.mp4
-    │       S4E0231.mp4
-    │       S4E0232.mp4
-    │       S4E0233.mp4
-    │       S4E0234.mp4
-    │       S4E0235.mp4
-    │       S4E0236.mp4
-    │       S4E0237.mp4
-    │       S4E0238.mp4
-    │       S4E0239.mp4
-    │       S4E0240.mp4
-    │       S4E0241.mp4
-    │       S4E0242.mp4
-    │       S4E0243.mp4
-    │       S4E0244.mp4
-    │       S4E0245.mp4
-    │       S4E0246.mp4
-    │       S4E0247.mp4
-    │       S4E0248.mp4
-    │       S4E0249.mp4
-    │       S4E0250.mp4
-    │       S4E0251.mp4
-    │       S4E0252.mp4
-    │       S4E0253.mp4
-    │       S4E0254.mp4
-    │       S4E0255.mp4
-    │       S4E0256.mp4
-    │       S4E0257.mp4
-    │       S4E0258.mp4
-    │       S4E0259.mp4
-    │       S4E0260.mp4
-    │       S4E0261.mp4
-    │       S4E0262.mp4
-    │       S4E0263.mp4
-    │       S4E0264.mp4
-    │       S4E0265.mp4
-    │       S4E0266.mp4
-    │       S4E0267.mp4
-    │       S4E0268.mp4
-    │       S4E0269.mp4
-    │       S4E0270.mp4
-    │       S4E0271.mp4
-    │       S4E0272.mp4
-    │       S4E0273.mp4
-    │       S4E0274.mp4
-    │       S4E0275.mp4
-    │       S4E0276.mp4
-    │       S4E0277.mp4
-    │       S4E0278.mp4
-    │       S4E0279.mp4
-    │       S4E0280.mp4
-    │       S4E0281.mp4
-    │       S4E0282.mp4
-    │       S4E0283.mp4
-    │       S4E0284.mp4
-    │       S4E0285.mp4
-    │       S4E0286.mp4
-    │       S4E0287.mp4
-    │       S4E0288.mp4
-    │       S4E0289.mp4
-    │       S4E0290.mp4
-    │       S4E0291.mp4
-    │       S4E0292.mp4
-    │       S4E0293.mp4
-    │       S4E0294.mp4
-    │       S4E0295.mp4
-    │       S4E0296.mp4
-    │       S4E0297.mp4
-    │       S4E0298.mp4
-    │       S4E0299.mp4
-    │       S4E0300.mp4
-    │       S4E0301.mp4
-    │       S4E0302.mp4
-    │       S4E0303.mp4
-    │       S4E0304.mp4
-    │       S4E0305.mp4
-    │       S4E0306.mp4
-    │       S4E0307.mp4
-    │       S4E0308.mp4
-    │       S4E0309.mp4
-    │       S4E0310.mp4
-    │       S4E0311.mp4
-    │       S4E0312.mp4
-    │       S4E0313.mp4
-    │       S4E0314.mp4
-    │       S4E0315.mp4
-    │       S4E0316.mp4
-    │       S4E0317.mp4
-    │       S4E0318.mp4
-    │       S4E0319.mp4
-    │       S4E0320.mp4
-    │       S4E0321.mp4
-    │       S4E0322.mp4
-    │       S4E0323.mp4
-    │       S4E0324.mp4
-    │       S4E0325.mp4
-    │
-    ├───Season 5
-    │       S5E0326.mp4
-    │       S5E0327.mp4
-    │       S5E0328.mp4
-    │       S5E0329.mp4
-    │       S5E0330.mp4
-    │       S5E0331.mp4
-    │       S5E0332.mp4
-    │       S5E0333.mp4
-    │       S5E0334.mp4
-    │       S5E0335.mp4
-    │       S5E0336.mp4
-    │       S5E0337.mp4
-    │       S5E0338.mp4
-    │       S5E0339.mp4
-    │       S5E0340.mp4
-    │       S5E0341.mp4
-    │       S5E0342.mp4
-    │       S5E0343.mp4
-    │       S5E0344.mp4
-    │       S5E0345.mp4
-    │       S5E0346.mp4
-    │       S5E0347.mp4
-    │       S5E0348.mp4
-    │       S5E0349.mp4
-    │       S5E0350.mp4
-    │       S5E0351.mp4
-    │       S5E0352.mp4
-    │       S5E0353.mp4
-    │       S5E0354.mp4
-    │       S5E0355.mp4
-    │       S5E0356.mp4
-    │       S5E0357.mp4
-    │       S5E0358.mp4
-    │       S5E0359.mp4
-    │       S5E0360.mp4
-    │       S5E0361.mp4
-    │       S5E0362.mp4
-    │       S5E0363.mp4
-    │       S5E0364.mp4
-    │       S5E0365.mp4
-    │       S5E0366.mp4
-    │       S5E0367.mp4
-    │       S5E0368.mp4
-    │       S5E0369.mp4
-    │       S5E0370.mp4
-    │       S5E0371.mp4
-    │       S5E0372.mp4
-    │       S5E0373.mp4
-    │       S5E0374.mp4
-    │       S5E0375.mp4
-    │       S5E0376.mp4
-    │       S5E0377.mp4
-    │       S5E0378.mp4
-    │       S5E0379.mp4
-    │       S5E0380.mp4
-    │       S5E0381.mp4
-    │       S5E0382.mp4
-    │       S5E0383.mp4
-    │       S5E0384.mp4
-    │
-    ├───Season 6
-    │       S6E0385.mp4
-    │       S6E0386.mp4
-    │       S6E0387.mp4
-    │       S6E0388.mp4
-    │       S6E0389.mp4
-    │       S6E0390.mp4
-    │       S6E0391.mp4
-    │       S6E0392.mp4
-    │       S6E0393.mp4
-    │       S6E0394.mp4
-    │       S6E0395.mp4
-    │       S6E0396.mp4
-    │       S6E0397.mp4
-    │       S6E0398.mp4
-    │       S6E0399.mp4
-    │       S6E0400.mp4
-    │       S6E0401.mp4
-    │       S6E0402.mp4
-    │       S6E0403.mp4
-    │       S6E0404.mp4
-    │       S6E0405.mp4
-    │       S6E0406.mp4
-    │       S6E0407.mp4
-    │       S6E0408.mp4
-    │       S6E0409.mp4
-    │       S6E0410.mp4
-    │       S6E0411.mp4
-    │       S6E0412.mp4
-    │       S6E0413.mp4
-    │       S6E0414.mp4
-    │       S6E0415.mp4
-    │       S6E0416.mp4
-    │       S6E0417.mp4
-    │       S6E0418.mp4
-    │       S6E0419.mp4
-    │       S6E0420.mp4
-    │       S6E0421.mp4
-    │       S6E0422.mp4
-    │       S6E0423.mp4
-    │       S6E0424.mp4
-    │       S6E0425.mp4
-    │       S6E0426.mp4
-    │       S6E0427.mp4
-    │       S6E0428.mp4
-    │       S6E0429.mp4
-    │       S6E0430.mp4
-    │       S6E0431.mp4
-    │       S6E0432.mp4
-    │       S6E0433.mp4
-    │       S6E0434.mp4
-    │       S6E0435.mp4
-    │       S6E0436.mp4
-    │       S6E0437.mp4
-    │       S6E0438.mp4
-    │       S6E0439.mp4
-    │       S6E0440.mp4
-    │       S6E0441.mp4
-    │       S6E0442.mp4
-    │       S6E0443.mp4
-    │       S6E0444.mp4
-    │       S6E0445.mp4
-    │       S6E0446.mp4
-    │       S6E0447.mp4
-    │       S6E0448.mp4
-    │       S6E0449.mp4
-    │       S6E0450.mp4
-    │       S6E0451.mp4
-    │       S6E0452.mp4
-    │       S6E0453.mp4
-    │       S6E0454.mp4
-    │       S6E0455.mp4
-    │       S6E0456.mp4
-    │       S6E0457.mp4
-    │       S6E0458.mp4
-    │       S6E0459.mp4
-    │       S6E0460.mp4
-    │       S6E0461.mp4
-    │       S6E0462.mp4
-    │       S6E0463.mp4
-    │       S6E0464.mp4
-    │       S6E0465.mp4
-    │       S6E0466.mp4
-    │       S6E0467.mp4
-    │       S6E0468.mp4
-    │       S6E0469.mp4
-    │       S6E0470.mp4
-    │       S6E0471.mp4
-    │       S6E0472.mp4
-    │       S6E0473.mp4
-    │       S6E0474.mp4
-    │       S6E0475.mp4
-    │       S6E0476.mp4
-    │       S6E0477.mp4
-    │       S6E0478.mp4
-    │       S6E0479.mp4
-    │       S6E0480.mp4
-    │       S6E0481.mp4
-    │       S6E0482.mp4
-    │       S6E0483.mp4
-    │       S6E0484.mp4
-    │       S6E0485.mp4
-    │       S6E0486.mp4
-    │       S6E0487.mp4
-    │       S6E0488.mp4
-    │       S6E0489.mp4
-    │       S6E0490.mp4
-    │       S6E0491.mp4
-    │       S6E0492.mp4
-    │       S6E0493.mp4
-    │       S6E0494.mp4
-    │       S6E0495.mp4
-    │       S6E0496.mp4
-    │       S6E0497.mp4
-    │       S6E0498.mp4
-    │       S6E0499.mp4
-    │       S6E0500.mp4
-    │       S6E0501.mp4
-    │       S6E0502.mp4
-    │       S6E0503.mp4
-    │       S6E0504.mp4
-    │       S6E0505.mp4
-    │       S6E0506.mp4
-    │       S6E0507.mp4
-    │       S6E0508.mp4
-    │       S6E0509.mp4
-    │       S6E0510.mp4
-    │       S6E0511.mp4
-    │       S6E0512.mp4
-    │       S6E0513.mp4
-    │       S6E0514.mp4
-    │       S6E0515.mp4
-    │
-    ├───Season 7
-    │       S7E0517.mp4
-    │       S7E0518.mp4
-    │       S7E0519.mp4
-    │       S7E0520.mp4
-    │       S7E0521.mp4
-    │       S7E0522.mp4
-    │       S7E0523.mp4
-    │       S7E0524.mp4
-    │       S7E0525.mp4
-    │       S7E0526.mp4
-    │       S7E0527.mp4
-    │       S7E0528.mp4
-    │       S7E0529.mp4
-    │       S7E0530.mp4
-    │       S7E0531.mp4
-    │       S7E0532.mp4
-    │       S7E0533.mp4
-    │       S7E0534.mp4
-    │       S7E0535.mp4
-    │       S7E0536.mp4
-    │       S7E0537.mp4
-    │       S7E0538.mp4
-    │       S7E0539.mp4
-    │       S7E0540.mp4
-    │       S7E0541.mp4
-    │       S7E0542.mp4
-    │       S7E0543.mp4
-    │       S7E0544.mp4
-    │       S7E0545.mp4
-    │       S7E0546.mp4
-    │       S7E0547.mp4
-    │       S7E0548.mp4
-    │       S7E0549.mp4
-    │       S7E0550.mp4
-    │       S7E0551.mp4
-    │       S7E0552.mp4
-    │       S7E0553.mp4
-    │       S7E0554.mp4
-    │       S7E0555.mp4
-    │       S7E0556.mp4
-    │       S7E0557.mp4
-    │       S7E0558.mp4
-    │       S7E0559.mp4
-    │       S7E0560.mp4
-    │       S7E0561.mp4
-    │       S7E0562.mp4
-    │       S7E0563.mp4
-    │       S7E0564.mp4
-    │       S7E0565.mp4
-    │       S7E0566.mp4
-    │       S7E0567.mp4
-    │       S7E0568.mp4
-    │       S7E0569.mp4
-    │       S7E0570.mp4
-    │       S7E0571.mp4
-    │       S7E0572.mp4
-    │       S7E0573.mp4
-    │
-    ├───Season 8
-    │       S8E0575.mp4
-    │       S8E0576.mp4
-    │       S8E0577.mp4
-    │       S8E0578.mp4
-    │       S8E0579.mp4
-    │       S8E0580.mp4
-    │       S8E0581.mp4
-    │       S8E0582.mp4
-    │       S8E0583.mp4
-    │       S8E0584.mp4
-    │       S8E0585.mp4
-    │       S8E0586.mp4
-    │       S8E0587.mp4
-    │       S8E0588.mp4
-    │       S8E0589.mp4
-    │       S8E0590.mp4
-    │       S8E0591.mp4
-    │       S8E0592.mp4
-    │       S8E0593.mp4
-    │       S8E0594.mp4
-    │       S8E0595.mp4
-    │       S8E0596.mp4
-    │       S8E0597.mp4
-    │       S8E0598.mp4
-    │       S8E0599.mp4
-    │       S8E0600.mp4
-    │       S8E0601.mp4
-    │       S8E0602.mp4
-    │       S8E0603.mp4
-    │       S8E0604.mp4
-    │       S8E0605.mp4
-    │       S8E0606.mp4
-    │       S8E0607.mp4
-    │       S8E0608.mp4
-    │       S8E0609.mp4
-    │       S8E0610.mp4
-    │       S8E0611.mp4
-    │       S8E0612.mp4
-    │       S8E0613.mp4
-    │       S8E0614.mp4
-    │       S8E0615.mp4
-    │       S8E0616.mp4
-    │       S8E0617.mp4
-    │       S8E0618.mp4
-    │       S8E0619.mp4
-    │       S8E0620.mp4
-    │       S8E0621.mp4
-    │       S8E0622.mp4
-    │       S8E0623.mp4
-    │       S8E0624.mp4
-    │       S8E0625.mp4
-    │       S8E0626.mp4
-    │       S8E0627.mp4
-    │       S8E0628.mp4
-    │
-    ├───Season 9
-    │       S9E0630.mp4
-    │       S9E0631.mp4
-    │       S9E0632.mp4
-    │       S9E0633.mp4
-    │       S9E0634.mp4
-    │       S9E0635.mp4
-    │       S9E0636.mp4
-    │       S9E0637.mp4
-    │       S9E0638.mp4
-    │       S9E0639.mp4
-    │       S9E0640.mp4
-    │       S9E0641.mp4
-    │       S9E0642.mp4
-    │       S9E0643.mp4
-    │       S9E0644.mp4
-    │       S9E0645.mp4
-    │       S9E0646.mp4
-    │       S9E0647.mp4
-    │       S9E0648.mp4
-    │       S9E0649.mp4
-    │       S9E0650.mp4
-    │       S9E0651.mp4
-    │       S9E0652.mp4
-    │       S9E0653.mp4
-    │       S9E0654.mp4
-    │       S9E0655.mp4
-    │       S9E0656.mp4
-    │       S9E0657.mp4
-    │       S9E0658.mp4
-    │       S9E0659.mp4
-    │       S9E0660.mp4
-    │       S9E0661.mp4
-    │       S9E0662.mp4
-    │       S9E0663.mp4
-    │       S9E0664.mp4
-    │       S9E0665.mp4
-    │       S9E0666.mp4
-    │       S9E0667.mp4
-    │       S9E0668.mp4
-    │       S9E0669.mp4
-    │       S9E0670.mp4
-    │       S9E0671.mp4
-    │       S9E0672.mp4
-    │       S9E0673.mp4
-    │       S9E0674.mp4
-    │       S9E0675.mp4
-    │       S9E0676.mp4
-    │       S9E0677.mp4
-    │       S9E0678.mp4
-    │       S9E0679.mp4
-    │       S9E0680.mp4
-    │       S9E0681.mp4
-    │       S9E0682.mp4
-    │       S9E0683.mp4
-    │       S9E0684.mp4
-    │       S9E0685.mp4
-    │       S9E0686.mp4
-    │       S9E0687.mp4
-    │       S9E0688.mp4
-    │       S9E0689.mp4
-    │       S9E0690.mp4
-    │       S9E0691.mp4
-    │       S9E0692.mp4
-    │       S9E0693.mp4
-    │       S9E0694.mp4
-    │       S9E0695.mp4
-    │       S9E0696.mp4
-    │       S9E0697.mp4
-    │       S9E0698.mp4
-    │       S9E0699.mp4
-    │
-    └───Season 9 - 2
-            S9E0700.mp4
-            S9E0701.mp4
-            S9E0702.mp4
-            S9E0703.mp4
-            S9E0704.mp4
-            S9E0705.mp4
-            S9E0706.mp4
-            S9E0707.mp4
-            S9E0708.mp4
-            S9E0709.mp4
-            S9E0710.mp4
-            S9E0711.mp4
-            S9E0712.mp4
-            S9E0713.mp4
-            S9E0714.mp4
-            S9E0715.mp4
-            S9E0716.mp4
-            S9E0717.mp4
-            S9E0718.mp4
-            S9E0719.mp4
-            S9E0720.mp4
-            S9E0721.mp4
-            S9E0722.mp4
-            S9E0723.mp4
-            S9E0724.mp4
-            S9E0725.mp4
-            S9E0726.mp4
-            S9E0727.mp4
-            S9E0728.mp4
-            S9E0729.mp4
-            S9E0730.mp4
-            S9E0731.mp4
-            S9E0732.mp4
-            S9E0733.mp4
-            S9E0734.mp4
-            S9E0735.mp4
-            S9E0736.mp4
-            S9E0737.mp4
-            S9E0738.mp4
-            S9E0739.mp4
-            S9E0740.mp4
-            S9E0741.mp4
-            S9E0742.mp4
-            S9E0743.mp4
-            S9E0744.mp4
-            S9E0745.mp4
-            S9E0746.mp4
-```
-
 </details>
 
 <details>
@@ -2333,7 +1512,7 @@ Season 1/
 │       Sword Art Online the Movie -Progressive- Aria of a Starless Night.mp4
 │
 └───Sword Art Online the Movie -Progressive- Scherzo of Deep Night
-Sword Art Online the Movie -Progressive- Scherzo.mp4
+        Sword Art Online the Movie -Progressive- Scherzo.mp4
 ```
 
 </details>
@@ -2357,12 +1536,12 @@ Sword Art Online the Movie -Progressive- Scherzo.mp4
 │       S03E12.mp4
 │
 └───Season 3 - (2) Beyond the Snow Saga
-S03E01.mp4
-S03E02.mp4
-S03E03.mp4
-S03E04.mp4
-S03E05.mp4
-S03E06.mp4
+        S03E01.mp4
+        S03E02.mp4
+        S03E03.mp4
+        S03E04.mp4
+        S03E05.mp4
+        S03E06.mp4
 ```
 
 </details>
@@ -2459,19 +1638,19 @@ S03E06.mp4
 │       S03E0013.mp4
 │
 └───Season 4
-S04E0001.mp4
-S04E0002.mp4
-S04E0003.mp4
-S04E0004.mp4
-S04E0005.mp4
-S04E0006.mp4
-S04E0007.mp4
-S04E0008.mp4
-S04E0009.mp4
-S04E0010.mp4
-S04E0011.mp4
-S04E0012.mp4
-S04E0013.mp4
+        S04E0001.mp4
+        S04E0002.mp4
+        S04E0003.mp4
+        S04E0004.mp4
+        S04E0005.mp4
+        S04E0006.mp4
+        S04E0007.mp4
+        S04E0008.mp4
+        S04E0009.mp4
+        S04E0010.mp4
+        S04E0011.mp4
+        S04E0012.mp4
+        S04E0013.mp4
 ```
 
 </details>
@@ -2607,48 +1786,48 @@ S04E0013.mp4
 │       S03E0039.mp4
 │
 └───Season 4
-S04E0001.mp4
-S04E0002.mp4
-S04E0003.mp4
-S04E0004.mp4
-S04E0005.mp4
-S04E0006.mp4
-S04E0007.mp4
-S04E0008.mp4
-S04E0009.mp4
-S04E0010.mp4
-S04E0011.mp4
-S04E0012.mp4
-S04E0013.5.mp4
-S04E0013.mp4
-S04E0014.mp4
-S04E0015.mp4
-S04E0016.mp4
-S04E0017.mp4
-S04E0018.mp4
-S04E0019.mp4
-S04E0020.mp4
-S04E0021.5.mp4
-S04E0021.mp4
-S04E0022.mp4
-S04E0023.mp4
-S04E0024.mp4
-S04E0025.mp4
-S04E0026.mp4
-S04E0027.mp4
-S04E0028.5.mp4
-S04E0028.mp4
-S04E0029.mp4
-S04E0030.mp4
-S04E0031.mp4
-S04E0032.mp4
-S04E0033.mp4
-S04E0034.mp4
-S04E0035.mp4
-S04E0036.mp4
-S04E0037.mp4
-S04E0038.mp4
-S04E0039.mp4
+        S04E0001.mp4
+        S04E0002.mp4
+        S04E0003.mp4
+        S04E0004.mp4
+        S04E0005.mp4
+        S04E0006.mp4
+        S04E0007.mp4
+        S04E0008.mp4
+        S04E0009.mp4
+        S04E0010.mp4
+        S04E0011.mp4
+        S04E0012.mp4
+        S04E0013.5.mp4
+        S04E0013.mp4
+        S04E0014.mp4
+        S04E0015.mp4
+        S04E0016.mp4
+        S04E0017.mp4
+        S04E0018.mp4
+        S04E0019.mp4
+        S04E0020.mp4
+        S04E0021.5.mp4
+        S04E0021.mp4
+        S04E0022.mp4
+        S04E0023.mp4
+        S04E0024.mp4
+        S04E0025.mp4
+        S04E0026.mp4
+        S04E0027.mp4
+        S04E0028.5.mp4
+        S04E0028.mp4
+        S04E0029.mp4
+        S04E0030.mp4
+        S04E0031.mp4
+        S04E0032.mp4
+        S04E0033.mp4
+        S04E0034.mp4
+        S04E0035.mp4
+        S04E0036.mp4
+        S04E0037.mp4
+        S04E0038.mp4
+        S04E0039.mp4
 ```
 
 </details>
@@ -2690,21 +1869,21 @@ S04E0039.mp4
 │       S02E0013.mp4
 │
 └───Season 3
-S03E0001.mp4
-S03E0002.mp4
-S03E0003.mp4
-S03E0004.mp4
-S03E0005.mp4
-S03E0006.mp4
-S03E0007.mp4
-S03E0008.mp4
-S03E0009.mp4
-S03E0010.mp4
-S03E0011.mp4
-S03E0012.mp4
-S03E13A.mp4
-S03E13B.mp4
-S03E13C.mp4
+        S03E0001.mp4
+        S03E0002.mp4
+        S03E0003.mp4
+        S03E0004.mp4
+        S03E0005.mp4
+        S03E0006.mp4
+        S03E0007.mp4
+        S03E0008.mp4
+        S03E0009.mp4
+        S03E0010.mp4
+        S03E0011.mp4
+        S03E0012.mp4
+        S03E13A.mp4
+        S03E13B.mp4
+        S03E13C.mp4
 ```
 
 </details>
@@ -2740,13 +1919,13 @@ S03E13C.mp4
 │       S01E0024.mp4
 │
 └───Season 2
-S02E0025.mp4
-S02E0026.mp4
-S02E0027.mp4
-S02E0028.mp4
-S02E0029.mp4
-S02E0030.mp4
-S02E0031.mp4
+        S02E0025.mp4
+        S02E0026.mp4
+        S02E0027.mp4
+        S02E0028.mp4
+        S02E0029.mp4
+        S02E0030.mp4
+        S02E0031.mp4
 ```
 
 </details>
@@ -2849,9 +2028,9 @@ S02E0031.mp4
 │       That Time I Got Reincarnated as a Slime the Movie Scarlet Bond.mp4
 │
 └───That Time I Got Reincarnated as a Slime Visions of Coleus
-E01.mp4
-E02.mp4
-E03.mp4
+        E01.mp4
+        E02.mp4
+        E03.mp4
 ```
 
 </details>
@@ -2909,36 +2088,36 @@ E03.mp4
 │       S03E0059.mp4
 │
 └───Season 4
-S04E-SP1.mp4
-S04E-SP2.mp4
-S04E0060.mp4
-S04E0061.mp4
-S04E0062.mp4
-S04E0063.mp4
-S04E0064.mp4
-S04E0065.mp4
-S04E0066.mp4
-S04E0067.mp4
-S04E0068.mp4
-S04E0069.mp4
-S04E0070.mp4
-S04E0071.mp4
-S04E0072.mp4
-S04E0073.mp4
-S04E0074.mp4
-S04E0075.mp4
-S04E0076.mp4
-S04E0077.mp4
-S04E0078.mp4
-S04E0079.mp4
-S04E0080.mp4
-S04E0081.mp4
-S04E0082.mp4
-S04E0083.mp4
-S04E0084.mp4
-S04E0085.mp4
-S04E0086.mp4
-S04E0087.mp4
+        S04E-SP1.mp4
+        S04E-SP2.mp4
+        S04E0060.mp4
+        S04E0061.mp4
+        S04E0062.mp4
+        S04E0063.mp4
+        S04E0064.mp4
+        S04E0065.mp4
+        S04E0066.mp4
+        S04E0067.mp4
+        S04E0068.mp4
+        S04E0069.mp4
+        S04E0070.mp4
+        S04E0071.mp4
+        S04E0072.mp4
+        S04E0073.mp4
+        S04E0074.mp4
+        S04E0075.mp4
+        S04E0076.mp4
+        S04E0077.mp4
+        S04E0078.mp4
+        S04E0079.mp4
+        S04E0080.mp4
+        S04E0081.mp4
+        S04E0082.mp4
+        S04E0083.mp4
+        S04E0084.mp4
+        S04E0085.mp4
+        S04E0086.mp4
+        S04E0087.mp4
 ```
 
 </details>
