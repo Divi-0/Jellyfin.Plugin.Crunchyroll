@@ -36,7 +36,7 @@ public partial class GetSeasonCrunchyrollIdService : IGetSeasonCrunchyrollIdServ
         {
             if (!indexNumber.HasValue)
             {
-                _logger.LogError("Item with name '{Name}' has no IndexNumber. Skipping...", folderName);
+                _logger.LogInformation("Item with name '{Name}' has no IndexNumber. Skipping...", folderName);
                 return Result.Fail(Domain.Constants.ErrorCodes.Internal);
             }
 
