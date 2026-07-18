@@ -18,12 +18,11 @@
 This plugin automatically enriches your Jellyfin anime library with metadata from Crunchyroll:
 
 - **Metadata Collection**: Fetches titles, descriptions, studio information, ratings, and high-resolution images via the Crunchyroll API (no web scraping)
-- **Rich Media**: Adds background images, cover images, and episode thumbnails
+- **Media**: Adds background images, cover images, and episode thumbnails
 - **Community Content**: Brings back reviews and comments in read-only mode (archived from WaybackMachine)
 
 ### 📝 Important Notes
 
-- **Region Locking**: Due to Crunchyroll's regional restrictions, not all anime may be recognized correctly in your region
 - **FlareSolverr Required**: FlareSolverr is required to bypass Cloudflare protection. See [Installation](#installation)
 
 ---
@@ -140,7 +139,7 @@ Configuration values to set in the Jellyfin plugin configuration page:
 When running in the same docker network, docker container names can be used, if not host.docker.internal can be an option as domain/hostname
 Without docker compose: FlareSolverrUrl: http://localhost:8191/v1, FlareSolverrUrl: host.docker.internal:8080
 
-After configuring those values in `Plugins → My Plugins → Crunchyroll` press Save, restart the server, test the connection and run a scan.
+After configuring those values in `Plugins → My Plugins → Crunchyroll → Settings` press Save, test the connection and run a scan.
 
 ---
 
@@ -148,14 +147,7 @@ After configuring those values in `Plugins → My Plugins → Crunchyroll` press
 
 ### How It Works
 
-The plugin runs automatically during Jellyfin library scans. Simply trigger a library scan to fetch metadata from Crunchyroll.
-
-### ⏱️ Performance Notes
-
-- **First Scan**: May take several minutes to hours depending on library size
-- **Subsequent Scans**: Faster as metadata is cached
-- **Enable Logging**: Turn on debug logging in Jellyfin to monitor progress
-
+The plugin runs automatically during Jellyfin library scans. Simply trigger a library scan to fetch metadata from Crunchyroll. The first scan may take several minutes to hours depending on library size.
 
 ---
 
@@ -163,7 +155,9 @@ The plugin runs automatically during Jellyfin library scans. Simply trigger a li
 
 ### Folder Structure
 
-To automatically match your files with Crunchyroll's database, organize your folders according to Crunchyroll's structure. Follow these rules:
+To automatically match your files with Crunchyroll's database, organize your folders according to Crunchyroll's structure. 
+(However this is not necessary, ids can be set manually [Manual Crunchyroll ID Assignment](#manual-crunchyroll-id-assignment)) Follow these rules:
+
 
 #### Rule 1️⃣ - Unnamed Seasons
 
@@ -2136,6 +2130,15 @@ If the plugin can't find a series via search, you can manually assign a Crunchyr
 4. Locate the **"Crunchyroll Series Id"** field in the "External IDs" section
 5. Paste the ID and save
 6. Run a library scan
+
+For the EpisodeId, click on any episode and then it appears in the URL `https://www.crunchyroll.com/watch/**<id>**/slug-title`
+
+For SeasonIds it gets a little more technical, but you can find them in the Crunchyroll API response for the series.
+1. Go to the main series page on Crunchyroll
+2. Open the browser's developer tools (F12)
+3. Navigate to the "Network" tab
+4. Refresh the page and search for a request to `https://www.crunchyroll.com/content/v2/cms/series/**<id>**/seasons`
+5. Inside the response, you will find the season IDs for each season of the series
 
 #### Option 2: Via Folder Name
 
