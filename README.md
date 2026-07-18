@@ -37,14 +37,14 @@ This plugin automatically enriches your Jellyfin anime library with metadata fro
 - Ratings
 - Background Image
 - Cover Image  
-- Reviews via WayBackMachine (temporarily disabled)
+- Reviews via WayBackMachine
 
 ### 🎞️ Episodes
 
 - Title/Name
 - Description
 - Thumbnail Image
-- Comments via WayBackMachine (temporarily disabled)
+- Comments via WayBackMachine
 
 ### 🎬 Movies
 
@@ -53,7 +53,7 @@ This plugin automatically enriches your Jellyfin anime library with metadata fro
 - Studio
 - Reviews via WayBackMachine
 - Thumbnail Image
-- Comments via WayBackMachine (temporarily disabled)
+- Comments via WayBackMachine
 
 ### 📚 Seasons
 
