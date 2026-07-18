@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -27,6 +28,9 @@ public class WaybackMachineClient : IWaybackMachineClient
 
         _httpClient.BaseAddress =
             new Uri(config.ArchiveOrgUrl);
+        
+        _httpClient.DefaultRequestHeaders.UserAgent
+            .ParseAdd($"Jellyfin.Plugin.Crunchyroll/{Assembly.GetAssembly(typeof(WaybackMachineClient))!.GetName().Version}");
     }
 
     public async Task<Result<IReadOnlyList<SearchResponse>>> SearchAsync(string url, DateTime timestamp, CancellationToken cancellationToken = default)
