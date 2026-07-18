@@ -8,31 +8,36 @@ using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.Crunchyroll.Common.FlareSolverr;
 
 public class FlareSolverrMessageHandler : DelegatingHandler
 {
-    private readonly PluginConfiguration _configuration;
+    private readonly IServiceScopeFactory _scopeFactory;
     private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    public FlareSolverrMessageHandler(PluginConfiguration configuration)
+    public FlareSolverrMessageHandler(IServiceScopeFactory scopeFactory)
     {
-        _configuration = configuration;
+        _scopeFactory = scopeFactory;
     }
     
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if (!_configuration.IsFlareSolverrEnabled)
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        var configuration = scope.ServiceProvider.GetRequiredService<PluginConfiguration>();
+        
+        if (!configuration.IsFlareSolverrEnabled)
         {
             return await base.SendAsync(request, cancellationToken);
         }
         
-        ArgumentException.ThrowIfNullOrWhiteSpace(_configuration.FlareSolverrUrl);
-        ArgumentException.ThrowIfNullOrWhiteSpace(_configuration.FlareSolverrMitmProxyUrl);
+        ArgumentException.ThrowIfNullOrWhiteSpace(configuration.FlareSolverrUrl);
+        ArgumentException.ThrowIfNullOrWhiteSpace(configuration.FlareSolverrMitmProxyUrl);
         
         var headerQuery = string.Join("&", request.Headers.Select(h => $"$$headers[]={UrlEncoder.Default.Encode(h.Key)}:{UrlEncoder.Default.Encode(h.Value.First())}"));
         var uri = request.RequestUri!.AbsoluteUri +
@@ -47,7 +52,7 @@ public class FlareSolverrMessageHandler : DelegatingHandler
             {
                 Cmd = "request.post",
                 Url = new Uri(uri, UriKind.Absolute),
-                Proxy = new DtoProxy(new Uri(_configuration.FlareSolverrMitmProxyUrl, UriKind.Absolute)),
+                Proxy = new DtoProxy(new Uri(configuration.FlareSolverrMitmProxyUrl, UriKind.Absolute)),
                 PostData = await request.Content.ReadAsStringAsync(cancellationToken)
             });
         }
@@ -57,13 +62,13 @@ public class FlareSolverrMessageHandler : DelegatingHandler
             {
                 Cmd = $"request.{request.Method.Method.ToLower()}",
                 Url = new Uri(uri, UriKind.Absolute),
-                Proxy = new DtoProxy(new Uri(_configuration.FlareSolverrMitmProxyUrl, UriKind.Absolute)),
+                Proxy = new DtoProxy(new Uri(configuration.FlareSolverrMitmProxyUrl, UriKind.Absolute)),
             });
         }
         
         var flareSolverrRequest = new HttpRequestMessage
         {
-            RequestUri = new Uri(_configuration.FlareSolverrUrl, UriKind.Absolute),
+            RequestUri = new Uri(configuration.FlareSolverrUrl, UriKind.Absolute),
             Method = HttpMethod.Post,
             Content = jsonContent
         };
@@ -85,13 +90,14 @@ public class FlareSolverrMessageHandler : DelegatingHandler
 
         var flareSolverrResponseContent = await flareSolverrResponse.Content.ReadAsStringAsync(cancellationToken);
         var flareSolverrResponseDto = JsonSerializer.Deserialize<FlareSolverrResponse>(flareSolverrResponseContent, JsonSerializerOptions);
-        // Load HTML
+
         var doc = new HtmlDocument();
         doc.LoadHtml(flareSolverrResponseDto!.Solution.Response);
 
-        // Select the child element (e.g., <span>)
+        // preNode can be null
         var preNode = doc.DocumentNode.SelectSingleNode("//pre");
 
+        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
         response.Content = new StringContent(preNode?.InnerText ?? flareSolverrResponseDto.Solution.Response);
         return response;
     }

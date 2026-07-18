@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using Jellyfin.Plugin.Crunchyroll.Common.FlareSolverr;
 using Jellyfin.Plugin.Crunchyroll.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.Common.FlareSolverr;
@@ -25,7 +26,17 @@ public class FlareSolverrMessageHandlerTests
             FlareSolverrUrl = _faker.Internet.Url(),
             FlareSolverrMitmProxyUrl = _faker.Internet.Url()
         };
-        _sut = new FlareSolverrMessageHandlerTestWrapper(_configuration)
+        
+        var serviceScopeFactory = Substitute.For<IServiceScopeFactory>();
+        var scope =  Substitute.For<IServiceScope>();
+        serviceScopeFactory
+            .CreateScope()
+            .Returns(scope);
+        
+        scope.ServiceProvider
+            .Returns(new ServiceCollection().AddSingleton(_configuration).BuildServiceProvider());
+        
+        _sut = new FlareSolverrMessageHandlerTestWrapper(serviceScopeFactory)
         {
             InnerHandler = _receiver
         };
@@ -233,7 +244,7 @@ public class FlareSolverrMessageHandlerTests
 
 public sealed class FlareSolverrMessageHandlerTestWrapper : FlareSolverrMessageHandler
 {
-    public FlareSolverrMessageHandlerTestWrapper(PluginConfiguration configuration) : base(configuration)
+    public FlareSolverrMessageHandlerTestWrapper(IServiceScopeFactory scopeFactory) : base(scopeFactory)
     {
     }
 
