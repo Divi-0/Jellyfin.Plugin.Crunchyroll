@@ -37,11 +37,14 @@ jobs:
         run: |
           dotnet test ./tests/Jellyfin.Plugin.Crunchyroll.Tests/Jellyfin.Plugin.Crunchyroll.Tests.csproj --configuration Release --no-build --verbosity normal
           dotnet test ./tests/Jellyfin.Plugin.Crunchyroll.Tests.Integration/Jellyfin.Plugin.Crunchyroll.Tests.Integration.csproj --configuration Release --no-build --verbosity normal
+      
+      - name: Publish
+        run: dotnet publish ./src/Jellyfin.Plugin.Crunchyroll/Jellyfin.Plugin.Crunchyroll.csproj -c Release -p:Version=${{ inputs.version}}
           
       - name: Create artifact
         id: artifact
         run: |
-          zip -r -j Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip src/Jellyfin.Plugin.Crunchyroll/bin/Release/net9.0/*
+          zip -r -j Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip src/Jellyfin.Plugin.Crunchyroll/bin/Release/net9.0/publish/*
           MD5HASH=($(md5sum Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip))
           echo checksum=${MD5HASH} >> $GITHUB_OUTPUT
 
