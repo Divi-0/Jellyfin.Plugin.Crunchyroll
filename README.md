@@ -78,13 +78,15 @@ This plugin automatically enriches your Jellyfin anime library with metadata fro
    - Click Install
 
 3. **Configure** - In Plugin Settings:
-   - Navigate to `Plugins → My Plugins → Crunchyroll`
+   - Navigate to `Plugins → My Plugins → Crunchyroll → Settings`
    - Configure FlareSolverr and MITM proxy URLs (see [FlareSolverr Setup](#flaresolverr-setup) below)
    - Enable desired features in the "Features" section
 
-4. **Organize Library (Optional)** - Structure your folders per [Folder Structure Guide](#folder-structure) below
+4. **Configure Library Settings** - In Library Settings:
+   - Navigate to `Libraries → [Your Anime Library] → Manage Library`
+   - Set "Metadata Downloaders" to include "Crunchyroll"
 
-5. **Scan** - Run a library scan to fetch metadata
+5. **Scan** - Run a library scan to fetch metadata or replace existing metadata for a specific series
 
 ### FlareSolverr Setup
 
