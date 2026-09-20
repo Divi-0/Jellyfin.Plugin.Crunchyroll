@@ -10,9 +10,8 @@ public class FlareSolverrProxyFixture : IAsyncLifetime
 
     public FlareSolverrProxyFixture()
     {
-        _container = new ContainerBuilder()
+        _container = new ContainerBuilder("zelak312/flaresolverr-mitm-proxy:latest")
             .WithName("flaresolverr-mitm-proxy-e2e")
-            .WithImage("zelak312/flaresolverr-mitm-proxy:latest")
             .WithPortBinding(ContainerPort, true)
             .WithNetwork(DockerNetwork.NetworkName)
             .Build();

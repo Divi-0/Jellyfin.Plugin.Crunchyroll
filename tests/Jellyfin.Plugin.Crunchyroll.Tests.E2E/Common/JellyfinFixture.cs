@@ -1,7 +1,6 @@
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using Jellyfin.Plugin.Crunchyroll.Tests.E2E.Common.Helpers;
-using Microsoft.AspNetCore.Http.Extensions;
 
 namespace Jellyfin.Plugin.Crunchyroll.Tests.E2E.Common;
 
@@ -17,9 +16,8 @@ public sealed class JellyfinFixture : IAsyncLifetime
         _localVideoPath = Path.Combine(Directory.GetCurrentDirectory(), "videos");
         CreateVideoFolderHelper.CreateVideoFolder(_localVideoPath);
         
-        _container = new ContainerBuilder()
+        _container = new ContainerBuilder("jellyfin/jellyfin:latest")
             .WithName("jellyfin-e2e")
-            .WithImage("jellyfin/jellyfin:latest")
             .WithPortBinding(ContainerPort, true)
             .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged("Main: Startup complete"))
             .WithBindMount(Path.Combine(Directory.GetCurrentDirectory(), "plugin"), "/config/plugins/Crunchyroll")

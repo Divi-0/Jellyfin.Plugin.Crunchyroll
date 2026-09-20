@@ -130,7 +130,7 @@ Example Docker run commands (quick):
 
 ```powershell
 docker run -d --name flaresolverr -p 8191:8191 flaresolverr/flaresolverr:latest
-docker run -d --name flaresolverr-mitm-proxy -p 8080:8080 zelak312/flaresolverr-mitm-proxy:latest
+docker run -d --name flaresolverr-mitm-proxy -p 8080:8080 ghcr.io/zelak312/flaresolverr-mitm-proxy:latest
 ```
 
 Configuration values to set in the Jellyfin plugin configuration page:

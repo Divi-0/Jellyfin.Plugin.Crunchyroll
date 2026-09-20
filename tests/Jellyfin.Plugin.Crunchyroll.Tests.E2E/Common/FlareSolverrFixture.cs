@@ -10,9 +10,8 @@ public class FlareSolverrFixture : IAsyncLifetime
 
     public FlareSolverrFixture()
     {
-        _container = new ContainerBuilder()
+        _container = new ContainerBuilder("flaresolverr/flaresolverr:latest")
             .WithName("flaresolverr-e2e")
-            .WithImage("flaresolverr/flaresolverr:latest")
             .WithPortBinding(ContainerPort, true)
             .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged("Serving on http://0.0.0.0:8191"))
             .WithNetwork(DockerNetwork.NetworkName)
