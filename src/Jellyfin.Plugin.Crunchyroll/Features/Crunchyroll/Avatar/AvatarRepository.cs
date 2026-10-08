@@ -4,6 +4,7 @@ using System.IO.Abstractions;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.GetAvatar;
@@ -25,9 +26,7 @@ public class AvatarRepository : IAddAvatarRepository, IGetAvatarRepository
         _file = file;
         _logger = logger;
 
-        _directoryPath = Path.Combine(
-            Path.GetDirectoryName(typeof(AvatarRepository).Assembly.Location)!,
-            "avatar-images");
+        _directoryPath = PluginDataPath.AvatarImagesDirectory;
 
         directory.CreateDirectory(_directoryPath);
     }

@@ -2,6 +2,8 @@
 
 > 🎬 A third-party Jellyfin plugin for enriching your anime library with Crunchyroll metadata
 
+> ⚠️ Backup your /plugins/Crunchyroll/Crunchyroll.db & /plugins/Crunchyroll/avatar-images, before updating to version 2.2.0 and move them to /plugins/configurations/Jellyfin.Plugin.Crunchyroll/... if you want to keep your local cache, reviews & comments.
+
 ## Table of Contents
 
 - [About](#about)

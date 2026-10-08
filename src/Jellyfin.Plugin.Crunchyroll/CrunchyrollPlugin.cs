@@ -39,6 +39,7 @@ public class CrunchyrollPlugin : MediaBrowser.Common.Plugins.BasePlugin<PluginCo
         _libraryManager = libraryManager;
         _serviceCollectionOptions = serviceCollectionOptions;
 
+        PluginDataPath.Initialize(applicationPaths);
         BuildServiceCollection(loggerFactory);
         InjectClientSideScriptIntoIndexFile(applicationPaths);
 

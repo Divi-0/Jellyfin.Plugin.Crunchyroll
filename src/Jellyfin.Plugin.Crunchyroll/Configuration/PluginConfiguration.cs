@@ -6,7 +6,6 @@ public class PluginConfiguration : BasePluginConfiguration
 {
     public string CrunchyrollUrl { get; set; } = "https://www.crunchyroll.com/";
     public string ArchiveOrgUrl { get; set; } = "http://web.archive.org";
-    public string LocalDatabasePath { get; set; } = string.Empty;
     public int WaybackMachineWaitTimeoutInSeconds { get; set; } = 120;
     public string FlareSolverrUrl { get; set; } = string.Empty;
     public string FlareSolverrMitmProxyUrl { get; set; } = string.Empty;

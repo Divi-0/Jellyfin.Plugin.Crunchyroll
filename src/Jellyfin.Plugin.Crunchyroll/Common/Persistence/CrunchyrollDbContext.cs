@@ -1,4 +1,3 @@
-using System.IO;
 using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
@@ -18,8 +17,7 @@ public class CrunchyrollDbContext : DbContext
 
     public CrunchyrollDbContext()
     {
-        var location = typeof(CrunchyrollDbContext).Assembly.Location;
-        DbPath = Path.Combine(Path.GetDirectoryName(location)!, "Crunchyroll.db");
+        DbPath = PluginDataPath.DatabaseFile;
     }
     
     protected override void OnConfiguring(DbContextOptionsBuilder options)

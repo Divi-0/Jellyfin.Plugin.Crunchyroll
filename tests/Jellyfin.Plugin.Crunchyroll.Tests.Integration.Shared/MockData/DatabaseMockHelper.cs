@@ -2,12 +2,12 @@ using System.Globalization;
 using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 using Jellyfin.Plugin.Crunchyroll.Contracts.Reviews;
 using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata.Client.Dtos;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Season.ScrapSeasonMetadata.Client.Dtos;
@@ -82,9 +82,7 @@ public static class DatabaseMockHelper
     
     public static void ShouldHaveAvatarUri(string uri)
     {
-        var directoryPath = Path.Combine(
-            Path.GetDirectoryName(typeof(AvatarRepository).Assembly.Location)!,
-            "avatar-images");
+        var directoryPath = PluginDataPath.AvatarImagesDirectory;
 
         var fileName = Path.GetFileName(uri);
         var filePath = Path.Combine(directoryPath, fileName);
@@ -95,9 +93,7 @@ public static class DatabaseMockHelper
     
     public static void InsertAvatarImage(string imageUrl, Stream imageStream)
     {
-        var directoryPath = Path.Combine(
-            Path.GetDirectoryName(typeof(AvatarRepository).Assembly.Location)!,
-            "avatar-images");
+        var directoryPath = PluginDataPath.AvatarImagesDirectory;
 
         if (!Directory.Exists(directoryPath))
         {

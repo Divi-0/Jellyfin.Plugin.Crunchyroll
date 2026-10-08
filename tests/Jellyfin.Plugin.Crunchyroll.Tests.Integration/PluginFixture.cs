@@ -1,4 +1,4 @@
-using Jellyfin.Plugin.Crunchyroll.Common.Persistence;
+using Jellyfin.Plugin.Crunchyroll.Common;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Library;
@@ -12,16 +12,15 @@ public class PluginFixture : IDisposable
 {
     public PluginFixture()
     {
-        var location = typeof(CrunchyrollDbContext).Assembly.Location;
-        var filePath = Path.Combine(Path.GetDirectoryName(location)!, "Crunchyroll.db");
-        
-        if (File.Exists(filePath))
-        {
-            File.Delete(filePath);
-        }
-        
         PluginWebApplicationFactory.CreateInstance();
         var applicationPaths = PluginWebApplicationFactory.Instance.Services.GetRequiredService<IApplicationPaths>();
+
+        PluginDataPath.Initialize(applicationPaths);
+        if (File.Exists(PluginDataPath.DatabaseFile))
+        {
+            File.Delete(PluginDataPath.DatabaseFile);
+        }
+
         var xmlSerializer = PluginWebApplicationFactory.Instance.Services.GetRequiredService<IXmlSerializer>();
         var logger = PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILogger<CrunchyrollPlugin>>();
         var loggerFactory = PluginWebApplicationFactory.Instance.Services.GetRequiredService<ILoggerFactory>();

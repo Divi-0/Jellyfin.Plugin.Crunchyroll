@@ -42,7 +42,9 @@ public class PluginWebApplicationFactory : WebApplicationFactory<Program>, IDisp
         builder.ConfigureServices(services =>
         {
             services.AddLogging();
-            services.AddSingleton<IApplicationPaths>(Substitute.For<IApplicationPaths>());
+            var applicationPaths = Substitute.For<IApplicationPaths>();
+            applicationPaths.PluginConfigurationsPath.Returns(AppContext.BaseDirectory);
+            services.AddSingleton<IApplicationPaths>(applicationPaths);
             LibraryManagerMock = Substitute.For<ILibraryManager>();
             ItemRepositoryMock = Substitute.For<IItemRepository>();
             MediaSourceManagerMock = Substitute.For<IMediaSourceManager>();

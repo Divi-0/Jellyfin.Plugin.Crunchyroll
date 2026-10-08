@@ -20,11 +20,6 @@
                     <div class="fieldDescription">ArchiveOrgUrl</div>
                 </div>
                 <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="LocalDatabasePath">LocalDatabasePath</label>
-                    <input id="LocalDatabasePath" name="LocalDatabasePath" type="text" is="emby-input" />
-                    <div class="fieldDescription">default: empty; if you want a different path instead of the plugin folder, enter here the absolute path</div>
-                </div>
-                <div class="inputContainer">
                     <label class="inputLabel inputLabelUnfocused" for="CrunchyrollUpdateThresholdInDays">CrunchyrollUpdateThresholdInDays</label>
                     <input id="CrunchyrollUpdateThresholdInDays" name="WaybackMachineWaitTimeoutInSeconds" type="number" is="emby-input" min="0" />
                     <div class="fieldDescription">Defines after how many days the cached Crunchyroll data may be updated again; default: 1 day</div>
@@ -310,7 +305,6 @@
                 ApiClient.getPluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId).then(function (config) {
                     document.querySelector('#CrunchyrollUrl').value = config.CrunchyrollUrl;
                     document.querySelector('#ArchiveOrgUrl').value = config.ArchiveOrgUrl;
-                    document.querySelector('#LocalDatabasePath').value = config.LocalDatabasePath;
                     document.querySelector('#CrunchyrollUpdateThresholdInDays').value = config.CrunchyrollUpdateThresholdInDays;
                     document.querySelector('#IsFeatureReviewsEnabled').checked = config.IsFeatureReviewsEnabled;
                     document.querySelector('#IsFeatureCommentsEnabled').checked = config.IsFeatureCommentsEnabled;
@@ -343,7 +337,6 @@
                 ApiClient.getPluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId).then(function (config) {
                     config.CrunchyrollUrl = document.querySelector('#CrunchyrollUrl').value;
                     config.ArchiveOrgUrl = document.querySelector('#ArchiveOrgUrl').value;
-                    config.LocalDatabasePath = document.querySelector('#LocalDatabasePath').value;
                     config.CrunchyrollUpdateThresholdInDays = document.querySelector('#CrunchyrollUpdateThresholdInDays').value;
                     config.WaybackMachineWaitTimeoutInSeconds = document.querySelector('#WaybackMachineWaitTimeoutInSeconds').value;
                     config.FlareSolverrUrl = document.querySelector('#FlareSolverrUrl').value;
