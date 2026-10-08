@@ -69,7 +69,7 @@ function featureSelect(){
 }
 
 async function showReviews(id) {
-    let element = document.querySelector("div.itemDetailPage:not(.hide) div.detailPageContent")
+    let element = document.querySelector("div.itemDetailPage:not(.hide) div.detailPageWrapperContainer")
 
     if(element.querySelector('div#crunchyroll-reviews-wrapper') !== null){
         return;
@@ -98,7 +98,7 @@ async function showReviews(id) {
 }
 
 async function showComments(id) {
-    let element = document.querySelector("div.itemDetailPage:not(.hide) div.detailPageContent")
+    let element = document.querySelector("div.itemDetailPage:not(.hide) div.detailPageWrapperContainer")
 
     if(element.querySelector('div#crunchyroll-comments') !== null){
         return;
@@ -129,6 +129,7 @@ async function showComments(id) {
 function getReviewsHtml(reviews){
     let reviewsWrapper = document.createElement("div");
     reviewsWrapper.id = "crunchyroll-reviews-wrapper"
+    reviewsWrapper.style.alignSelf = "center";
 
     reviewsWrapper.innerHTML = `
     <h5 style="font-size: 1.25rem; line-height: 1.625rem; font-weight: 600;">${reviews.length} Reviews</h5>
@@ -175,6 +176,7 @@ function getCommentsHtml(comments){
     let commentsWrapper = document.createElement("div");
     commentsWrapper.id = "crunchyroll-comments-wrapper"
     commentsWrapper.style.marginBottom = ".5rem";
+    commentsWrapper.style.alignSelf = "center";
     
     commentsWrapper.innerHTML = `
     <h5 style="font-size: 1.25rem; line-height: 1.625rem; font-weight: 600;">${comments.length} Comments</h5>
