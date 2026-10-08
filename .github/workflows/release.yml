@@ -38,8 +38,15 @@ jobs:
           dotnet test ./tests/Jellyfin.Plugin.Crunchyroll.Tests/Jellyfin.Plugin.Crunchyroll.Tests.csproj --configuration Release --no-build --verbosity normal
           dotnet test ./tests/Jellyfin.Plugin.Crunchyroll.Tests.Integration/Jellyfin.Plugin.Crunchyroll.Tests.Integration.csproj --configuration Release --no-build --verbosity normal
       
+      - name: Normalize version
+        run: |
+          VERSION='${{ inputs.version}}'
+          VERSION=${VERSION#v}
+          while [ $(echo "$VERSION" | tr -cd '.' | wc -c) -lt 3 ]; do VERSION="$VERSION.0"; done
+          echo PLUGIN_VERSION=$VERSION >> $GITHUB_ENV
+
       - name: Publish
-        run: dotnet publish ./src/Jellyfin.Plugin.Crunchyroll/Jellyfin.Plugin.Crunchyroll.csproj -c Release -p:Version=${{ inputs.version}}
+        run: dotnet publish ./src/Jellyfin.Plugin.Crunchyroll/Jellyfin.Plugin.Crunchyroll.csproj -c Release -p:Version=${PLUGIN_VERSION}
           
       - name: Create artifact
         id: artifact
@@ -51,9 +58,8 @@ jobs:
       # Add Release to manifest.json
       - name: Add version to manifest.json
         run: |
-          VERSION='${{ inputs.version}}'
           TIMESTAMP=$(date --utc +%FT%TZ)
-          MANIFEST_CONTENT=$(jq '.[0].versions += [{"version": ''"'"${VERSION//v}"'"'', "changelog": "${{ inputs.release-notes}}", "targetAbi": "${{ inputs.jellyfin-release}}", "sourceUrl": "https://github.com/Divi-0/Jellyfin.Plugin.Crunchyroll/releases/download/${{ inputs.version}}/Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip", "checksum": ''"'"${{ steps.artifact.outputs.checksum }}"'"'', "timestamp": ''"'"${TIMESTAMP}"'"''}]' manifest.json)
+          MANIFEST_CONTENT=$(jq '.[0].versions += [{"version": ''"'"${PLUGIN_VERSION}"'"'', "changelog": "${{ inputs.release-notes}}", "targetAbi": "${{ inputs.jellyfin-release}}", "sourceUrl": "https://github.com/Divi-0/Jellyfin.Plugin.Crunchyroll/releases/download/${{ inputs.version}}/Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip", "checksum": ''"'"${{ steps.artifact.outputs.checksum }}"'"'', "timestamp": ''"'"${TIMESTAMP}"'"''}]' manifest.json)
           echo -E $MANIFEST_CONTENT > manifest.json
           echo $(cat manifest.json)
 
