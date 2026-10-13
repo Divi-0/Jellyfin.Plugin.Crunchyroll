@@ -9,6 +9,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.GetSpecialEpisodeCrunchyrollId;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.SetMetadataToEpisode;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Season.ScrapSeasonMetadata;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Microsoft.Extensions.Logging;
 
@@ -21,6 +22,7 @@ public class EpisodeGetMetadataServiceTests
     private readonly IScrapEpisodeMetadataService _scrapEpisodeMetadataService;
     private readonly ISetMetadataToEpisodeService _setMetadataToEpisodeService;
     private readonly IGetSpecialEpisodeCrunchyrollIdService _specialEpisodeCrunchyrollIdService;
+    private readonly IScrapSeasonMetadataService _scrapSeasonMetadataService;
 
     public EpisodeGetMetadataServiceTests()
     {
@@ -29,8 +31,9 @@ public class EpisodeGetMetadataServiceTests
         _scrapEpisodeMetadataService = Substitute.For<IScrapEpisodeMetadataService>();
         _setMetadataToEpisodeService = Substitute.For<ISetMetadataToEpisodeService>();
         _specialEpisodeCrunchyrollIdService = Substitute.For<IGetSpecialEpisodeCrunchyrollIdService>();
+        _scrapSeasonMetadataService = Substitute.For<IScrapSeasonMetadataService>();
         _sut = new EpisodeGetMetadataService(logger, _getEpisodeCrunchyrollIdService, _scrapEpisodeMetadataService,
-            _setMetadataToEpisodeService, _specialEpisodeCrunchyrollIdService);
+            _setMetadataToEpisodeService, _specialEpisodeCrunchyrollIdService, _scrapSeasonMetadataService);
     }
     
     [Fact]
@@ -101,6 +104,134 @@ public class EpisodeGetMetadataServiceTests
                 episodeInfo.GetPreferredMetadataCultureInfo(), Arg.Any<CancellationToken>());
     }
     
+    [Fact]
+    public async Task ScrapsSeasonMetadataBeforeEpisodeMetadata_WhenSeasonIsNotScrapedYet_GivenValidEpisodeInfo()
+    {
+        //Arrange
+        var episodeInfo = EpisodeInfoFaker.Generate();
+        var episode = EpisodeFaker.Generate();
+        var episodeId = CrunchyrollIdFaker.Generate();
+        var seriesId = new CrunchyrollId(episodeInfo.SeriesProviderIds[CrunchyrollExternalKeys.SeriesId]);
+        var seasonId = new CrunchyrollId(episodeInfo.SeasonProviderIds[CrunchyrollExternalKeys.SeasonId]);
+        var language = episodeInfo.GetPreferredMetadataCultureInfo();
+
+        _scrapSeasonMetadataService
+            .ScrapSeasonMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _scrapEpisodeMetadataService
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(),
+                Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _getEpisodeCrunchyrollIdService
+            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<string>(), Arg.Any<int?>(),
+                Arg.Any<CancellationToken>())
+            .Returns(episodeId);
+
+        _setMetadataToEpisodeService
+            .SetMetadataToEpisodeAsync(Arg.Any<CrunchyrollId>(), Arg.Any<int?>(), Arg.Any<int?>(),
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(episode);
+
+        //Act
+        var metadataResult = await _sut.GetMetadataAsync(episodeInfo, CancellationToken.None);
+
+        //Assert
+        metadataResult.HasMetadata.Should().BeTrue();
+
+        //season (and series) metadata can be missing, e.g. if the database was cleared,
+        //so it has to be scraped before the episodes of the season can be scraped
+        Received.InOrder(() =>
+        {
+            _scrapSeasonMetadataService.ScrapSeasonMetadataAsync(seriesId, language, Arg.Any<CancellationToken>());
+            _scrapEpisodeMetadataService.ScrapEpisodeMetadataAsync(seasonId, null, language,
+                Arg.Any<CancellationToken>());
+        });
+    }
+
+    [Fact]
+    public async Task ScrapsSeasonMetadataBeforeEpisodeMetadata_WhenSeasonIsNotScrapedYet_GivenEpisodeFromSpecialsSeasonWithAlreadySetEpisodeId()
+    {
+        //Arrange
+        var episodeInfo = EpisodeInfoFaker.Generate();
+        var episode = EpisodeFaker.Generate();
+        var episodeId = CrunchyrollIdFaker.Generate();
+        var seriesId = new CrunchyrollId(episodeInfo.SeriesProviderIds[CrunchyrollExternalKeys.SeriesId]);
+        var language = episodeInfo.GetPreferredMetadataCultureInfo();
+        episodeInfo.ParentIndexNumber = 0;
+        episodeInfo.SeasonProviderIds = new Dictionary<string, string>();
+        episodeInfo.ProviderIds = new Dictionary<string, string>{ {CrunchyrollExternalKeys.EpisodeId, episodeId}};
+
+        _scrapSeasonMetadataService
+            .ScrapSeasonMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _setMetadataToEpisodeService
+            .SetMetadataToEpisodeAsync(Arg.Any<CrunchyrollId>(), Arg.Any<int?>(), Arg.Any<int?>(),
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(episode);
+
+        //Act
+        var metadataResult = await _sut.GetMetadataAsync(episodeInfo, CancellationToken.None);
+
+        //Assert
+        metadataResult.HasMetadata.Should().BeTrue();
+
+        Received.InOrder(() =>
+        {
+            _scrapSeasonMetadataService.ScrapSeasonMetadataAsync(seriesId, language, Arg.Any<CancellationToken>());
+            _scrapEpisodeMetadataService.ScrapEpisodeMetadataAsync(null, episodeId, language,
+                Arg.Any<CancellationToken>());
+        });
+    }
+
+    [Fact]
+    public async Task ReturnsMetadata_WhenScrapSeasonMetadataFails_GivenValidEpisodeInfo()
+    {
+        //Arrange
+        var episodeInfo = EpisodeInfoFaker.Generate();
+        var episode = EpisodeFaker.Generate();
+        var episodeId = CrunchyrollIdFaker.Generate();
+        var seasonId = new CrunchyrollId(episodeInfo.SeasonProviderIds[CrunchyrollExternalKeys.SeasonId]);
+
+        _scrapSeasonMetadataService
+            .ScrapSeasonMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Fail(Guid.NewGuid().ToString()));
+
+        _scrapEpisodeMetadataService
+            .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(),
+                Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _getEpisodeCrunchyrollIdService
+            .GetEpisodeIdAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<string>(), Arg.Any<int?>(),
+                Arg.Any<CancellationToken>())
+            .Returns(episodeId);
+
+        _setMetadataToEpisodeService
+            .SetMetadataToEpisodeAsync(Arg.Any<CrunchyrollId>(), Arg.Any<int?>(), Arg.Any<int?>(),
+                Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(episode);
+
+        //Act
+        var metadataResult = await _sut.GetMetadataAsync(episodeInfo, CancellationToken.None);
+
+        //Assert
+        //ignore failed season scrap, because data can still exist in database
+        metadataResult.HasMetadata.Should().BeTrue();
+        metadataResult.Item.Should().BeEquivalentTo(episode);
+
+        await _scrapEpisodeMetadataService
+            .Received(1)
+            .ScrapEpisodeMetadataAsync(seasonId, null, episodeInfo.GetPreferredMetadataCultureInfo(),
+                Arg.Any<CancellationToken>());
+    }
+
     [Fact]
     public async Task SkipsGetEpisodeId_WhenEpisodeHasAlreadyAnId_GivenEpisodeInfoWithProviderIdForEpisodeId()
     {
@@ -457,7 +588,12 @@ public class EpisodeGetMetadataServiceTests
         //Assert
         metadataResult.HasMetadata.Should().BeFalse();
         metadataResult.Item.Should().BeEquivalentTo(new MediaBrowser.Controller.Entities.TV.Episode());
-        
+
+        await _scrapSeasonMetadataService
+            .DidNotReceive()
+            .ScrapSeasonMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>());
+
         await _scrapEpisodeMetadataService
             .DidNotReceive()
             .ScrapEpisodeMetadataAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CrunchyrollId>(),

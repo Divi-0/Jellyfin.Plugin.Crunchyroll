@@ -11,6 +11,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.ScrapLoc
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Season.ScrapSeasonMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Season.ScrapSeasonMetadata.Client;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Season.ScrapSeasonMetadata.Client.Dtos;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata.ScrapSeriesMetadata;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
 using Microsoft.Extensions.Logging;
 
@@ -24,7 +25,8 @@ public class ScrapSeasonMetadataServiceTests
     private readonly IScrapLockRepository _scrapLockRepository;
     private readonly TimeProvider _timeProvider;
     private readonly PluginConfiguration _config;
-    
+    private readonly IScrapSeriesMetadataService _scrapSeriesMetadataService;
+
     private readonly ScrapSeasonMetadataService _sut;
 
     private readonly Fixture _fixture;
@@ -42,9 +44,10 @@ public class ScrapSeasonMetadataServiceTests
         {
             CrunchyrollUpdateThresholdInDays = 0
         };
-        
+        _scrapSeriesMetadataService = Substitute.For<IScrapSeriesMetadataService>();
+
         _sut = new ScrapSeasonMetadataService(logger, _repository, _client, _loginService, _scrapLockRepository,
-            _timeProvider, _config);
+            _timeProvider, _config, _scrapSeriesMetadataService);
 
         _fixture = new Fixture();
         _faker = new Faker();
@@ -561,11 +564,15 @@ public class ScrapSeasonMetadataServiceTests
         _repository
             .GetTitleMetadataAsync(seriesId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok<Domain.Entities.TitleMetadata?>(null));
-        
+
+        _scrapSeriesMetadataService
+            .ScrapSeriesMetadataAsync(seriesId, language, Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
         _scrapLockRepository
             .AddLockAsync(seriesId)
             .Returns(true);
-        
+
         //Act
         var result = await _sut.ScrapSeasonMetadataAsync(seriesId, language, CancellationToken.None);
 
@@ -574,7 +581,7 @@ public class ScrapSeasonMetadataServiceTests
         result.Errors.First().Message.Should().Be(ErrorCodes.NotFound);
 
         await _repository
-            .Received(1)
+            .Received(2)
             .GetTitleMetadataAsync(seriesId, language, Arg.Any<CancellationToken>());
         
         await _loginService
@@ -586,6 +593,116 @@ public class ScrapSeasonMetadataServiceTests
             .GetSeasonsAsync(seriesId, language, Arg.Any<CancellationToken>());
     }
     
+    [Fact]
+    public async Task ScrapsSeriesMetadataAndSetsSeasons_WhenTitleMetadataNotFound_GivenSeriesId()
+    {
+        //Arrange
+        var seriesId = CrunchyrollIdFaker.Generate();
+        var language = new CultureInfo("en-US");
+
+        _loginService
+            .LoginAnonymouslyAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        _scrapLockRepository
+            .AddLockAsync(seriesId)
+            .Returns(true);
+
+        var titleMetadata = _fixture.Build<Domain.Entities.TitleMetadata>()
+            .With(x => x.LastUpdatedAt, _faker.Date.Past().ToUniversalTime)
+            .Without(x => x.Seasons)
+            .Create();
+
+        //title metadata does not exist until the series metadata was scraped
+        _repository
+            .GetTitleMetadataAsync(seriesId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<Domain.Entities.TitleMetadata?>(null),
+                Result.Ok<Domain.Entities.TitleMetadata?>(titleMetadata));
+
+        _scrapSeriesMetadataService
+            .ScrapSeriesMetadataAsync(seriesId, language, Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        var crunchyrollSeasonsItems = _fixture
+            .Build<CrunchyrollSeasonsItem>()
+            .With(x => x.Id, () => CrunchyrollIdFaker.Generate().ToString())
+            .CreateMany(3)
+            .ToList();
+
+        _client
+            .GetSeasonsAsync(seriesId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok(new CrunchyrollSeasonsResponse{Data = crunchyrollSeasonsItems}));
+
+        Domain.Entities.TitleMetadata actualMetadata = null!;
+        _repository
+            .UpdateTitleMetadata(
+                Arg.Do<Domain.Entities.TitleMetadata>(x => actualMetadata = x));
+
+        _repository
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
+
+        //Act
+        var result = await _sut.ScrapSeasonMetadataAsync(seriesId, language, CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        actualMetadata.Seasons.Select(x => x.CrunchyrollId).Should()
+            .BeEquivalentTo(crunchyrollSeasonsItems.Select(x => x.Id));
+
+        await _scrapSeriesMetadataService
+            .Received(1)
+            .ScrapSeriesMetadataAsync(seriesId, language, Arg.Any<CancellationToken>());
+
+        await _repository
+            .Received(2)
+            .GetTitleMetadataAsync(seriesId, language, Arg.Any<CancellationToken>());
+
+        await _client
+            .Received(1)
+            .GetSeasonsAsync(seriesId, language, Arg.Any<CancellationToken>());
+
+        await _repository
+            .Received(1)
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ReturnsFailed_WhenTitleMetadataNotFoundAndScrapSeriesMetadataFails_GivenSeriesId()
+    {
+        //Arrange
+        var seriesId = CrunchyrollIdFaker.Generate();
+        var language = new CultureInfo("en-US");
+
+        _scrapLockRepository
+            .AddLockAsync(seriesId)
+            .Returns(true);
+
+        _repository
+            .GetTitleMetadataAsync(seriesId, Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok<Domain.Entities.TitleMetadata?>(null));
+
+        var error = Guid.NewGuid().ToString();
+        _scrapSeriesMetadataService
+            .ScrapSeriesMetadataAsync(seriesId, language, Arg.Any<CancellationToken>())
+            .Returns(Result.Fail(error));
+
+        //Act
+        var result = await _sut.ScrapSeasonMetadataAsync(seriesId, language, CancellationToken.None);
+
+        //Assert
+        result.IsFailed.Should().BeTrue();
+        result.Errors.First().Message.Should().Be(error);
+
+        await _client
+            .DidNotReceive()
+            .GetSeasonsAsync(Arg.Any<string>(), Arg.Any<CultureInfo>(), Arg.Any<CancellationToken>());
+
+        await _repository
+            .DidNotReceive()
+            .SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
     [Fact]
     public async Task ReturnsFailed_WhenClientGetSeasonsFails_GivenTitleId()
     {

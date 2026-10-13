@@ -9,6 +9,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.GetSpecialEpisodeCrunchyrollId;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.ScrapEpisodeMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata.SetMetadataToEpisode;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Season.ScrapSeasonMetadata;
 using MediaBrowser.Controller.Providers;
 using Microsoft.Extensions.Logging;
 
@@ -21,18 +22,21 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
     private readonly IScrapEpisodeMetadataService _scrapEpisodeMetadataService;
     private readonly ISetMetadataToEpisodeService _setMetadataToEpisodeService;
     private readonly IGetSpecialEpisodeCrunchyrollIdService _specialEpisodeCrunchyrollIdService;
+    private readonly IScrapSeasonMetadataService _scrapSeasonMetadataService;
 
     public EpisodeGetMetadataService(ILogger<EpisodeGetMetadataService> logger,
         IGetEpisodeCrunchyrollIdService episodeCrunchyrollIdService,
         IScrapEpisodeMetadataService scrapEpisodeMetadataService,
         ISetMetadataToEpisodeService setMetadataToEpisodeService,
-        IGetSpecialEpisodeCrunchyrollIdService specialEpisodeCrunchyrollIdService)
+        IGetSpecialEpisodeCrunchyrollIdService specialEpisodeCrunchyrollIdService,
+        IScrapSeasonMetadataService scrapSeasonMetadataService)
     {
         _logger = logger;
         _episodeCrunchyrollIdService = episodeCrunchyrollIdService;
         _scrapEpisodeMetadataService = scrapEpisodeMetadataService;
         _setMetadataToEpisodeService = setMetadataToEpisodeService;
         _specialEpisodeCrunchyrollIdService = specialEpisodeCrunchyrollIdService;
+        _scrapSeasonMetadataService = scrapSeasonMetadataService;
     }
     
     public async Task<MetadataResult<MediaBrowser.Controller.Entities.TV.Episode>> GetMetadataAsync(EpisodeInfo info, CancellationToken cancellationToken)
@@ -41,7 +45,15 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
         var language = info.GetPreferredMetadataCultureInfo();
         
         var episodeId = info.ProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.EpisodeId);
-        
+        var seriesId = info.SeriesProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.SeriesId);
+
+        //season (and series) metadata can be missing, e.g. if the database was cleared but the jellyfin season still has an id;
+        //ignore failed result, because data can still exist in database
+        if (!string.IsNullOrWhiteSpace(seriesId))
+        {
+            _ = await _scrapSeasonMetadataService.ScrapSeasonMetadataAsync(seriesId, language, cancellationToken);
+        }
+
         if (!IsEpisodeInsideOfSpecialsSeason(info))
         {
             if (string.IsNullOrWhiteSpace(seasonId))
@@ -71,8 +83,7 @@ public class EpisodeGetMetadataService : IEpisodeGetMetadataService
         if (string.IsNullOrWhiteSpace(episodeId))
         {
             var fileName = Path.GetFileNameWithoutExtension(info.Path);
-            var seriesId = info.SeriesProviderIds.GetValueOrDefault(CrunchyrollExternalKeys.SeriesId);
-            
+
             if (string.IsNullOrWhiteSpace(seriesId))
             {
                 _logger.LogDebug("special episode {Path} has no seriesId, skipping...", info.Path);

@@ -26,6 +26,7 @@ public class ScrapSeasonMetadataService : IScrapSeasonMetadataService
     private readonly IScrapLockRepository _scrapLockRepository;
     private readonly TimeProvider _timeProvider;
     private readonly PluginConfiguration _config;
+    private readonly IScrapSeriesMetadataService _scrapSeriesMetadataService;
 
     private static readonly ConcurrentDictionary<CrunchyrollId, SemaphoreSlim> SemaphoreSlims =
         new ConcurrentDictionary<CrunchyrollId, SemaphoreSlim>();
@@ -33,7 +34,8 @@ public class ScrapSeasonMetadataService : IScrapSeasonMetadataService
     public ScrapSeasonMetadataService(ILogger<ScrapSeasonMetadataService> logger, 
         IScrapSeasonMetadataRepository repository, ICrunchyrollSeasonsClient client,
         ILoginService loginService, IScrapLockRepository scrapLockRepository,
-        TimeProvider timeProvider, PluginConfiguration config)
+        TimeProvider timeProvider, PluginConfiguration config,
+        IScrapSeriesMetadataService scrapSeriesMetadataService)
     {
         _logger = logger;
         _repository = repository;
@@ -42,6 +44,7 @@ public class ScrapSeasonMetadataService : IScrapSeasonMetadataService
         _scrapLockRepository = scrapLockRepository;
         _timeProvider = timeProvider;
         _config = config;
+        _scrapSeriesMetadataService = scrapSeriesMetadataService;
     }
     
     public async Task<Result> ScrapSeasonMetadataAsync(CrunchyrollId seriesId, CultureInfo language, CancellationToken cancellationToken)
@@ -79,7 +82,32 @@ public class ScrapSeasonMetadataService : IScrapSeasonMetadataService
             }
             
             var titleMetadata = titleMetadataResult.Value;
-            
+
+            //series metadata can be missing, e.g. if the database was cleared but the jellyfin series still has an id
+            //or the CrunchyrollId for the series was manually set and the season is the first entity that tries to get metadata
+            if (titleMetadata is null)
+            {
+                _logger.LogDebug("TitleMetadata for id {SeriesId} & language {Language} not found, scraping series metadata...",
+                    seriesId, language.Name);
+
+                var scrapSeriesResult = await _scrapSeriesMetadataService
+                    .ScrapSeriesMetadataAsync(seriesId, language, cancellationToken);
+
+                if (scrapSeriesResult.IsFailed)
+                {
+                    return scrapSeriesResult;
+                }
+
+                titleMetadataResult = await _repository.GetTitleMetadataAsync(seriesId, language, cancellationToken);
+
+                if (titleMetadataResult.IsFailed)
+                {
+                    return titleMetadataResult.ToResult();
+                }
+
+                titleMetadata = titleMetadataResult.Value;
+            }
+
             if (titleMetadata is null)
             {
                 _logger.LogError("TitleMetadata for id {SeriesId} & language {Language} not found", seriesId,
