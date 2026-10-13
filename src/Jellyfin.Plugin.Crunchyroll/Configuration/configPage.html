@@ -87,6 +87,14 @@
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
+                <div class="selectContainer">
+                    <label class="selectLabel" for="SeriesBackdropImageWidth">Backdrop image quality</label>
+                    <select is="emby-select" id="SeriesBackdropImageWidth" name="SeriesBackdropImageWidth" class="emby-select-withcolor emby-select">
+                        <option value="3840">3840 (4K)</option>
+                        <option value="1920">1920 (Full HD)</option>
+                    </select>
+                    <div class="fieldDescription">Quality of the series backdrop image fetched from Crunchyroll</div>
+                </div>
 
                 <h3>Season</h3>
                 <div class="inputContainer">
@@ -316,6 +324,7 @@
                     document.querySelector('#IsFeatureSeriesDescriptionEnabled').checked = config.IsFeatureSeriesDescriptionEnabled;
                     document.querySelector('#IsFeatureSeriesStudioEnabled').checked = config.IsFeatureSeriesStudioEnabled;
                     document.querySelector('#IsFeatureSeriesRatingsEnabled').checked = config.IsFeatureSeriesRatingsEnabled;
+                    document.querySelector('#SeriesBackdropImageWidth').value = config.SeriesBackdropImageWidth;
                     
                     document.querySelector('#IsFeatureSeasonTitleEnabled').checked = config.IsFeatureSeasonTitleEnabled;
                     document.querySelector('#IsFeatureSeasonOrderByCrunchyrollOrderEnabled').checked = config.IsFeatureSeasonOrderByCrunchyrollOrderEnabled;
@@ -348,6 +357,7 @@
                     config.IsFeatureSeriesDescriptionEnabled = document.querySelector('#IsFeatureSeriesDescriptionEnabled').checked;
                     config.IsFeatureSeriesStudioEnabled = document.querySelector('#IsFeatureSeriesStudioEnabled').checked;
                     config.IsFeatureSeriesRatingsEnabled = document.querySelector('#IsFeatureSeriesRatingsEnabled').checked;
+                    config.SeriesBackdropImageWidth = parseInt(document.querySelector('#SeriesBackdropImageWidth').value, 10);
                     
                     config.IsFeatureSeasonTitleEnabled = document.querySelector('#IsFeatureSeasonTitleEnabled').checked;
                     config.IsFeatureSeasonOrderByCrunchyrollOrderEnabled = document.querySelector('#IsFeatureSeasonOrderByCrunchyrollOrderEnabled').checked;

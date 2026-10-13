@@ -24,7 +24,7 @@ public class CrunchyrollSeriesImageProviderTests
     }
     
     [Fact]
-    public async Task ReturnsPrimaryAndBackdrop_WhenSuccessful_GivenSeries()
+    public async Task ReturnsPrimaryThumbAndBackdrop_WhenSuccessful_GivenSeries()
     {
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
@@ -43,17 +43,22 @@ public class CrunchyrollSeriesImageProviderTests
         var posterWide = JsonSerializer.Deserialize<ImageSource>(titleMetadata.PosterWide)!;
         
         var imageInfos = remoteImageInfos.ToArray();
-        imageInfos.Should().HaveCount(2);
+        imageInfos.Should().HaveCount(3);
         imageInfos.Should().Contain(x =>
             x.Url == posterTall.Uri &&
             x.Width == posterTall.Width &&
             x.Height == posterTall.Height &&
             x.Type == ImageType.Primary);
-        
+
         imageInfos.Should().Contain(x =>
             x.Url == posterWide.Uri &&
             x.Width == posterWide.Width &&
             x.Height == posterWide.Height &&
+            x.Type == ImageType.Thumb);
+
+        imageInfos.Should().Contain(x =>
+            x.Url == $"https://imgsrv.crunchyroll.com/cdn-cgi/image/fit=cover,format=auto,quality=100,width=3840/keyart/{seriesId}-backdrop_wide" &&
+            x.Width == 3840 &&
             x.Type == ImageType.Backdrop);
     }
 }

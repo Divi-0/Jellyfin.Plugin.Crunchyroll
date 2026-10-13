@@ -16,7 +16,8 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool IsFeatureSeriesDescriptionEnabled { get; set; } = false;
     public bool IsFeatureSeriesStudioEnabled { get; set; } = false;
     public bool IsFeatureSeriesRatingsEnabled { get; set; } = false;
-    
+    public int SeriesBackdropImageWidth { get; set; } = 3840;
+
     //Season Features
     public bool IsFeatureSeasonTitleEnabled { get; set; } = false;
     public bool IsFeatureSeasonOrderByCrunchyrollOrderEnabled { get; set; } = false;

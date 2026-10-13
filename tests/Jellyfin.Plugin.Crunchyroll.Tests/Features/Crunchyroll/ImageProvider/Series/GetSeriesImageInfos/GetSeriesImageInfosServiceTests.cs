@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FluentAssertions;
 using FluentResults;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
@@ -16,17 +17,23 @@ public class GetSeriesImageInfosServiceTests
 {
     private readonly GetSeriesImageInfosService _sut;
     private readonly IGetSeriesImageInfosRepository _repository;
+    private readonly PluginConfiguration _config;
 
     public GetSeriesImageInfosServiceTests()
     {
         _repository = Substitute.For<IGetSeriesImageInfosRepository>();
         var logger = Substitute.For<ILogger<GetSeriesImageInfosService>>();
-        _sut = new GetSeriesImageInfosService(_repository, logger);
+        _config = new PluginConfiguration();
+        _sut = new GetSeriesImageInfosService(_repository, logger, _config);
     }
 
-    [Fact]
-    public async Task ReturnsImageInfos_WhenSuccessful_GivenSeriesWithSeriesId()
+    [Theory]
+    [InlineData(3840, 100)]
+    [InlineData(1920, 85)]
+    public async Task ReturnsImageInfos_WhenSuccessful_GivenSeriesWithSeriesId(int backdropWidth, int expectedQuality)
     {
+        _config.SeriesBackdropImageWidth = backdropWidth;
+
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
         var seriesId = series.ProviderIds[CrunchyrollExternalKeys.SeriesId];
@@ -42,7 +49,7 @@ public class GetSeriesImageInfosServiceTests
         var imageInfos = await _sut.GetImageInfosAsync(series, CancellationToken.None);
 
         //Assert
-        imageInfos.Should().HaveCount(2);
+        imageInfos.Should().HaveCount(3);
         imageInfos.Should().ContainEquivalentOf(new RemoteImageInfo
         {
             Url = posterTall.Uri,
@@ -55,6 +62,12 @@ public class GetSeriesImageInfosServiceTests
             Url = posterWide.Uri,
             Width = posterWide.Width,
             Height = posterWide.Height,
+            Type = ImageType.Thumb
+        });
+        imageInfos.Should().ContainEquivalentOf(new RemoteImageInfo
+        {
+            Url = $"https://imgsrv.crunchyroll.com/cdn-cgi/image/fit=cover,format=auto,quality={expectedQuality},width={backdropWidth}/keyart/{seriesId}-backdrop_wide",
+            Width = backdropWidth,
             Type = ImageType.Backdrop
         });
 

@@ -35,7 +35,8 @@ public sealed class CrunchyrollSeriesImageProvider : IRemoteImageProvider, IHasO
     public IEnumerable<ImageType> GetSupportedImages(BaseItem item) =>
     [
         ImageType.Primary,
-        ImageType.Backdrop
+        ImageType.Backdrop,
+        ImageType.Thumb
     ];
 
     public async Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, CancellationToken cancellationToken)
