@@ -57,9 +57,22 @@ jobs:
 
       # Add Release to manifest.json
       - name: Add version to manifest.json
+        env:
+          RELEASE_NOTES: ${{ inputs.release-notes }}
+          JELLYFIN_RELEASE: ${{ inputs.jellyfin-release }}
+          SOURCE_URL: https://github.com/Divi-0/Jellyfin.Plugin.Crunchyroll/releases/download/${{ inputs.version }}/Jellyfin.Plugin.Crunchyroll-${{ inputs.version }}.zip
+          CHECKSUM: ${{ steps.artifact.outputs.checksum }}
         run: |
           TIMESTAMP=$(date --utc +%FT%TZ)
-          MANIFEST_CONTENT=$(jq '.[0].versions += [{"version": ''"'"${PLUGIN_VERSION}"'"'', "changelog": "${{ inputs.release-notes}}", "targetAbi": "${{ inputs.jellyfin-release}}", "sourceUrl": "https://github.com/Divi-0/Jellyfin.Plugin.Crunchyroll/releases/download/${{ inputs.version}}/Jellyfin.Plugin.Crunchyroll-${{ inputs.version}}.zip", "checksum": ''"'"${{ steps.artifact.outputs.checksum }}"'"'', "timestamp": ''"'"${TIMESTAMP}"'"''}]' manifest.json)
+          MANIFEST_CONTENT=$(jq \
+            --arg version "$PLUGIN_VERSION" \
+            --arg changelog "$RELEASE_NOTES" \
+            --arg targetAbi "$JELLYFIN_RELEASE" \
+            --arg sourceUrl "$SOURCE_URL" \
+            --arg checksum "$CHECKSUM" \
+            --arg timestamp "$TIMESTAMP" \
+            '.[0].versions += [{"version": $version, "changelog": ($changelog | gsub("\\\\n"; "\n")), "targetAbi": $targetAbi, "sourceUrl": $sourceUrl, "checksum": $checksum, "timestamp": $timestamp}]' \
+            manifest.json)
           echo -E $MANIFEST_CONTENT > manifest.json
           echo $(cat manifest.json)
 
