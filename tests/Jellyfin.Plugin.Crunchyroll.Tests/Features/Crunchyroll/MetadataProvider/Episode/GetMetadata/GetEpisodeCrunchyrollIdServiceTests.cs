@@ -34,7 +34,7 @@ public class GetEpisodeCrunchyrollIdServiceTests
         //Arrange
         var seasonId = CrunchyrollIdFaker.Generate();
         var seriesId = CrunchyrollIdFaker.Generate();
-        var fileName = _faker.Random.Word();
+        var fileName = _faker.Random.Word().ToLowerInvariant();
         var indexNumber = (int?)Random.Shared.Next(1, int.MaxValue);
         var episodeId = CrunchyrollIdFaker.Generate();
         var language = new CultureInfo("en-US");
@@ -69,7 +69,7 @@ public class GetEpisodeCrunchyrollIdServiceTests
         //Arrange
         var seasonId = CrunchyrollIdFaker.Generate();
         var seriesId = CrunchyrollIdFaker.Generate();
-        var fileName = _faker.Random.Word();
+        var fileName = _faker.Random.Word().ToLowerInvariant();
         var indexNumber = (int?)Random.Shared.Next(1, int.MaxValue);
         var episodeId = CrunchyrollIdFaker.Generate();
         var language = new CultureInfo("en-US");
@@ -128,7 +128,7 @@ public class GetEpisodeCrunchyrollIdServiceTests
         //Arrange
         var seasonId = CrunchyrollIdFaker.Generate();
         var seriesId = CrunchyrollIdFaker.Generate();
-        var fileName = _faker.Random.Word();
+        var fileName = _faker.Random.Word().ToLowerInvariant();
         var indexNumber = (int?)Random.Shared.Next(1, int.MaxValue);
         var language = new CultureInfo("en-US");
 
@@ -177,7 +177,7 @@ public class GetEpisodeCrunchyrollIdServiceTests
         //Arrange
         var seasonId = CrunchyrollIdFaker.Generate();
         var seriesId = CrunchyrollIdFaker.Generate();
-        var fileName = _faker.Random.Word();
+        var fileName = _faker.Random.Word().ToLowerInvariant();
         var indexNumber = (int?)Random.Shared.Next(1, int.MaxValue);
         var episodeId = CrunchyrollIdFaker.Generate();
         var language = new CultureInfo("en-US");
@@ -225,7 +225,7 @@ public class GetEpisodeCrunchyrollIdServiceTests
         //Arrange
         var seasonId = CrunchyrollIdFaker.Generate();
         var seriesId = CrunchyrollIdFaker.Generate();
-        var fileName = _faker.Random.Word();
+        var fileName = _faker.Random.Word().ToLowerInvariant();
         var indexNumber = (int?)Random.Shared.Next(1, int.MaxValue);
         var episodeId = CrunchyrollIdFaker.Generate();
         var language = new CultureInfo("en-US");
@@ -284,7 +284,7 @@ public class GetEpisodeCrunchyrollIdServiceTests
         //Arrange
         var seasonId = CrunchyrollIdFaker.Generate();
         var seriesId = CrunchyrollIdFaker.Generate();
-        var fileName = _faker.Random.Word();
+        var fileName = _faker.Random.Word().ToLowerInvariant();
         var indexNumber = (int?)Random.Shared.Next(1, int.MaxValue);
         var language = new CultureInfo("en-US");
 
@@ -412,7 +412,7 @@ public class GetEpisodeCrunchyrollIdServiceTests
         //Arrange
         var seasonId = CrunchyrollIdFaker.Generate();
         var seriesId = CrunchyrollIdFaker.Generate();
-        var fileName = _faker.Random.Word();
+        var fileName = _faker.Random.Word().ToLowerInvariant();
         var indexNumber = (int?)null;
         var language = new CultureInfo("en-US");
 
@@ -442,7 +442,7 @@ public class GetEpisodeCrunchyrollIdServiceTests
         //Arrange
         var seasonId = CrunchyrollIdFaker.Generate();
         var seriesId = CrunchyrollIdFaker.Generate();
-        var fileName = _faker.Random.Word();
+        var fileName = _faker.Random.Word().ToLowerInvariant();
         var indexNumber = (int?)null;
         var language = new CultureInfo("en-US");
 
@@ -505,7 +505,8 @@ public class GetEpisodeCrunchyrollIdServiceTests
         //Arrange
         var seasonId = CrunchyrollIdFaker.Generate();
         var seriesId = CrunchyrollIdFaker.Generate();
-        var fileName = _faker.Random.Words(Random.Shared.Next(1, 10));
+        //lowercase, so the random name can't accidentally match the episode-number regexes (e.g. "Euro" -> "E" + letter)
+        var fileName = _faker.Random.Words(Random.Shared.Next(1, 10)).ToLowerInvariant();
         var indexNumber = (int?)Random.Shared.Next(1, int.MaxValue);
         var language = new CultureInfo("en-US");
 
@@ -564,7 +565,7 @@ public class GetEpisodeCrunchyrollIdServiceTests
         //Arrange
         var seasonId = CrunchyrollIdFaker.Generate();
         var seriesId = CrunchyrollIdFaker.Generate();
-        var fileName = _faker.Random.Word();
+        var fileName = _faker.Random.Word().ToLowerInvariant();
         var indexNumber = (int?)Random.Shared.Next(1, int.MaxValue);
         var language = new CultureInfo("en-US");
 

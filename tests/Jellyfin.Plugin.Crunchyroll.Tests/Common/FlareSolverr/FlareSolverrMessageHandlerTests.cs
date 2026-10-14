@@ -155,7 +155,7 @@ public class FlareSolverrMessageHandlerTests
         
         var request = new HttpRequestMessage(HttpMethod.Post, _faker.Internet.UrlWithPath())
         {
-            Headers = { {HeaderNames.Authorization, _faker.Random.Words()}, {"blabla", _faker.Random.Words()} },
+            Headers = { {HeaderNames.Authorization, Guid.NewGuid().ToString()}, {"blabla", Guid.NewGuid().ToString()} },
             Content = new FormUrlEncodedContent(formData)
         };
 
@@ -209,7 +209,7 @@ public class FlareSolverrMessageHandlerTests
         //Arrange
         var request = new HttpRequestMessage(HttpMethod.Post, _faker.Internet.Url())
         {
-            Headers = { {HeaderNames.Authorization, _faker.Random.Words()}, {"blabla", _faker.Random.Words()} },
+            Headers = { {HeaderNames.Authorization, Guid.NewGuid().ToString()}, {"blabla", Guid.NewGuid().ToString()} },
             Content = new StringContent(_faker.Lorem.Sentences())
         };
         
@@ -228,7 +228,7 @@ public class FlareSolverrMessageHandlerTests
         //Arrange
         var request = new HttpRequestMessage(HttpMethod.Post, _faker.Internet.UrlWithPath())
         {
-            Headers = { {HeaderNames.Authorization, _faker.Random.Words()}, {"blabla", _faker.Random.Words()} },
+            Headers = { {HeaderNames.Authorization, Guid.NewGuid().ToString()}, {"blabla", Guid.NewGuid().ToString()} },
             Content = new StringContent(_faker.Lorem.Sentences())
         };
         

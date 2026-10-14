@@ -8,7 +8,7 @@ public static class CrunchyrollEpisodeFaker
 {
     public static Episode Generate(Guid? seasonId = null, MediaBrowser.Controller.Entities.TV.Episode? episode = null)
     {
-        var title = new Bogus.Faker().Random.Words();
+        var title = new Bogus.Faker().Random.FileNameSafeWords();
         var episodeNumber = episode?.IndexNumber is null 
             ? Random.Shared.Next(1, 2000).ToString() 
             : episode.IndexNumber.Value.ToString();

@@ -205,8 +205,8 @@ public class CrunchyrollSeriesIdClientTests
         //Assert
         searchResponseResult.IsSuccess.Should().BeTrue();
 
-        searchResponseResult.Value!.Should().BeNull();
-        
+        searchResponseResult.Value!.Should().BeNull("DIAG name=[{0}] titles=[{1}]", name, string.Join(" | ", searchDataItems.Select(x => x.Title)));
+
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(1);
     }
 

@@ -18,7 +18,7 @@ public static class EpisodeFaker
             .RuleFor(x => x.Path, f => $"/{f.Random.Words()}/E-{f.Random.Number(9999)}.mp4")
             .RuleFor(x => x.PreferredMetadataLanguage, "en")
             .RuleFor(x => x.PreferredMetadataCountryCode, "US")
-            .RuleFor(x => x.ParentIndexNumber, f => parent?.IndexNumber ?? f.Random.Number(99))
+            .RuleFor(x => x.ParentIndexNumber, f => parent?.IndexNumber ?? f.Random.Number(1, 99))
             .Generate();
     }    
     

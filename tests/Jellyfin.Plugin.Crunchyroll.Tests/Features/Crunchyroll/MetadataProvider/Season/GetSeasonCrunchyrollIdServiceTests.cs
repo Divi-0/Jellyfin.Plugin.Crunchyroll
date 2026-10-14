@@ -110,7 +110,7 @@ public class GetSeasonCrunchyrollIdServiceTests
         var series = SeriesFaker.GenerateWithTitleId();
         var seriesId = series.ProviderIds[CrunchyrollExternalKeys.SeriesId];
         var season = SeasonFaker.Generate(series);
-        var title = _faker.Random.Words(Random.Shared.Next(1, 10));
+        var title = _faker.Random.FileNameSafeWords(Random.Shared.Next(1, 10));
         season.Path = $"/{_faker.Random.Words(3)}/Season {season.IndexNumber} - {title} {attributeInFolderName}";
         var folderName = Path.GetFileNameWithoutExtension(season.Path);
         var crunchyrollSeasonId = CrunchyrollIdFaker.Generate();
