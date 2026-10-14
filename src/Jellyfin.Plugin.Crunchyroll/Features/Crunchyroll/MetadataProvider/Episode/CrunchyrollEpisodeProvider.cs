@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Crunchyroll.Common.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.GetMetadata;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode.SearchEpisode;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Providers;
@@ -25,9 +26,25 @@ public class CrunchyrollEpisodeProvider : IRemoteMetadataProvider<MediaBrowser.C
         _logger = logger;
     }
     
-    public Task<IEnumerable<RemoteSearchResult>> GetSearchResults(EpisodeInfo searchInfo, CancellationToken cancellationToken)
+    public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(EpisodeInfo searchInfo, CancellationToken cancellationToken)
     {
-        throw new System.NotImplementedException();
+        try
+        {
+            var serviceScopeFactory =
+                CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
+            using var scope = serviceScopeFactory.CreateScope();
+            var searchService = scope.ServiceProvider.GetRequiredService<ISearchEpisodeService>();
+            var searchResult = await searchService.SearchAsync(searchInfo, cancellationToken);
+
+            return searchResult.IsSuccess
+                ? searchResult.Value
+                : [];
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "unknown error");
+            return [];
+        }
     }
 
     public async Task<MetadataResult<MediaBrowser.Controller.Entities.TV.Episode>> GetMetadata(EpisodeInfo info, CancellationToken cancellationToken)

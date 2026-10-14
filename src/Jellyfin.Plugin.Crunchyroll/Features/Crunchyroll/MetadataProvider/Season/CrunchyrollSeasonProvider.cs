@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ public sealed class CrunchyrollSeasonProvider : IRemoteMetadataProvider<MediaBro
     /// <returns></returns>
     public Task<IEnumerable<RemoteSearchResult>> GetSearchResults(SeasonInfo searchInfo, CancellationToken cancellationToken)
     {
-        throw new System.NotImplementedException();
+        return Task.FromResult(Enumerable.Empty<RemoteSearchResult>());
     }
 
     /// <summary>

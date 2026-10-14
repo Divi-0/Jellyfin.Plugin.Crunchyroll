@@ -9,6 +9,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
 
 public static class CrunchyrollExternalKeys
 {
+    public const string ProviderName = "Crunchyroll";
     public const string SeriesId = "CrunchyrollPlugin.Crunchyroll.Id";
     public const string SeasonId = "CrunchyrollPlugin.Crunchyroll.Season.Id";
     public const string EpisodeId = "CrunchyrollPlugin.Crunchyroll.Episode.Id";

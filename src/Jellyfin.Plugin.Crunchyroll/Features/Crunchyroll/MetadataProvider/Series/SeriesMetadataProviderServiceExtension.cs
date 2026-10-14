@@ -3,6 +3,7 @@ using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.G
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata.ScrapSeriesMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.GetMetadata.SetMetadataToSeries;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.SearchSeries;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series;
@@ -15,6 +16,7 @@ public static class SeriesMetadataProviderServiceExtension
         serviceCollection.AddScrapSeriesMetadata();
         serviceCollection.AddSetMetadataToSeries();
         serviceCollection.AddScoped<ISeriesGetMetadataService, SeriesGetMetadataService>();
+        serviceCollection.AddSearchSeries();
 
         serviceCollection.AddCrunchyrollSeriesReviewsProvider();
     }

@@ -1,6 +1,7 @@
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Episode;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Movie;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.ScrapLockRepository;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Search;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Season;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,5 +17,6 @@ public static class MetadataProviderServiceExtension
         serviceCollection.AddEpisodeMetadataProvider();
         serviceCollection.AddCrunchyrollMovieProvider();
         serviceCollection.AddScrapLockRepository();
+        serviceCollection.AddCrunchyrollSearch();
     }
 }

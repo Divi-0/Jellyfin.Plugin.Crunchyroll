@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Jellyfin.Plugin.Crunchyroll.Common.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Movie.GetMetadata;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series;
+using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Movie.SearchMovie;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,9 +31,25 @@ public sealed class CrunchyrollMovieProvider : IRemoteMetadataProvider<MediaBrow
     /// <param name="searchInfo"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<IEnumerable<RemoteSearchResult>> GetSearchResults(MovieInfo searchInfo, CancellationToken cancellationToken)
+    public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(MovieInfo searchInfo, CancellationToken cancellationToken)
     {
-        throw new System.NotImplementedException();
+        try
+        {
+            var serviceScopeFactory =
+                CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
+            using var scope = serviceScopeFactory.CreateScope();
+            var searchService = scope.ServiceProvider.GetRequiredService<ISearchMovieService>();
+            var searchResult = await searchService.SearchAsync(searchInfo, cancellationToken);
+
+            return searchResult.IsSuccess
+                ? searchResult.Value
+                : [];
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "unknown error");
+            return [];
+        }
     }
 
     /// <summary>
