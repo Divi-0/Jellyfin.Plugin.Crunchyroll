@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FluentAssertions;
 using FluentResults;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Domain;
 using Jellyfin.Plugin.Crunchyroll.Domain.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
@@ -15,24 +16,31 @@ namespace Jellyfin.Plugin.Crunchyroll.Tests.Features.Crunchyroll.ImageProvider.M
 public class GetMovieImageInfosServiceTests
 {
     private readonly GetMovieImageInfosService _sut;
-    private IGetMovieImageInfosRepository _repository;
+    private readonly IGetMovieImageInfosRepository _repository;
+    private readonly PluginConfiguration _config;
 
     public GetMovieImageInfosServiceTests()
     {
         _repository = Substitute.For<IGetMovieImageInfosRepository>();
         var logger = Substitute.For<ILogger<GetMovieImageInfosService>>();
-        _sut = new GetMovieImageInfosService(_repository, logger);
+        _config = new PluginConfiguration();
+        _sut = new GetMovieImageInfosService(_repository, logger, _config);
     }
-    
-    [Fact]
-    public async Task ReturnsImageInfos_WhenSuccessful_GivenMovieWithSeriesId()
+
+    [Theory]
+    [InlineData(3840, 100)]
+    [InlineData(1920, 85)]
+    public async Task ReturnsImageInfos_WhenSuccessful_GivenMovieWithSeriesId(int backdropWidth, int expectedQuality)
     {
+        _config.MovieBackdropImageWidth = backdropWidth;
+
         //Arrange
         var movie = MovieFaker.GenerateWithCrunchyrollIds();
         var episodeId = movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId];
+        var seriesId = movie.ProviderIds[CrunchyrollExternalKeys.SeriesId];
         var titleMetadata = CrunchyrollTitleMetadataFaker.Generate(movie);
         var thumbnail = JsonSerializer.Deserialize<ImageSource>(titleMetadata.PosterTall)!;
-        
+
         _repository
             .GetEpisodeThumbnailAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
             .Returns(thumbnail);
@@ -41,13 +49,19 @@ public class GetMovieImageInfosServiceTests
         var imageInfos = await _sut.GetImageInfosAsync(movie, CancellationToken.None);
 
         //Assert
-        imageInfos.Should().HaveCount(1);
+        imageInfos.Should().HaveCount(2);
         imageInfos.Should().ContainEquivalentOf(new RemoteImageInfo
         {
             Url = thumbnail.Uri,
             Width = thumbnail.Width,
             Height = thumbnail.Height,
             Type = ImageType.Thumb
+        });
+        imageInfos.Should().ContainEquivalentOf(new RemoteImageInfo
+        {
+            Url = $"https://imgsrv.crunchyroll.com/cdn-cgi/image/fit=cover,format=auto,quality={expectedQuality},width={backdropWidth}/keyart/{seriesId}-backdrop_wide",
+            Width = backdropWidth,
+            Type = ImageType.Backdrop
         });
 
         await _repository
@@ -56,12 +70,12 @@ public class GetMovieImageInfosServiceTests
     }
 
     [Fact]
-    public async Task ReturnsEmptyImageInfos_WhenRepositoryGetEpisodeThumbnailReturnedNull_GivenMovieWithSeriesId()
+    public async Task ReturnsOnlyBackdrop_WhenRepositoryGetEpisodeThumbnailReturnedNull_GivenMovieWithSeriesId()
     {
         //Arrange
         var movie = MovieFaker.GenerateWithCrunchyrollIds();
         var episodeId = movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId];
-        
+
         _repository
             .GetEpisodeThumbnailAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok<ImageSource?>(null));
@@ -70,20 +84,20 @@ public class GetMovieImageInfosServiceTests
         var imageInfos = await _sut.GetImageInfosAsync(movie, CancellationToken.None);
 
         //Assert
-        imageInfos.Should().BeEmpty();
+        imageInfos.Should().ContainSingle(x => x.Type == ImageType.Backdrop);
 
         await _repository
             .Received(1)
             .GetEpisodeThumbnailAsync(episodeId, Arg.Any<CancellationToken>());
     }
-    
+
     [Fact]
-    public async Task ReturnsEmptyImageInfos_WhenRepositoryGetEpisodeThumbnailFailed_GivenMovieWithSeriesId()
+    public async Task ReturnsOnlyBackdrop_WhenRepositoryGetEpisodeThumbnailFailed_GivenMovieWithSeriesId()
     {
         //Arrange
         var movie = MovieFaker.GenerateWithCrunchyrollIds();
         var episodeId = movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId];
-        
+
         _repository
             .GetEpisodeThumbnailAsync(Arg.Any<CrunchyrollId>(), Arg.Any<CancellationToken>())
             .Returns(Result.Fail(Guid.NewGuid().ToString()));
@@ -92,19 +106,19 @@ public class GetMovieImageInfosServiceTests
         var imageInfos = await _sut.GetImageInfosAsync(movie, CancellationToken.None);
 
         //Assert
-        imageInfos.Should().BeEmpty();
+        imageInfos.Should().ContainSingle(x => x.Type == ImageType.Backdrop);
 
         await _repository
             .Received(1)
             .GetEpisodeThumbnailAsync(episodeId, Arg.Any<CancellationToken>());
     }
-    
+
     [Fact]
-    public async Task ReturnsEmptyImageInfos_WhenMovieHasNoEpisodeId_GivenMovieWithoutSeriesId()
+    public async Task ReturnsEmptyImageInfos_WhenMovieHasNoCrunchyrollIds_GivenMovieWithoutIds()
     {
         //Arrange
         var movie = MovieFaker.Generate();
-        
+
         //Act
         var imageInfos = await _sut.GetImageInfosAsync(movie, CancellationToken.None);
 

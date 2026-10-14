@@ -31,6 +31,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool IsFeatureMovieTitleEnabled { get; set; } = false;
     public bool IsFeatureMovieDescriptionEnabled { get; set; } = false;
     public bool IsFeatureMovieStudioEnabled { get; set; } = false;
+    public int MovieBackdropImageWidth { get; set; } = 3840;
 
     //Other
     public bool IsFeatureReviewsEnabled { get; set; } = false;

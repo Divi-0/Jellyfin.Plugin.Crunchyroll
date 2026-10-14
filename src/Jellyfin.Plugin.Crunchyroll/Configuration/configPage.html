@@ -165,6 +165,14 @@
                     </label>
                     <div class="fieldDescription"></div>
                 </div>
+                <div class="selectContainer">
+                    <label class="selectLabel" for="MovieBackdropImageWidth">Backdrop image quality</label>
+                    <select is="emby-select" id="MovieBackdropImageWidth" name="MovieBackdropImageWidth" class="emby-select-withcolor emby-select">
+                        <option value="3840">3840 (4K)</option>
+                        <option value="1920">1920 (Full HD)</option>
+                    </select>
+                    <div class="fieldDescription">Quality of the movie backdrop image fetched from Crunchyroll</div>
+                </div>
 
                 <h3>Reviews & Comments</h3>
                 <div class="inputContainer">
@@ -336,6 +344,7 @@
                     document.querySelector('#IsFeatureMovieTitleEnabled').checked = config.IsFeatureMovieTitleEnabled;
                     document.querySelector('#IsFeatureMovieDescriptionEnabled').checked = config.IsFeatureMovieDescriptionEnabled;
                     document.querySelector('#IsFeatureMovieStudioEnabled').checked = config.IsFeatureMovieStudioEnabled;
+                    document.querySelector('#MovieBackdropImageWidth').value = config.MovieBackdropImageWidth;
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -369,6 +378,7 @@
                     config.IsFeatureMovieTitleEnabled = document.querySelector('#IsFeatureMovieTitleEnabled').checked;
                     config.IsFeatureMovieDescriptionEnabled = document.querySelector('#IsFeatureMovieDescriptionEnabled').checked;
                     config.IsFeatureMovieStudioEnabled = document.querySelector('#IsFeatureMovieStudioEnabled').checked;
+                    config.MovieBackdropImageWidth = parseInt(document.querySelector('#MovieBackdropImageWidth').value, 10);
                     ApiClient.updatePluginConfiguration(CrunchyrollPluginConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });

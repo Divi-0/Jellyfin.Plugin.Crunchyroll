@@ -21,11 +21,12 @@ public class CrunchyrollMovieImageProviderTests
     }
     
     [Fact]
-    public async Task ReturnsThumb_WhenSuccessful_GivenEpisode()
+    public async Task ReturnsThumbAndBackdrop_WhenSuccessful_GivenEpisode()
     {
         //Arrange
         var movie = MovieFaker.GenerateWithCrunchyrollIds();
         var episodeId = movie.ProviderIds[CrunchyrollExternalKeys.EpisodeId];
+        var seriesId = movie.ProviderIds[CrunchyrollExternalKeys.SeriesId];
 
         var crunchyrollEpisode = CrunchyrollEpisodeFaker.Generate();
         crunchyrollEpisode = crunchyrollEpisode with { CrunchyrollId = episodeId };
@@ -45,11 +46,16 @@ public class CrunchyrollMovieImageProviderTests
         var thumbnail = JsonSerializer.Deserialize<ImageSource>(crunchyrollEpisode.Thumbnail)!;
         
         var imageInfos = remoteImageInfos.ToArray();
-        imageInfos.Should().HaveCount(1);
+        imageInfos.Should().HaveCount(2);
         imageInfos.Should().Contain(x =>
             x.Url == thumbnail.Uri &&
             x.Width == thumbnail.Width &&
             x.Height == thumbnail.Height &&
             x.Type == ImageType.Thumb);
+
+        imageInfos.Should().Contain(x =>
+            x.Url == $"https://imgsrv.crunchyroll.com/cdn-cgi/image/fit=cover,format=auto,quality=100,width=3840/keyart/{seriesId}-backdrop_wide" &&
+            x.Width == 3840 &&
+            x.Type == ImageType.Backdrop);
     }
 }

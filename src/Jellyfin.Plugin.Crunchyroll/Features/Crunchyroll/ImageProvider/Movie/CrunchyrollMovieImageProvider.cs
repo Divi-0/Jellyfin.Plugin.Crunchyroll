@@ -33,7 +33,8 @@ public sealed class CrunchyrollMovieImageProvider : IRemoteImageProvider, IHasOr
 
     public IEnumerable<ImageType> GetSupportedImages(BaseItem item) =>
     [
-        ImageType.Thumb
+        ImageType.Thumb,
+        ImageType.Backdrop
     ];
 
     public async Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, CancellationToken cancellationToken)
