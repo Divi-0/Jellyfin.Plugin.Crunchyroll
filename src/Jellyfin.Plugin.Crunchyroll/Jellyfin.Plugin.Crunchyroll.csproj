@@ -12,10 +12,10 @@
     <ItemGroup>
       <PackageReference Include="FluentResults" Version="4.0.0" />
       <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
-        <PackageReference Include="Jellyfin.Controller" Version="12.1.0">
+        <PackageReference Include="Jellyfin.Controller" Version="12.2.0">
             <IncludeAssets>compile</IncludeAssets>
         </PackageReference>
-      <PackageReference Include="Jellyfin.Model" Version="12.1.0">
+      <PackageReference Include="Jellyfin.Model" Version="12.2.0">
           <IncludeAssets>compile</IncludeAssets>
       </PackageReference>
       <PackageReference Include="Mediator.Abstractions" Version="2.1.7" />
@@ -103,5 +103,4 @@
         </ItemGroup>
         <Copy SourceFiles="@(PackageReferenceFiles)" DestinationFolder="$(PublishDir)" />
     </Target>
-
 </Project>

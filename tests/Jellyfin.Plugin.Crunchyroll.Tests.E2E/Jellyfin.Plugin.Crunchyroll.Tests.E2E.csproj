@@ -15,8 +15,8 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="FluentAssertions" Version="6.12.2" />
-        <PackageReference Include="Jellyfin.Common" Version="12.1.0" />
-        <PackageReference Include="Jellyfin.Controller" Version="12.1.0" />
+        <PackageReference Include="Jellyfin.Common" Version="12.2.0" />
+        <PackageReference Include="Jellyfin.Controller" Version="12.2.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
         <PackageReference Include="Microsoft.Playwright" Version="1.48.0" />
         <PackageReference Include="Testcontainers" Version="4.15.0" />
@@ -31,5 +31,4 @@
     <ItemGroup>
       <ProjectReference Include="..\..\src\Jellyfin.Plugin.Crunchyroll\Jellyfin.Plugin.Crunchyroll.csproj" />
     </ItemGroup>
-
 </Project>
