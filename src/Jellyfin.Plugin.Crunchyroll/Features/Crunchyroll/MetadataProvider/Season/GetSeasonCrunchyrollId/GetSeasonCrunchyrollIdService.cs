@@ -53,15 +53,15 @@ public partial class GetSeasonCrunchyrollIdService : IGetSeasonCrunchyrollIdServ
         return seasonIdResult.Value;
     }
     
-    private async Task<Result<CrunchyrollId?>> GetSeasonIdByName(CrunchyrollId seriesId, string folderName, 
+    private async Task<Result<CrunchyrollId?>> GetSeasonIdByName(CrunchyrollId seriesId, string? folderName, 
         CultureInfo language, CancellationToken cancellationToken)
     {
-        var title = folderName;
-        
-        if (SeasonFolderNameHasOnlyNumberRegex().IsMatch(folderName))
+        if (string.IsNullOrWhiteSpace(folderName) || SeasonFolderNameHasOnlyNumberRegex().IsMatch(folderName))
         {
             return Result.Ok<CrunchyrollId?>(null);
         }
+
+        var title = folderName;
 
         if (HasSeasonANameAfterSeasonNumberRegex().IsMatch(title))
         {

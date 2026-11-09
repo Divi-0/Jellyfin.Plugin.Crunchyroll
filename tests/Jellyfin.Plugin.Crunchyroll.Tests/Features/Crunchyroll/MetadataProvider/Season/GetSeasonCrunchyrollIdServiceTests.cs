@@ -97,6 +97,42 @@ public class GetSeasonCrunchyrollIdServiceTests
             .GetSeasonIdByNumberAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], season.IndexNumber!.Value, Arg.Any<CultureInfo>(),
                 Arg.Any<CancellationToken>());
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task ReturnsCrunchyrollId_WhenFolderNameIsNullOrEmpty_GivenVirtualSeasonWithIndexNumber(string? folderName)
+    {
+        //Arrange
+        var series = SeriesFaker.GenerateWithTitleId();
+        var season = SeasonFaker.Generate(series);
+        var crunchyrollSeasonId = CrunchyrollIdFaker.Generate();
+
+        _repository
+            .GetSeasonIdByNumberAsync(Arg.Any<CrunchyrollId>(), Arg.Any<int>(), Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>())
+            .Returns(crunchyrollSeasonId);
+
+        //Act
+        var crunchyrollIdResult = await _sut.GetSeasonCrunchyrollId(series.ProviderIds[CrunchyrollExternalKeys.SeriesId],
+            folderName!, season.IndexNumber, season.GetPreferredMetadataCultureInfo(),
+            CancellationToken.None);
+
+        //Assert
+        crunchyrollIdResult.IsSuccess.Should().BeTrue();
+        crunchyrollIdResult.Value.Should().Be(crunchyrollSeasonId);
+
+        await _repository
+            .DidNotReceive()
+            .GetSeasonIdByNameAsync(Arg.Any<CrunchyrollId>(), Arg.Any<string>(), Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>());
+
+        await _repository
+            .Received(1)
+            .GetSeasonIdByNumberAsync(series.ProviderIds[CrunchyrollExternalKeys.SeriesId], season.IndexNumber!.Value, Arg.Any<CultureInfo>(),
+                Arg.Any<CancellationToken>());
+    }
     
     [Theory]
     [InlineData("(2019)")]
