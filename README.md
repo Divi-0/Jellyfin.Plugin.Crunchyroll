@@ -143,6 +143,16 @@ Configuration values to set in the Jellyfin plugin configuration page:
 When running in the same docker network, docker container names can be used, if not host.docker.internal can be an option as domain/hostname
 Without docker compose: FlareSolverrUrl: http://localhost:8191/v1, FlareSolverrUrl: host.docker.internal:8080
 
+#### Running Without Docker (Native Setup)
+
+If you run Jellyfin natively on Windows or Linux without Docker, you can also run both dependencies natively:
+
+1. **FlareSolverr**: Download the latest release for your OS from [FlareSolverr Releases](https://github.com/FlareSolverr/FlareSolverr/releases) and start the binary (listens on `http://localhost:8191` by default).
+2. **flaresolverr-mitm-proxy**: Clone [Zelak312/flaresolverr-mitm-proxy](https://github.com/Zelak312/flaresolverr-mitm-proxy), install `mitmproxy` using Python (`pip install mitmproxy`), and start the proxy with `mitmdump -s mitm.py -p 8080` (on Windows, avoid installing `mitmproxy_linux` from `requirements.txt` and install `mitmproxy` directly).
+3. In the plugin configuration page, set:
+   - `FlareSolverrUrl`: `http://localhost:8191/v1`
+   - `FlareSolverrMitmProxyUrl`: `http://localhost:8080`
+
 After configuring those values in `Plugins → My Plugins → Crunchyroll → Settings` press Save, test the connection and run a scan.
 
 ---
