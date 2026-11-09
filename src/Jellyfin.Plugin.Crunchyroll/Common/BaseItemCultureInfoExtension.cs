@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
@@ -8,11 +9,21 @@ public static class BaseItemCultureInfoExtension
 {
     public static CultureInfo GetPreferredMetadataCultureInfo(this BaseItem item)
     {
-        return new CultureInfo($"{item.GetPreferredMetadataLanguage()}-{item.GetPreferredMetadataCountryCode()}");
+        return BuildCultureInfo(item.GetPreferredMetadataLanguage(), item.GetPreferredMetadataCountryCode());
     }
     
     public static CultureInfo GetPreferredMetadataCultureInfo(this ItemLookupInfo info)
     {
-        return new CultureInfo($"{info.MetadataLanguage}-{info.MetadataCountryCode}");
+        return BuildCultureInfo(info.MetadataLanguage, info.MetadataCountryCode);
+    }
+
+    private static CultureInfo BuildCultureInfo(string language, string countryCode)
+    {
+        if (language.Contains('-', StringComparison.Ordinal))
+        {
+            return new CultureInfo(language);
+        }
+
+        return new CultureInfo($"{language}-{countryCode}");
     }
 }
