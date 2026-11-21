@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Crunchyroll.Common;
+using Jellyfin.Plugin.Crunchyroll.Configuration;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,20 +20,23 @@ public class CrunchyrollMovieReviewsProvider : ICustomMetadataProvider<MediaBrow
         _logger = logger;
     }
     
-    public async Task<ItemUpdateType> FetchAsync(MediaBrowser.Controller.Entities.Movies.Movie item, MetadataRefreshOptions options, CancellationToken cancellationToken)
+    public Task<ItemUpdateType> FetchAsync(MediaBrowser.Controller.Entities.Movies.Movie item, MetadataRefreshOptions options, CancellationToken cancellationToken)
     {
         try
         {
-            var serviceScopeFactory =
-                CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
-            using var scope = serviceScopeFactory.CreateScope();
-            var getMetadataService = scope.ServiceProvider.GetRequiredService<ICrunchyrollMovieReviewsService>();
-            return await getMetadataService.ScrapReviewsAsync(item, cancellationToken);
+            var serviceProvider = CrunchyrollPlugin.Instance!.ServiceProvider;
+            var config = serviceProvider.GetRequiredService<PluginConfiguration>();
+            var queue = serviceProvider.GetRequiredService<WaybackBackgroundQueue>();
+            queue.EnqueueIfEligible(
+                config.IsFeatureReviewsEnabled,
+                item.PremiereDate,
+                (sp, ct) => sp.GetRequiredService<ICrunchyrollMovieReviewsService>().ScrapReviewsAsync(item, ct));
         }
         catch (Exception e)
         {
             _logger.LogError(e, "unknown error");
-            return ItemUpdateType.None;
         }
+
+        return Task.FromResult(ItemUpdateType.None);
     }
 }

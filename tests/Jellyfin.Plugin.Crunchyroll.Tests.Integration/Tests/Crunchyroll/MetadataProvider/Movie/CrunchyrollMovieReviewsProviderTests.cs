@@ -58,6 +58,9 @@ public class CrunchyrollMovieReviewsProviderTests
         var itemUpdateType = await _provider.FetchAsync(movie, 
             new MetadataRefreshOptions(Substitute.For<IDirectoryService>()), CancellationToken.None);
 
+        var queue = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<Jellyfin.Plugin.Crunchyroll.Common.WaybackBackgroundQueue>();
+        await queue.WaitForIdleAsync();
+
         //Assert
         itemUpdateType.Should().Be(ItemUpdateType.None);
         

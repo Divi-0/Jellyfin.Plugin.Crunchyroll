@@ -82,20 +82,26 @@ public class HtmlReviewsExtractor : IHtmlReviewsExtractor
                 continue;
             }
             
-            var imageUrl = reviewElement.SelectSingleNode(".//img")?.GetAttributeValue("src", string.Empty);
+            var imageUrl = reviewElement.SelectSingleNode(".//img")?.GetAttributeValue("src", string.Empty) ?? string.Empty;
             var username = reviewElement.SelectSingleNode(".//h5")?.GetDirectInnerText();
-            var title = reviewElement.SelectSingleNode(".//h3")?.GetDirectInnerText();
+            var title = reviewElement.SelectSingleNode(".//h3")?.GetDirectInnerText() ?? string.Empty;
             var body = reviewElement.SelectSingleNode(".//p")?.GetDirectInnerText();
+            if (string.IsNullOrWhiteSpace(username) || body is null)
+            {
+                continue;
+            }
         
-            var createdAtString = reviewElement.SelectSingleNode(".//div[contains(@class, 'review__meta')]")
-                .ChildNodes[2].GetDirectInnerText();
+            var metaNode = reviewElement.SelectSingleNode(".//div[contains(@class, 'review__meta')]");
+            var createdAtString = metaNode is { ChildNodes.Count: > 2 }
+                ? metaNode.ChildNodes[2].GetDirectInnerText()
+                : string.Empty;
         
             var starRatingParentElement = reviewElement.SelectSingleNode(".//div[contains(@class, 'star-rating-controls')]");
-            var svgs = starRatingParentElement.SelectNodes(".//svg");
-            var autorRating = svgs.Count(x => x.SelectSingleNode(".//path").GetAttributeValue("d", string.Empty) == FullStarSvg);
+            var svgs = starRatingParentElement?.SelectNodes(".//svg");
+            var autorRating = svgs?.Count(x => x.SelectSingleNode(".//path")?.GetAttributeValue("d", string.Empty) == FullStarSvg) ?? 0;
 
             var votingSectionElement = reviewElement.SelectSingleNode(".//div[contains(@class, 'review-votings__votes-section')]");
-            var votingContent = votingSectionElement.SelectSingleNode(".//span").GetDirectInnerText();
+            var votingContent = votingSectionElement?.SelectSingleNode(".//span")?.GetDirectInnerText() ?? string.Empty;
 
             var createdAt = TryParseDate(createdAtString, language);
             
@@ -103,12 +109,12 @@ public class HtmlReviewsExtractor : IHtmlReviewsExtractor
             {
                 Author = new ReviewItemAuthor()
                 {
-                    Username = username!,
-                    AvatarUri = imageUrl!,
+                    Username = username,
+                    AvatarUri = imageUrl,
                 },
                 AuthorRating = autorRating,
-                Title = title!,
-                Body = body!,
+                Title = title,
+                Body = body,
                 Rating = votingContent,
                 CreatedAt = createdAt
             };

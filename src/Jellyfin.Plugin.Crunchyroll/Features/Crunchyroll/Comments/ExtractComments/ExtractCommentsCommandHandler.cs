@@ -132,6 +132,7 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
     {
         var parallelOptions = new ParallelOptions
         {
+            MaxDegreeOfParallelism = 2,
             CancellationToken = cancellationToken
         };
         

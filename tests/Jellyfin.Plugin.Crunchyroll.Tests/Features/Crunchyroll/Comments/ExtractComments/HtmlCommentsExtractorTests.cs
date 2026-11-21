@@ -109,6 +109,8 @@ public class HtmlCommentsExtractorTests
     [InlineData("71k", 71000, "en-US")]
     [InlineData("5k+", 5000, "en-US")]
     [InlineData("13.4k", 13400, "en-US")]
+    [InlineData("curtir", 0, "pt-BR")]
+    [InlineData("1,2 mil", 1200, "pt-BR")]
     public async Task LikesWithKAreTranslatedToThousand_WhenSuccessful_GivenValidUrl(string likesAsString, 
         int likesAsNumber, string language)
     {

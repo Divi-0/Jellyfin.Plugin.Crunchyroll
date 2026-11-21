@@ -147,6 +147,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
     {
         var parallelOptions = new ParallelOptions
         {
+            MaxDegreeOfParallelism = 2,
             CancellationToken = cancellationToken
         };
 

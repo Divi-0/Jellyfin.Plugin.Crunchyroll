@@ -70,6 +70,11 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
         var comments = new List<CommentItem>();
 
         var commentElements = commentsParentElement.SelectNodes(".//div[contains(@class, 'comment--')]");
+        if (commentElements is null)
+        {
+            return comments;
+        }
+
         foreach (var commentElement in commentElements)
         {
             var spoilerElement = commentElement.SelectSingleNode(".//div[contains(@class, 'comment-spoiler')]");
@@ -79,12 +84,13 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
                 continue;
             }
             
-            var imageUrl = commentElement.SelectSingleNode(".//img")!.GetAttributeValue("src", string.Empty);
-            var username = commentElement.SelectSingleNode(".//h5")!.GetDirectInnerText();
-            var body = commentElement.SelectSingleNode(".//p")!.GetDirectInnerText();
-
-            var createdAtString = commentElement.SelectSingleNode(".//div[contains(@class, 'comment__signature')]")
-                .ChildNodes[1].GetDirectInnerText();
+            var imageUrl = commentElement.SelectSingleNode(".//img")?.GetAttributeValue("src", string.Empty) ?? string.Empty;
+            var username = commentElement.SelectSingleNode(".//h5")?.GetDirectInnerText();
+            var body = commentElement.SelectSingleNode(".//p")?.GetDirectInnerText();
+            if (string.IsNullOrWhiteSpace(username) || body is null)
+            {
+                continue;
+            }
 
             var commentActionElement = commentElement.SelectSingleNode(".//ul[contains(@class, 'comment-actions--')]");
 
@@ -100,7 +106,7 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
             else
             {
                 likes = commentActionElement.SelectSingleNode(".//button[@data-t='comment-like-btn']")
-                    .GetDirectInnerText();
+                    ?.GetDirectInnerText() ?? string.Empty;
             }
 
             var item = new CommentItem()
@@ -108,7 +114,7 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
                 Author = username,
                 Message = body,
                 AvatarIconUri = imageUrl,
-                Likes = ConvertLikesToInt(likes, language),
+                Likes = ConvertLikesToInt(likes),
                 RepliesCount = 0
             };
 
@@ -118,37 +124,37 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
         return comments;
     }
 
-    private int ConvertLikesToInt(string likes, CultureInfo language)
+    private static int ConvertLikesToInt(string likes)
     {
-        if (int.TryParse(likes, out var result))
+        var trimmed = likes.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            return 0;
+        }
+
+        if (int.TryParse(trimmed, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
         {
             return result;
         }
-        
-        if (likes.Equals("like", StringComparison.OrdinalIgnoreCase))
-        {
-            return 0; //the like button contains the text "Like", when the comment has zero likes
-        }
-        
-        var match = NumberAndUnitRegex().Match(likes);
-        
+
+        var match = NumberAndUnitRegex().Match(trimmed);
         if (!match.Success)
         {
-            throw new NotImplementedException("likes value is not implemented");
+            return 0;
         }
-        
-        var number = match.Groups[1].Value;
+
+        var normalizedNumber = match.Groups[1].Value.Replace(',', '.');
         var unit = match.Groups[2].Value;
+        var multiplier = unit.Equals("k", StringComparison.OrdinalIgnoreCase)
+            || unit.Equals("mil", StringComparison.OrdinalIgnoreCase)
+            ? 1000m
+            : 1m;
 
-        if (!unit.Equals("k", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new NotImplementedException($"value '{likes}' can not be converted");
-        }
-
-        var decimalValue = Convert.ToDecimal(number, language);
-        return Convert.ToInt32(Math.Round(decimalValue * 1000));
+        return decimal.TryParse(normalizedNumber, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var decimalValue)
+            ? Convert.ToInt32(Math.Round(decimalValue * multiplier))
+            : 0;
     }
 
-    [GeneratedRegex("([0-9]*(?:\\.[0-9]*)?)(.)")]
+    [GeneratedRegex(@"([0-9]+(?:[.,][0-9]+)?)\s*(mil|k)?", RegexOptions.IgnoreCase)]
     private static partial Regex NumberAndUnitRegex();
 }
