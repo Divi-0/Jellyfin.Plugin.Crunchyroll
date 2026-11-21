@@ -240,6 +240,23 @@ public class FlareSolverrMessageHandlerTests
         //Assert
         await action.Should().ThrowAsync<ArgumentException>();
     }
+
+    [Fact]
+    public async Task GivenRequest_WhenFlareSolverrReturnsErrorWithoutSolution_ThenReturnsErrorResponseWithoutThrowing()
+    {
+        //Arrange
+        var request = new HttpRequestMessage(HttpMethod.Get, _faker.Internet.UrlWithPath());
+        _receiver.RawResponse = """{"status":"error","message":"Challenge not solved"}""";
+
+        //Act
+        var response = await _sut.SendWrapperAsync(request, CancellationToken.None);
+
+        //Assert
+        response.IsSuccessStatusCode.Should().BeFalse();
+        response.StatusCode.Should().Be(HttpStatusCode.BadGateway);
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().Be("Challenge not solved");
+    }
 }
 
 public sealed class FlareSolverrMessageHandlerTestWrapper : FlareSolverrMessageHandler
@@ -260,11 +277,22 @@ public sealed class ReceiverMessageHandler : DelegatingHandler
     public HttpRequestMessage? FlareSolverrRequest { get; private set; }
     
     public string Response { get; set; } = "{}";
+    public string? RawResponse { get; set; }
     
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         CallCount++;
         FlareSolverrRequest = request;
+
+        if (RawResponse is not null)
+        {
+            return Task.FromResult(new HttpResponseMessage()
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(RawResponse, System.Text.Encoding.UTF8, "application/json")
+            });
+        }
+
         return Task.FromResult(new HttpResponseMessage()
         {
             StatusCode = HttpStatusCode.OK,

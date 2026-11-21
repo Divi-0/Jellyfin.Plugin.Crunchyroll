@@ -114,4 +114,47 @@ public class LoginServiceTests
             .DidNotReceive()
             .SetAsync(Arg.Any<string>(), Arg.Any<TimeSpan?>());
     }
+
+    [Fact]
+    public async Task CallsClientOnlyOnce_WhenCalledConcurrently_GivenNoCachedSession()
+    {
+        //Arrange
+        string? cachedToken = null;
+        _sessionRepositoryMock
+            .GetAsync(Arg.Any<CancellationToken>())
+            .Returns(_ => new ValueTask<string?>(cachedToken));
+
+        var authResponse = new CrunchyrollAuthResponse
+        {
+            AccessToken = "token",
+            ExpiresIn = 3600,
+            TokenType = "Bearer",
+            Scope = "*",
+            Country = "BR"
+        };
+
+        _crunchyrollClientMock
+            .LoginAnonymousAsync(Arg.Any<CancellationToken>())
+            .Returns(async _ =>
+            {
+                await Task.Delay(50);
+                return Result.Ok(authResponse);
+            });
+
+        _sessionRepositoryMock
+            .SetAsync(Arg.Any<string>(), Arg.Any<TimeSpan?>(), Arg.Any<CancellationToken>())
+            .Returns(ci =>
+            {
+                cachedToken = ci.ArgAt<string>(0);
+                return ValueTask.CompletedTask;
+            });
+
+        //Act
+        var results = await Task.WhenAll(
+            Enumerable.Range(0, 5).Select(_ => _sut.LoginAnonymouslyAsync(CancellationToken.None).AsTask()));
+
+        //Assert
+        results.Should().AllSatisfy(r => r.IsSuccess.Should().BeTrue());
+        await _crunchyrollClientMock.Received(1).LoginAnonymousAsync(Arg.Any<CancellationToken>());
+    }
 }

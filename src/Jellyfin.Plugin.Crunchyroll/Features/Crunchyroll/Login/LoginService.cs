@@ -9,6 +9,7 @@ namespace Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Login;
 
 public class LoginService : ILoginService
 {
+    private static readonly SemaphoreSlim LoginLock = new(1, 1);
     private readonly ICrunchyrollLoginClient _crunchyrollClient;
     private readonly ILogger<LoginService> _logger;
     private readonly ICrunchyrollSessionRepository _crunchyrollSessionRepository;
@@ -23,25 +24,33 @@ public class LoginService : ILoginService
     
     public async ValueTask<Result> LoginAnonymouslyAsync(CancellationToken cancellationToken)
     {
-        var currentSession = await _crunchyrollSessionRepository.GetAsync(cancellationToken);
-
-        if (!string.IsNullOrWhiteSpace(currentSession))
+        await LoginLock.WaitAsync(cancellationToken);
+        try
         {
+            var currentSession = await _crunchyrollSessionRepository.GetAsync(cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(currentSession))
+            {
+                return Result.Ok();
+            }
+
+            var loginAnonymousResponse = await _crunchyrollClient.LoginAnonymousAsync(cancellationToken);
+
+            if (loginAnonymousResponse.IsFailed)
+            {
+                return Result.Fail(loginAnonymousResponse.Errors);
+            }
+
+            await _crunchyrollSessionRepository.SetAsync(loginAnonymousResponse.Value.AccessToken,
+                TimeSpan.FromSeconds(loginAnonymousResponse.Value.ExpiresIn), cancellationToken);
+
+            _logger.LogInformation("Anonymous Crunchyroll login was successful");
+
             return Result.Ok();
         }
-        
-        var loginAnonymousResponse = await _crunchyrollClient.LoginAnonymousAsync(cancellationToken);
-
-        if (loginAnonymousResponse.IsFailed)
+        finally
         {
-            return Result.Fail(loginAnonymousResponse.Errors);
+            LoginLock.Release();
         }
-
-        await _crunchyrollSessionRepository.SetAsync(loginAnonymousResponse.Value.AccessToken,
-            TimeSpan.FromSeconds(loginAnonymousResponse.Value.ExpiresIn), cancellationToken);
-
-        _logger.LogInformation("Anonymous Crunchyroll login was successful");
-
-        return Result.Ok();
     }
 }

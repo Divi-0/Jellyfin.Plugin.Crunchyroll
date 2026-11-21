@@ -26,7 +26,8 @@ public class CrunchyrollPlugin : MediaBrowser.Common.Plugins.BasePlugin<PluginCo
     private readonly Action<IServiceCollection>? _serviceCollectionOptions;
 
     public override string Name => "Crunchyroll";
-    public override Guid Id => Guid.Parse("c6f8461a-9a6f-4c65-8bb9-825866cabc91");
+    public static readonly Guid PluginId = Guid.Parse("c6f8461a-9a6f-4c65-8bb9-825866cabc91");
+    public override Guid Id => PluginId;
     public IServiceProvider ServiceProvider { get; private set; } = null!;
     public static CrunchyrollPlugin? Instance { get; private set; }
     
@@ -41,7 +42,6 @@ public class CrunchyrollPlugin : MediaBrowser.Common.Plugins.BasePlugin<PluginCo
 
         PluginDataPath.Initialize(applicationPaths);
         BuildServiceCollection(loggerFactory);
-        InjectClientSideScriptIntoIndexFile(applicationPaths);
 
         RunMigrations();
         
@@ -76,58 +76,6 @@ public class CrunchyrollPlugin : MediaBrowser.Common.Plugins.BasePlugin<PluginCo
         _serviceCollectionOptions?.Invoke(serviceCollection);
 
         ServiceProvider = serviceCollection.BuildServiceProvider();
-    }
-
-    private void InjectClientSideScriptIntoIndexFile(IApplicationPaths applicationPaths)
-    {
-        const string scriptHtmlElement = $"<script src=\"/{Routes.Root}/Script\"></script>";
-        
-        var indexFilePath = Path.Combine(applicationPaths.WebPath, "index.html");
-        string indexFileContent;
-
-        try
-        {
-            indexFileContent = File.ReadAllText(indexFilePath);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Could not read index.html");
-            return;
-        }
-        
-        if (indexFileContent.Contains(scriptHtmlElement))
-        {
-            return;
-        }
-
-        var lastIndexOfBodyContent = indexFileContent.LastIndexOf("</body>", StringComparison.Ordinal);
-
-        if (lastIndexOfBodyContent <= 0)
-        {
-            _logger.LogError("end of body tag was not found in index.html");
-            return;
-        }
-
-        string newIndexContent;
-        try
-        {
-            newIndexContent = indexFileContent.Insert(lastIndexOfBodyContent, scriptHtmlElement);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Could not inject script into index.html");
-            return;
-        }
-        
-        try
-        {
-            File.WriteAllText(indexFilePath, newIndexContent);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Writing new index.html file failed");
-            return;
-        }
     }
 
     private void RunMigrations()
