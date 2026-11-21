@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Encodings.Web;
@@ -91,8 +92,19 @@ public class FlareSolverrMessageHandler : DelegatingHandler
         var flareSolverrResponseContent = await flareSolverrResponse.Content.ReadAsStringAsync(cancellationToken);
         var flareSolverrResponseDto = JsonSerializer.Deserialize<FlareSolverrResponse>(flareSolverrResponseContent, JsonSerializerOptions);
 
+        if (!flareSolverrResponse.IsSuccessStatusCode || flareSolverrResponseDto?.Solution is null)
+        {
+            if (response.IsSuccessStatusCode)
+            {
+                response.StatusCode = HttpStatusCode.BadGateway;
+            }
+
+            response.Content = new StringContent(flareSolverrResponseDto?.Message ?? flareSolverrResponseContent);
+            return response;
+        }
+
         var doc = new HtmlDocument();
-        doc.LoadHtml(flareSolverrResponseDto!.Solution.Response);
+        doc.LoadHtml(flareSolverrResponseDto.Solution.Response);
 
         // preNode can be null
         var preNode = doc.DocumentNode.SelectSingleNode("//pre");
