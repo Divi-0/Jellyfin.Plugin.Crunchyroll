@@ -88,7 +88,7 @@ public class IndexHtmlInjectionHostedService : IHostedService
                 return false;
             }
 
-            var pluginId = CrunchyrollPlugin.Instance?.Id ?? Guid.Parse("c6f8461a-9a6f-4c65-8bb9-825866cabc91");
+            var pluginId = CrunchyrollPlugin.PluginId;
             var payload = new JObject
             {
                 ["id"] = pluginId,
