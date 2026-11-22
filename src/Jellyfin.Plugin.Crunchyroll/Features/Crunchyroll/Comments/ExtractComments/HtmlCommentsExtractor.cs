@@ -144,17 +144,11 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
         }
 
         var normalizedNumber = match.Groups[1].Value.Replace(',', '.');
-        var unit = match.Groups[2].Value;
-        var multiplier = unit.Equals("k", StringComparison.OrdinalIgnoreCase)
-            || unit.Equals("mil", StringComparison.OrdinalIgnoreCase)
-            ? 1000m
-            : 1m;
-
         return decimal.TryParse(normalizedNumber, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var decimalValue)
-            ? Convert.ToInt32(Math.Round(decimalValue * multiplier))
+            ? Convert.ToInt32(Math.Round(decimalValue * 1000m))
             : 0;
     }
 
-    [GeneratedRegex(@"([0-9]+(?:[.,][0-9]+)?)\s*(mil|k)?", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"([0-9]+(?:[.,][0-9]+)?)\s*(mil|k)", RegexOptions.IgnoreCase)]
     private static partial Regex NumberAndUnitRegex();
 }
