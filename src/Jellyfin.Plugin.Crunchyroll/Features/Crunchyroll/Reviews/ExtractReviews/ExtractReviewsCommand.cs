@@ -14,6 +14,7 @@ using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.Entities;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Reviews.GetReviews;
+using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
 using Mediator;
 using Microsoft.Extensions.Logging;
@@ -38,8 +39,6 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
     private readonly IGetReviewsRepository _getReviewsRepository;
     private readonly ILogger<ExtractReviewsCommandHandler> _logger;
     private readonly IAddAvatarService _addAvatarService;
-
-    private static readonly DateTime DateWhenReviewsWereDeleted = new DateTime(2024, 07, 10);
     
     public ExtractReviewsCommandHandler(IWaybackMachineClient waybackMachineClient, PluginConfiguration config, 
         IHtmlReviewsExtractor htmlReviewsExtractor, IAddReviewsRepistory addReviewsRepistory, IGetReviewsRepository getReviewsRepository,
@@ -96,7 +95,7 @@ public class ExtractReviewsCommandHandler : IRequestHandler<ExtractReviewsComman
                 slugTitle)
             .Replace('\\', '/');
         
-        var searchResult = await _waybackMachineClient.SearchAsync(HttpUtility.UrlEncode(crunchyrollUrl), DateWhenReviewsWereDeleted, cancellationToken);
+        var searchResult = await _waybackMachineClient.SearchAsync(HttpUtility.UrlEncode(crunchyrollUrl), WaybackMachineConstants.CrunchyrollCommentsDeletedDate, cancellationToken);
 
         if (searchResult.IsFailed)
         {

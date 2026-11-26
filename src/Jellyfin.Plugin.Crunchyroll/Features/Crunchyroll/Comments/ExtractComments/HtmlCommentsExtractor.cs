@@ -144,11 +144,14 @@ public partial class HtmlCommentsExtractor : IHtmlCommentsExtractor
         }
 
         var normalizedNumber = match.Groups[1].Value.Replace(',', '.');
+        var multiplier = match.Groups[2].Value.Equals("m", StringComparison.OrdinalIgnoreCase)
+            ? 1_000_000m
+            : 1_000m;
         return decimal.TryParse(normalizedNumber, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var decimalValue)
-            ? Convert.ToInt32(Math.Round(decimalValue * 1000m))
+            ? Convert.ToInt32(Math.Round(decimalValue * multiplier))
             : 0;
     }
 
-    [GeneratedRegex(@"([0-9]+(?:[.,][0-9]+)?)\s*(mil|k)", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"([0-9]+(?:[.,][0-9]+)?)\s*(mil|k|m)", RegexOptions.IgnoreCase)]
     private static partial Regex NumberAndUnitRegex();
 }
