@@ -109,6 +109,10 @@ public class HtmlCommentsExtractorTests
     [InlineData("71k", 71000, "en-US")]
     [InlineData("5k+", 5000, "en-US")]
     [InlineData("13.4k", 13400, "en-US")]
+    [InlineData("curtir", 0, "pt-BR")]
+    [InlineData("1,2 mil", 1200, "pt-BR")]
+    [InlineData("5M", 5000000, "en-US")]
+    [InlineData("5xyz", 0, "en-US")]
     public async Task LikesWithKAreTranslatedToThousand_WhenSuccessful_GivenValidUrl(string likesAsString, 
         int likesAsNumber, string language)
     {
@@ -172,5 +176,37 @@ public class HtmlCommentsExtractorTests
         });
         
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(2);
+    }
+
+    [Fact]
+    public async Task SkipsCommentsWithoutUsernameOrBody_AndDefaultsMissingOptionalNodes_GivenPartialHtml()
+    {
+        //Arrange
+        var url = new Faker().Internet.Url();
+        const string html = """
+            <html><body>
+            <div class="erc-comments">
+                <div class="comment--item"><p>missing username</p></div>
+                <div class="comment--item"><h5>noBodyUser</h5></div>
+                <div class="comment--item"><h5>user1</h5><p>msg1</p></div>
+            </div>
+            </body></html>
+            """;
+
+        _mockHttpMessageHandler
+            .When(url)
+            .Respond("text/html", html);
+
+        //Act
+        var result = await _sut.GetCommentsAsync(url, new CultureInfo("pt-BR"), CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().ContainSingle();
+        var comment = result.Value[0];
+        comment.Author.Should().Be("user1");
+        comment.Message.Should().Be("msg1");
+        comment.AvatarIconUri.Should().BeEmpty();
+        comment.Likes.Should().Be(0);
     }
 }

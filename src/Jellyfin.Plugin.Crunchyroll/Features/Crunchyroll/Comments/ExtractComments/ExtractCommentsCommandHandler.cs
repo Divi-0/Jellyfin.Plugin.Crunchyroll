@@ -14,6 +14,7 @@ using Jellyfin.Plugin.Crunchyroll.Contracts.Comments;
 using Jellyfin.Plugin.Crunchyroll.Domain.Constants;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Avatar.AddAvatar;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.Comments.Entites;
+using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client;
 using Mediator;
 using Microsoft.Extensions.Logging;
@@ -30,8 +31,6 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
     private readonly IWaybackMachineClient _waybackMachineClient;
     private readonly IAddAvatarService _addAvatarService;
     private readonly ILogger<ExtractCommentsCommandHandler> _logger;
-
-    private static readonly DateTime DateWhenCommentsWereDeleted = new DateTime(2024, 07, 10);
 
     public ExtractCommentsCommandHandler(IHtmlCommentsExtractor extractor, IExtractCommentsRepository repository,
         PluginConfiguration config, IWaybackMachineClient waybackMachineClient, IAddAvatarService addAvatarService,
@@ -82,7 +81,7 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
                 slugTitleResult.Value)
             .Replace('\\', '/');
         
-        var searchResult = await _waybackMachineClient.SearchAsync(HttpUtility.UrlEncode(crunchyrollUrl), DateWhenCommentsWereDeleted, cancellationToken);
+        var searchResult = await _waybackMachineClient.SearchAsync(HttpUtility.UrlEncode(crunchyrollUrl), WaybackMachineConstants.CrunchyrollCommentsDeletedDate, cancellationToken);
 
         if (searchResult.IsFailed)
         {
@@ -132,6 +131,7 @@ public class ExtractCommentsCommandHandler : IRequestHandler<ExtractCommentsComm
     {
         var parallelOptions = new ParallelOptions
         {
+            MaxDegreeOfParallelism = 2,
             CancellationToken = cancellationToken
         };
         

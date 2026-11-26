@@ -188,4 +188,39 @@ public class HtmlReviewsExtractorTests
 
         _mockHttpMessageHandler.GetMatchCount(mockedRequest).Should().Be(2);
     }
+
+    [Fact]
+    public async Task SkipsReviewsWithoutUsernameOrBody_AndDefaultsMissingOptionalNodes_GivenPartialHtml()
+    {
+        //Arrange
+        var url = _fixture.Create<Uri>().AbsoluteUri;
+        const string html = """
+            <html><body>
+            <div class="erc-reviews">
+                <div class="review"><p>missing username</p></div>
+                <div class="review"><h5>noBodyUser</h5></div>
+                <div class="review"><h5>validUser</h5><p>validBody</p></div>
+            </div>
+            </body></html>
+            """;
+
+        _mockHttpMessageHandler
+            .When(url)
+            .Respond("text/html", html);
+
+        //Act
+        var result = await _sut.GetReviewsAsync(url, new CultureInfo("pt-BR"), CancellationToken.None);
+
+        //Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().ContainSingle();
+        var review = result.Value[0];
+        review.Author.Username.Should().Be("validUser");
+        review.Author.AvatarUri.Should().BeEmpty();
+        review.Body.Should().Be("validBody");
+        review.Title.Should().BeEmpty();
+        review.AuthorRating.Should().Be(0);
+        review.Rating.Value.Should().BeEmpty();
+        review.CreatedAt.Should().Be(default);
+    }
 }

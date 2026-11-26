@@ -1,12 +1,11 @@
 using Jellyfin.Plugin.Crunchyroll.Configuration;
 using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll;
-using Jellyfin.Plugin.Crunchyroll.Features.Crunchyroll.MetadataProvider.Series.Reviews;
+using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine;
 using Jellyfin.Plugin.Crunchyroll.Features.WaybackMachine.Client.Dto;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared;
 using Jellyfin.Plugin.Crunchyroll.Tests.Integration.Shared.MockData;
 using Jellyfin.Plugin.Crunchyroll.Tests.Shared.Faker;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Providers;
+using MediaBrowser.Controller.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using WireMock.Client;
@@ -18,14 +17,14 @@ public class CrunchyrollSeriesReviewsProviderTests
 {
     private readonly WireMockFixture _wireMockFixture;
     private readonly PluginConfiguration _config;
-    private readonly CrunchyrollSeriesReviewsProvider _provider;
+    private readonly ExtractWaybackReviewsAndCommentsTask _task;
     private readonly IWireMockAdminApi _wireMockAdminApi;
     
     public CrunchyrollSeriesReviewsProviderTests(WireMockFixture wireMockFixture)
     {
         _wireMockFixture = wireMockFixture;
         _config = CrunchyrollPlugin.Instance!.ServiceProvider.GetRequiredService<PluginConfiguration>();
-        _provider = PluginWebApplicationFactory.Instance.Services.GetRequiredService<CrunchyrollSeriesReviewsProvider>();
+        _task = PluginWebApplicationFactory.Instance.Services.GetRequiredService<ExtractWaybackReviewsAndCommentsTask>();
         _wireMockAdminApi = wireMockFixture.AdminApiClient;
 
         _config.IsFeatureReviewsEnabled = true;
@@ -36,7 +35,12 @@ public class CrunchyrollSeriesReviewsProviderTests
     {
         //Arrange
         var series = SeriesFaker.GenerateWithTitleId();
+        series.PremiereDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var seriesId = series.ProviderIds[CrunchyrollExternalKeys.SeriesId];
+
+        PluginWebApplicationFactory.LibraryManagerMock
+            .GetItemList(Arg.Any<InternalItemsQuery>())
+            .Returns([series]);
 
         var titleMetadata = CrunchyrollTitleMetadataFaker.Generate();
         titleMetadata = titleMetadata with { CrunchyrollId = seriesId };
@@ -54,12 +58,9 @@ public class CrunchyrollSeriesReviewsProviderTests
         await _wireMockAdminApi.MockWaybackMachineArchivedUrlWithCrunchyrollReviewsHtml(snapshotUrl, _config.ArchiveOrgUrl);
 
         //Act
-        var itemUpdateType = await _provider.FetchAsync(series, 
-            new MetadataRefreshOptions(Substitute.For<IDirectoryService>()), CancellationToken.None);
+        await _task.ExecuteAsync(new Progress<double>(), CancellationToken.None);
 
         //Assert
-        itemUpdateType.Should().Be(ItemUpdateType.None);
-        
         DatabaseMockHelper.ShouldHaveReviews(seriesId);
     }
     
